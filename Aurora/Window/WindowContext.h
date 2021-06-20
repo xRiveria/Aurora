@@ -1,25 +1,33 @@
 #pragma once
 #include <unordered_map>
+#include "ISubsystem.h"
 #include "WindowUtilities.h"
 
 /* Personal Notes:
 
     - If we are to expand our engine to include a project selector (Unity Hub), perhaps an enum based map will make more sense?
-    - If so, for the window mapping, perhaps mapping each window to the above-mentioned enum based map would make more sense.
+    - The issue with this is that as our engine grows, the windows we create can easily outgrow the enum count. We will take a further look down the road regarding this. 
+      For now, we will assume that our map's 0 key is our render window.
+    - This class is to be kept as abstract as possible. This is to allow for future API swaps so as to not harm user code.
 */
-
-struct GLFWwindow;
 
 namespace Aurora
 {
-    class WindowContext
+    class WindowContext : public ISubsystem
     {
     public:
-        // Subsystem?
-        void Initialize();
-        GLFWwindow* Create(const WindowDescription& description);
+        WindowContext(EngineContext* engineContext);
+
+        virtual bool Initialize() override;
+        virtual void Shutdown() override;
+
+        void* Create(const WindowDescription& description);
+
+        void SetCurrentContext(int windowID);
+        void SetCurrentContext(void* window);
+        void* GetRenderWindow();
 
     private:
-        std::unordered_map<int8_t, GLFWwindow*> m_Windows;
+        std::unordered_map<uint8_t, void*> m_Windows;
     };
 }
