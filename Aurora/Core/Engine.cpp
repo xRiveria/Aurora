@@ -1,5 +1,6 @@
 #include "Aurora.h"
 #include "../Window/WindowContext.h"
+#include "../Time/Timer.h"
 #include "EngineContext.h"
 
 namespace Aurora
@@ -10,7 +11,7 @@ namespace Aurora
         m_EngineContext = std::make_shared<EngineContext>(this);
 
         // Register Subsystem
-        /// Our Time subsystem should be initialized first.
+        m_EngineContext->RegisterSubsystem<Timer>();
         m_EngineContext->RegisterSubsystem<WindowContext>();
 
         // Initialize Subsystem
@@ -26,8 +27,9 @@ namespace Aurora
 
     void Engine::Tick() const
     {
-        /// Retrieve time from Time subsystem.
-        float temporaryDeltaTime = 0.0f;
-        m_EngineContext->Tick(temporaryDeltaTime);
+        float deltaTime = m_EngineContext->GetSubsystem<Timer>()->GetDeltaTimeInSeconds();
+        // AURORA_INFO("Delta Time (Seconds): %f", deltaTime);
+
+        m_EngineContext->Tick(deltaTime);     
     }
 }
