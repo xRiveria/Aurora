@@ -1,10 +1,16 @@
-#include "Engine.h"
+#include "Aurora.h"
+#include "../Window/WindowContext.h"
 #include <iostream>
 
 namespace Aurora
 {
     Engine::Engine()
     {
-        std::cout << "Hello!";
+        // Test
+        WindowContext windowContext;
+        windowContext.Initialize();
+        windowContext.Create({ "Aurora", 1280, 720 });
+
+        AURORA_INFO("Initialized Engine.");
     }
 }
