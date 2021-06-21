@@ -11,6 +11,24 @@ namespace Aurora
         
     }
 
+    bool WindowContext::Initialize()
+    {
+        if (!glfwInit())
+        {
+            AURORA_ERROR("Failed to initialize window context subsystem.");
+            return false;
+        }
+
+        m_IsInitialized = true;
+        AURORA_INFO("Successfully initialized GLFW dependency.");
+
+        // Creates a window by default.
+        Create({ "Aurora Engine", 1280, 720 });
+        SetCurrentContext(0); // Index 0 is guarenteed to be our render window. Alternatively, use GetRenderWindow().
+
+        return true;
+    }
+
     void WindowContext::Shutdown()
     {
         for (uint8_t i = 0; i < m_Windows.size(); i++)
@@ -22,18 +40,6 @@ namespace Aurora
         m_Windows.clear();
         glfwTerminate();
         AURORA_INFO("Successfully shutdown GLFW dependency.");
-    }
-
-    bool WindowContext::Initialize()
-    {
-        if (!glfwInit())
-        {
-            AURORA_ERROR("Failed to initialize window context subsystem.");
-            return false;
-        }
-
-        AURORA_INFO("Successfully initialized GLFW dependency.");
-        return true;
     }
 
     void* WindowContext::Create(const WindowDescription& description)
@@ -66,16 +72,13 @@ namespace Aurora
 
     void WindowContext::SetCurrentContext(void* window)
     {
-        for (auto it = m_Windows.begin(); it != m_Windows.end(); it++)
+        if (WindowExistsInMapping(window))
         {
-            if (it->second == window)
-            {
-                glfwMakeContextCurrent(static_cast<GLFWwindow*>(window));
-                AURORA_INFO("Window context successfully set.");
-                return;
-            }
+            glfwMakeContextCurrent(static_cast<GLFWwindow*>(window));
+            AURORA_INFO("Window context successfully set.");
+            return;
         }
-
+        
         AURORA_WARNING("Requested window does not exist in the window context mapping. Did you somehow create the window through the API directly? This is not advisable but we will proceed anyway. Manually adding window to mapping.");
         m_Windows[++g_WindowCount] = window;
         glfwMakeContextCurrent(static_cast<GLFWwindow*>(window));
@@ -90,5 +93,18 @@ namespace Aurora
 
         AURORA_ERROR("Render window does not exist. This shouldn't be happening. Did you forget to create one?");
         return nullptr;
+    }
+
+    bool WindowContext::WindowExistsInMapping(void* window) const
+    {
+        for (auto it = m_Windows.begin(); it != m_Windows.end(); it++)
+        {
+            if (it->second == window)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

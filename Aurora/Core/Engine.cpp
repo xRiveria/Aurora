@@ -1,6 +1,7 @@
 #include "Aurora.h"
 #include "../Window/WindowContext.h"
 #include "../Time/Timer.h"
+#include "../Input/Input.h"
 #include "EngineContext.h"
 
 namespace Aurora
@@ -13,11 +14,10 @@ namespace Aurora
         // Register Subsystem
         m_EngineContext->RegisterSubsystem<Timer>();
         m_EngineContext->RegisterSubsystem<WindowContext>();
+        m_EngineContext->RegisterSubsystem<Input>();
 
         // Initialize Subsystem
         m_EngineContext->Initialize();
-        m_EngineContext->GetSubsystem<WindowContext>()->Create({ "Aurora Engine", 1280, 720 });
-        m_EngineContext->GetSubsystem<WindowContext>()->SetCurrentContext(0); // Index 0 is guarenteed to be our render window. Alternatively, use GetRenderWindow().
     }
 
     Engine::~Engine()
@@ -30,6 +30,12 @@ namespace Aurora
         float deltaTime = m_EngineContext->GetSubsystem<Timer>()->GetDeltaTimeInSeconds();
         // AURORA_INFO("Delta Time (Seconds): %f", deltaTime);
 
-        m_EngineContext->Tick(deltaTime);     
+        m_EngineContext->Tick(deltaTime);
+
+        // Shortcut example of a copy function.
+        if (m_EngineContext->GetSubsystem<Input>()->IsKeyPressed(AURORA_KEY_LEFT_CONTROL) && m_EngineContext->GetSubsystem<Input>()->IsKeyPressed(AURORA_KEY_C))
+        {
+            AURORA_INFO("Copied!");
+        }
     }
 }

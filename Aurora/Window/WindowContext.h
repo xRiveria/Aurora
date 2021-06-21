@@ -9,6 +9,8 @@
     - The issue with this is that as our engine grows, the windows we create can easily outgrow the enum count. We will take a further look down the road regarding this. 
       For now, we will assume that our map's 0 key is our render window.
     - This class is to be kept as abstract as possible. This is to allow for future API swaps so as to not harm user code.
+
+    - Store Window Width/Height?
 */
 
 namespace Aurora
@@ -25,9 +27,13 @@ namespace Aurora
 
         void SetCurrentContext(int windowID);
         void SetCurrentContext(void* window);
+        
+        bool WindowExistsInMapping(void* window) const;
+        bool IsInitialized() const { return m_IsInitialized; }
         void* GetRenderWindow();
 
     private:
         std::unordered_map<uint8_t, void*> m_Windows;
+        bool m_IsInitialized = false;
     };
 }
