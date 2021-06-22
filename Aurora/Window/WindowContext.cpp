@@ -1,6 +1,8 @@
 #include "Aurora.h"
 #include "WindowContext.h"
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32 // For the inclusion of native access handles.
+#include <GLFW/glfw3native.h>
 
 namespace Aurora
 {
@@ -82,6 +84,43 @@ namespace Aurora
         AURORA_WARNING("Requested window does not exist in the window context mapping. Did you somehow create the window through the API directly? This is not advisable but we will proceed anyway. Manually adding window to mapping.");
         m_Windows[++g_WindowCount] = window;
         glfwMakeContextCurrent(static_cast<GLFWwindow*>(window));
+    }
+
+    float WindowContext::GetWindowWidth(int windowID)
+    {
+        if (m_Windows.find(windowID) != m_Windows.end())
+        {
+            int width;
+            glfwGetWindowSize(static_cast<GLFWwindow*>(m_Windows[windowID]), &width, nullptr);
+            return static_cast<float>(width);
+        }
+
+        AURORA_ERROR("Requested window width could not be found. Does the window not exist in the mapping?");
+        return 0.0f;
+    }
+
+    float WindowContext::GetWindowHeight(int windowID)
+    {
+        if (m_Windows.find(windowID) != m_Windows.end())
+        {
+            int height;
+            glfwGetWindowSize(static_cast<GLFWwindow*>(m_Windows[windowID]), nullptr, &height);
+            return static_cast<float>(height);
+        }
+
+        AURORA_ERROR("Requested window height could not be found. Does the window not exist in the mapping?");
+        return 0.0f;
+    }
+
+    HWND WindowContext::GetWindowHWND(int windowID)
+    {
+        if (m_Windows.find(windowID) != m_Windows.end())
+        {
+            return glfwGetWin32Window(static_cast<GLFWwindow*>(m_Windows[windowID]));
+        }
+
+        AURORA_ERROR("Requested window HWND could not be found. Does the window not exist in the mapping?");
+        return nullptr;
     }
 
     void* WindowContext::GetRenderWindow()

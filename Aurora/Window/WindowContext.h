@@ -30,6 +30,11 @@ namespace Aurora
         
         bool WindowExistsInMapping(void* window) const;
         bool IsInitialized() const { return m_IsInitialized; }
+
+        float GetWindowWidth(int windowID);
+        float GetWindowHeight(int windowID);
+
+        HWND GetWindowHWND(int windowID);
         void* GetRenderWindow();
 
     private:

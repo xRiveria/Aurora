@@ -3,7 +3,7 @@
 
 /* Personal Notes:
 
-    The numbers line up with ASCII code. This means that we can convert the numbers to a char and we can print the character to the console.
+    The numbers line up with ASCII code. This means that we can convert the numbers to a char (just so a char cast) and we can print the character to the console.
     Refer to: https://www.glfw.org/docs/3.3/group__input.html.
 
 */

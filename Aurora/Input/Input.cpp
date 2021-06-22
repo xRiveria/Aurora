@@ -1,7 +1,7 @@
 #include "Aurora.h"
 #include "Input.h"
+#include "Future/KeyEvent.h"
 #include "../Window/WindowContext.h"
-#include "KeyEvent.h"
 #include <GLFW/glfw3.h>
 
 namespace Aurora
@@ -29,19 +29,6 @@ namespace Aurora
     void Input::Tick(float deltaTime)
     {
         glfwPollEvents();
-
-        PollMouseInput();
-        PollKeyInput();
-    }
-
-    void Input::PollMouseInput()
-    {
-
-    }
-
-    void Input::PollKeyInput()
-    {
-        
     }
 
     bool Input::SetQueryWindow(void* window)
@@ -49,27 +36,7 @@ namespace Aurora
         if (m_EngineContext->GetSubsystem<WindowContext>()->WindowExistsInMapping(window))
         {
             m_QueryWindow = window;
-
-            // This is where we setup all our callbacks. Should we abstract this into a different function?
-            glfwSetKeyCallback(static_cast<GLFWwindow*>(m_QueryWindow), [](GLFWwindow* window, int keyPressed, int scanCode, int action, int mods)
-            {
-                switch (action)
-                {
-                    case GLFW_PRESS:
-                    {
-                        KeyPressedEvent keyPressedEvent(keyPressed, 0);
-                        AURORA_INFO(keyPressedEvent.ToString());
-                        break;
-                    }
-
-                    case GLFW_REPEAT:
-                    {
-                        KeyPressedEvent keyPressedEvent(keyPressed, 1);
-                        AURORA_INFO(keyPressedEvent.ToString());
-                        break;
-                    }
-                }
-            });
+            // SetupInputCallbacks();
          
             AURORA_INFO("Successfully directed input querying to window.");
             return true;
@@ -89,5 +56,29 @@ namespace Aurora
     {
         int mouseState = glfwGetMouseButton(static_cast<GLFWwindow*>(m_QueryWindow), mouseCode);
         return mouseState == GLFW_PRESS;
+    }
+
+    // Example of an event based input system. This is where we setup all our callbacks that will ultimately throw input data into our custom data structures.
+    void Input::SetupInputCallbacks() const
+    {
+        glfwSetKeyCallback(static_cast<GLFWwindow*>(m_QueryWindow), [](GLFWwindow* window, int keyPressed, int scanCode, int action, int mods)
+        {
+            switch (action)
+            {
+                case GLFW_PRESS:
+                {
+                    KeyPressedEvent keyPressedEvent(keyPressed, 0);
+                    AURORA_INFO(keyPressedEvent.ToString());
+                    break;
+                }
+
+                case GLFW_REPEAT:
+                {
+                    KeyPressedEvent keyPressedEvent(keyPressed, 1);
+                    AURORA_INFO(keyPressedEvent.ToString());
+                    break;
+                }
+            }
+        });
     }
 }

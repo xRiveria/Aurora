@@ -1,12 +1,11 @@
 #pragma once
 #include <string>
 #include <sstream>
-#include <GLFW/glfw3.h>
-
-/// Temporary.
 
 namespace Aurora
 {
+    // Example of an event based input system. This is how we register input data into our engine's data structures.
+
     class KeyEvent
     {
     public:
@@ -28,7 +27,7 @@ namespace Aurora
         std::string ToString() const
         {
             std::stringstream ss;
-            ss << "Key Pressed Event: " << GetKeyCode() << " (" << GetRepeatCount() << " Repeats" << ")";
+            ss << "Key Pressed Event: " << (char)GetKeyCode() << " (" << GetRepeatCount() << " Repeats" << ")";
             return ss.str();
         }
 
