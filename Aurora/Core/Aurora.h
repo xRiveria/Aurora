@@ -7,6 +7,7 @@
 
 // Engine
 #include "Engine.h"
+#include "EngineContext.h"
 #include "../Log/Log.h"
 #include "../Input/InputUtilities.h"
 

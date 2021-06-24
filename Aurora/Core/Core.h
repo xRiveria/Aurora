@@ -8,3 +8,9 @@ if (!(##expression))               \
     AURORA_ERROR(#expression);     \
     AURORA_DEBUG_BREAK();          \
 }
+
+#define AURORA_GRAPHICS_DX11
+
+// Future Graphics APIs
+// #define AURORA_GRAPHICS_DX11
+// #define AURORA_GRAPHICS_DX11
