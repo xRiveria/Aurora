@@ -119,12 +119,12 @@ namespace Aurora
         AURORA_INFO("Completed querying of device features.");
     }
 
-    bool DX11_GraphicsDevice::CreateSwapChain(const SwapChainDescription* swapChainDescription, SwapChain* swapChain) const
+    bool DX11_GraphicsDevice::CreateSwapChain(const RHI_SwapChainDescription* swapChainDescription, RHI_SwapChain* swapChain) const
     {
-        auto internalState = std::static_pointer_cast<DX11SwapChainPackage>(swapChain->m_InternalState);
+        auto internalState = std::static_pointer_cast<DX11_SwapChainPackage>(swapChain->m_InternalState);
         if (swapChain->m_InternalState == nullptr)
         {
-            internalState = std::make_shared<DX11SwapChainPackage>();
+            internalState = std::make_shared<DX11_SwapChainPackage>();
         }
 
         swapChain->m_InternalState = internalState;
@@ -136,22 +136,22 @@ namespace Aurora
             DXGI_SWAP_CHAIN_DESC1 swapChainCreationInfo = {};
             swapChainCreationInfo.Width = swapChainDescription->m_Width;
             swapChainCreationInfo.Height = swapChainDescription->m_Height;
-            swapChainCreationInfo.Format = ConvertFormatToDX11Format(swapChainDescription->m_Format);
+            swapChainCreationInfo.Format = DX11_ConvertFormat(swapChainDescription->m_Format);
             swapChainCreationInfo.Stereo = false;
             swapChainCreationInfo.SampleDesc.Count = 1;
             swapChainCreationInfo.SampleDesc.Quality = 0;
             swapChainCreationInfo.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
             swapChainCreationInfo.BufferCount = swapChainDescription->m_BufferCount;
             swapChainCreationInfo.Flags = 0;
-            swapChainCreationInfo.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-            swapChainCreationInfo.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-            swapChainCreationInfo.Scaling = DXGI_SCALING_STRETCH;
+            swapChainCreationInfo.AlphaMode = DXGI_ALPHA_MODE_IGNORE;         // Ignore transparency behavior of the swap-chain backbuffer.
+            swapChainCreationInfo.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // How to handle pixels in surface after calling present. If flip discard, DXGI will discard the contents of the backbuffer after you call Present.
+            swapChainCreationInfo.Scaling = DXGI_SCALING_STRETCH;             // Resize behavior if the size of the back buffer is not equal to the target output.
 
             DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenCreationInfo = {};
             fullscreenCreationInfo.RefreshRate.Numerator = 60;
             fullscreenCreationInfo.RefreshRate.Denominator = 1;
-            fullscreenCreationInfo.Scaling = DXGI_MODE_SCALING_UNSPECIFIED; // Needs to be unspecified for correct full screen scaling.
-            fullscreenCreationInfo.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
+            fullscreenCreationInfo.Scaling = DXGI_MODE_SCALING_UNSPECIFIED; // If we know the native resolution of the display and want to make sure we do not initiate a mode change when transitioning to full screen, we must use Unspecified. Else, selecting the Centered or Stretched modes can result in a mode change
+            fullscreenCreationInfo.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE; // The method the rasterizer uses to create an image on the surface. If set to progressive, the image is created from the first scanline to the last without skipping.
             fullscreenCreationInfo.Windowed = !swapChainDescription->m_IsFullscreen;
 
             if (!BreakIfFailed(m_DXGIFactory->CreateSwapChainForHwnd(m_Device.Get(), m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHWND(0), &swapChainCreationInfo, &fullscreenCreationInfo, nullptr, &internalState->m_SwapChain)))
@@ -167,7 +167,7 @@ namespace Aurora
             internalState->m_BackBuffer.Reset();
             internalState->m_RenderTargetView.Reset();
 
-            if (!BreakIfFailed(internalState->m_SwapChain->ResizeBuffers(swapChainDescription->m_BufferCount, swapChainDescription->m_Width, swapChainDescription->m_Height, ConvertFormatToDX11Format(swapChainDescription->m_Format), 0)))
+            if (!BreakIfFailed(internalState->m_SwapChain->ResizeBuffers(swapChainDescription->m_BufferCount, swapChainDescription->m_Width, swapChainDescription->m_Height, DX11_ConvertFormat(swapChainDescription->m_Format), 0)))
             {
                 AURORA_ERROR("Failed to resize SwapChain.");
                 return false;
@@ -193,5 +193,83 @@ namespace Aurora
         AURORA_INFO("Successfully created SwapChain Render Target View.");
 
         return true;
+    }
+
+    bool DX11_GraphicsDevice::CreateBuffer(RHI_GPU_BufferDescription* bufferDescription, const SubresourceData* initialData, GPUBuffer* buffer) const
+    {
+        std::shared_ptr<DX11_Resource> internalState = std::make_shared<DX11_Resource>();
+        buffer->m_InternalState = internalState; 
+        buffer->m_Type = GPU_Resource_Type::Buffer;
+
+        D3D11_BUFFER_DESC bufferCreationInfo = {};
+        bufferCreationInfo.ByteWidth = bufferDescription->m_ByteWidth; // Size of our data.
+        bufferCreationInfo.Usage = DX11_ConvertUsageFlags(bufferDescription->m_Usage);
+        bufferCreationInfo.BindFlags = DX11_ParseBindFlags(bufferDescription->m_BindFlags);
+        bufferCreationInfo.CPUAccessFlags = DX11_ParseCPUAccessFlags(bufferDescription->m_CPUAccessFlags);
+        // bufferCreationInfo.MiscFlags = DX11_ParseResourceMiscFlags(bufferDescription->m_MiscFlags); /// ?
+        bufferCreationInfo.StructureByteStride = bufferDescription->m_StructureByteStride;
+
+        return true;
+    }
+
+    bool DX11_GraphicsDevice::CreateShader(ShaderStage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const
+    {
+        shader->m_Stage = shaderStage;
+
+        switch (shaderStage)
+        {
+            case ShaderStage::Vertex_Shader:
+            {
+                std::shared_ptr<DX11_VertexShaderPackage> internalState = std::make_shared<DX11_VertexShaderPackage>();
+                shader->m_InternalState = internalState;
+                internalState->m_ShaderCode.resize(byteCodeLength);
+                std::memcpy(internalState->m_ShaderCode.data(), shaderByteCode, byteCodeLength); // Copy the shader byte code into our package.
+
+                BreakIfFailed(m_Device->CreateVertexShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
+                return true;
+            }
+            break;
+
+            case ShaderStage::Domain_Shader:
+            {
+                /// Soon.
+                return false;
+            }
+            break;
+
+            case ShaderStage::Hull_Shader:
+            {
+                /// Soon.
+                return false;
+            }
+            break;
+
+            case ShaderStage::Geometry_Shader:
+            {
+                /// Soon.
+                return false;
+            }
+            break;
+
+            case ShaderStage::Pixel_Shader:
+            {
+                std::shared_ptr<DX11_PixelShaderPackage> internalState = std::make_shared<DX11_PixelShaderPackage>();
+                shader->m_InternalState = internalState;
+
+                BreakIfFailed(m_Device->CreatePixelShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
+                return true;
+            }
+            break;
+
+            case ShaderStage::Compute_Shader:
+            {
+                /// Soon.
+                return false;
+            }
+            break;
+        }
+
+        AURORA_ERROR("Shader stage not found.");
+        return false;
     }
 }

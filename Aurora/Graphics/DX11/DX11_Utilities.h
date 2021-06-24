@@ -4,21 +4,156 @@
 #include "../RHI_Utilities.h"
 #include <wrl/client.h>
 
+using namespace Microsoft::WRL;
+
 namespace Aurora::DX11_Utility
 {
-    struct DX11SwapChainPackage
+	struct DX11_Resource
+	{
+		ComPtr<ID3D11Resource> m_Resource;
+		ComPtr<ID3D11ShaderResourceView> m_ShaderResourceView;
+		ComPtr<ID3D11UnorderedAccessView> m_UnorderedAccessView;
+		std::vector<ComPtr<ID3D11ShaderResourceView>> m_Subresources_ShaderResourceView;
+		std::vector<ComPtr<ID3D11UnorderedAccessView>> m_Subresources_UnorderedAccessView;
+	};
+
+	struct DX11_VertexShaderPackage
+	{
+		ComPtr<ID3D11VertexShader> m_Resource;
+		std::vector<uint8_t> m_ShaderCode;
+	};
+
+	struct DX11_PixelShaderPackage
+	{
+		ComPtr<ID3D11PixelShader> m_Resource;
+	};
+
+	struct DX11_HullShaderPackage
+	{
+		ComPtr<ID3D11HullShader> m_Resource;
+	};
+
+	struct DX11_DomainShaderPackage
+	{
+		ComPtr<ID3D11DomainShader> m_Resource;
+	};
+
+	struct DX11_GeometryShaderPackage
+	{
+		ComPtr<ID3D11GeometryShader> m_Resource;
+	};
+
+	struct DX11_ComputeShaderPackage
+	{
+		ComPtr<ID3D11ComputeShader> m_Resource;
+	};
+
+    struct DX11_SwapChainPackage
     {
         Microsoft::WRL::ComPtr<IDXGISwapChain1> m_SwapChain;
         Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTargetView;
         Microsoft::WRL::ComPtr<ID3D11Texture2D> m_BackBuffer;
     };
 
-    inline DX11SwapChainPackage* ToInternal(const SwapChain* swapchain)
+	struct DX11_Sampler
+	{
+		ComPtr<ID3D11SamplerState> m_Resource;
+	};
+
+    inline DX11_SwapChainPackage* ToInternal(const RHI_SwapChain* swapchain)
     {
-        return static_cast<DX11SwapChainPackage*>(swapchain->m_InternalState.get());
+        return static_cast<DX11_SwapChainPackage*>(swapchain->m_InternalState.get());
     }
 
-    constexpr DXGI_FORMAT ConvertFormatToDX11Format(Format format)
+	inline DX11_Sampler* ToInternal(const RHI_Sampler* sampler)
+	{
+		return static_cast<DX11_Sampler*>(sampler->m_InternalState.get());
+	}
+
+	constexpr uint32_t DX11_ParseCPUAccessFlags(uint32_t flags)
+	{
+		uint32_t parsedFlags = 0;
+
+		if (flags & CPU_Access::CPU_Access_Write)
+		{
+			parsedFlags |= D3D11_CPU_ACCESS_WRITE;
+		}
+		if (flags & CPU_Access::CPU_Access_Read)
+		{
+			parsedFlags |= D3D11_CPU_ACCESS_READ;
+		}
+
+		return parsedFlags;
+	}
+
+	constexpr uint32_t DX11_ParseBindFlags(uint32_t flags)
+	{
+		uint32_t parsedFlags = 0;
+
+		if (flags & Bind_Flag::Bind_Vertex_Buffer)
+		{
+			parsedFlags |= D3D11_BIND_VERTEX_BUFFER;
+		}
+		if (flags & Bind_Flag::Bind_Index_Buffer)
+		{
+			parsedFlags |= D3D11_BIND_INDEX_BUFFER;
+		}
+		if (flags & Bind_Flag::Bind_Constant_Buffer)
+		{
+			parsedFlags |= D3D11_BIND_CONSTANT_BUFFER;
+		}
+		if (flags & Bind_Flag::Bind_Shader_Resource)
+		{
+			parsedFlags |= D3D11_BIND_SHADER_RESOURCE;
+		}
+		if (flags & Bind_Flag::Bind_Stream_Output)
+		{
+			parsedFlags |= D3D11_BIND_STREAM_OUTPUT;
+		}
+		if (flags & Bind_Flag::Bind_Render_Target)
+		{
+			parsedFlags |= D3D11_BIND_RENDER_TARGET;
+		}
+		if (flags & Bind_Flag::Bind_Depth_Stencil)
+		{
+			parsedFlags |= D3D11_BIND_DEPTH_STENCIL;
+		}
+		if (flags & Bind_Flag::Bind_Unordered_Access)
+		{
+			parsedFlags |= D3D11_BIND_UNORDERED_ACCESS;
+		}
+
+		return parsedFlags;
+	}
+
+	constexpr D3D11_USAGE DX11_ConvertUsageFlags(Usage usage)
+	{
+		switch (usage)
+		{
+			case Usage::Default:
+				return D3D11_USAGE_DEFAULT;
+				break;
+
+			case Usage::Immutable:
+				return D3D11_USAGE_IMMUTABLE;
+				break;
+
+			case Usage::Dynamic:
+				return D3D11_USAGE_DYNAMIC;
+				break;
+
+			case Usage::Staging:
+				return D3D11_USAGE_STAGING;
+				break;
+
+			default:
+				break;
+		}
+
+		return D3D11_USAGE_DEFAULT;
+	}
+
+    constexpr DXGI_FORMAT DX11_ConvertFormat(Format format)
     {
         switch (format)
         {

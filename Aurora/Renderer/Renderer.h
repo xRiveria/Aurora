@@ -33,8 +33,9 @@ namespace Aurora
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
         // Swapchain
-        SwapChain m_SwapChain;
-
+        RHI_SwapChain m_SwapChain;
+        RHI_Shader m_VertexShader;
+        RHI_Shader m_PixelShader;
 
 
 
@@ -54,8 +55,7 @@ namespace Aurora
         UINT m_VertexCount = 0;
         ID3D11Buffer* m_VertexBuffer = nullptr;
         ID3D11Buffer* m_PixelBuffer = nullptr;
-        ID3D11VertexShader* m_VertexShader = nullptr;
-        ID3D11PixelShader* m_PixelShader = nullptr;
+
 
         ID3D11RasterizerState* m_RasterizerState_Wireframe = nullptr;
     };

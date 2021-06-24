@@ -18,7 +18,7 @@ namespace Aurora
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
 
-        SwapChainDescription swapchainDescription;
+        RHI_SwapChainDescription swapchainDescription;
         swapchainDescription.m_Width = 1280;
         swapchainDescription.m_Height = 720;
 
@@ -49,8 +49,12 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // Expects vertices should form a triangle from 3 vertices.
         m_GraphicsDevice->m_DeviceContextImmediate->IASetInputLayout(m_InputLayout); // Give it our input layout.
         m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &m_VertexBuffer, &m_VertexStride, &m_VertexOffset); // Tell it to use our vertex buffer with the earlier set memory stride anmd offset from our data.
-        m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(m_VertexShader, nullptr, 0);
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(m_PixelShader, nullptr, 0);
+        
+        ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VertexShader.m_InternalState.get())->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
+
+        ID3D11PixelShader* pixelShader = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_PixelShader.m_InternalState.get())->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
 
         // When we call Draw, the pipeline will use all the states we just set, the vertex buffer and the shaders. We also need to tell it how many vertices to draw from our buffer.
         m_GraphicsDevice->m_DeviceContextImmediate->Draw(m_VertexCount, 0);
@@ -68,7 +72,7 @@ namespace Aurora
         UINT flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG;
         ID3DBlob* vsBlob = nullptr, * psBlob = nullptr, * errorBlob = nullptr;
 
-        // Compile Vertex Shader
+        // Compile Vertex RHI_Shader
         if (!DX11_Utility::BreakIfFailed(D3DCompileFromFile(L"../Resources/Shaders/Triangle.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "vs_main", "vs_5_0", flags, 0, &vsBlob, &errorBlob)))
         {
             if (errorBlob)
@@ -84,7 +88,7 @@ namespace Aurora
             }
         }
 
-        // Compile Pixel Shader
+        // Compile Pixel RHI_Shader
         if (!DX11_Utility::BreakIfFailed(D3DCompileFromFile(L"../Resources/Shaders/Triangle.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "ps_main", "ps_5_0", flags, 0, &psBlob, &errorBlob)))
         {
             if (errorBlob)
@@ -100,8 +104,8 @@ namespace Aurora
             }
         }
 
-        DX11_Utility::BreakIfFailed(m_GraphicsDevice->m_Device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_VertexShader));
-        DX11_Utility::BreakIfFailed(m_GraphicsDevice->m_Device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_PixelShader));
+        m_GraphicsDevice->CreateShader(ShaderStage::Vertex_Shader, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_VertexShader);
+        m_GraphicsDevice->CreateShader(ShaderStage::Pixel_Shader, psBlob->GetBufferPointer(), psBlob->GetBufferSize(), &m_PixelShader);
 
         // We now need an input layout to describe how vertex data memory from a buffer should map to the input variables for the vertex shaders.
         D3D11_INPUT_ELEMENT_DESC inputElementDescription[] = {

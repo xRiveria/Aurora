@@ -14,8 +14,10 @@ namespace Aurora
     public:
         DX11_GraphicsDevice(EngineContext* engineContext, bool isDebuggingEnabled = false);
         void QueryFeatureSupport();
-        bool CreateSwapChain(const SwapChainDescription* swapChainDescription, SwapChain* swapChain) const;
 
+        bool CreateSwapChain(const RHI_SwapChainDescription* swapChainDescription, RHI_SwapChain* swapChain) const;
+        bool CreateBuffer(RHI_GPU_BufferDescription* bufferDescription, const SubresourceData* initialData, GPUBuffer* buffer) const;
+        bool CreateShader(ShaderStage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const;
 
     public: 
         /// Will be temporarily public.
