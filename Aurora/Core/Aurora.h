@@ -4,6 +4,7 @@
 #include "Core.h"
 
 // Standard Template Library
+#include <algorithm>
 
 // Engine
 #include "Engine.h"

@@ -2,12 +2,14 @@
 struct vs_in
 {
     float3 position_local : POS;  // Triangle made from 3 XYZ positions.
+    float2 tex            : TEXCOORD;
 };
 
 // Outputs from vertex shader go here. Can be interpolated to pixel shader.
 struct vs_out
 {
     float4 position_clip : SV_POSITION; // The position is identified by the SV_POSITION semantic.
+    float2 tex           : TEXCOORD;
 };
 
 vs_out vs_main(vs_in input)  // Vertex shader entry point called vs_main(). Entry points and structs can be named whatever we like. 

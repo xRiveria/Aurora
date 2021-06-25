@@ -29,7 +29,7 @@ namespace Aurora
         void CreateRasterizerStates();
         void CreateDepth();
 
-    private:
+    public:
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
         RHI_SwapChain m_SwapChain;

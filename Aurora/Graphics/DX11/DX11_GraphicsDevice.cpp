@@ -305,12 +305,12 @@ namespace Aurora
 
         if (texture->m_Description.m_BindFlags & Bind_Flag::Bind_Shader_Resource)
         {
-
+            CreateSubresourceTexture(texture, Subresource_Type::ShaderResourceView, 0, -1, 0, -1);
         }
 
         if (texture->m_Description.m_BindFlags & Bind_Unordered_Access)
         {
-
+            CreateSubresourceTexture(texture, Subresource_Type::UnorderedAccessView, 0, -1, 0, -1);
         }
 
         return true;
@@ -385,6 +385,53 @@ namespace Aurora
 
         switch (type)
         {
+            case Subresource_Type::ShaderResourceView:
+            {
+                D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDescription = {};
+
+                // Try to resolve the resource format.
+
+
+                if (texture->m_Description.m_Type == Texture_Type::Texture1D)
+                {
+                    if (texture->m_Description.m_ArraySize > 1)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
+                {
+
+                }
+                else if (texture->m_Description.m_Type == Texture_Type::Texture3D)
+                {
+
+                }
+
+                ComPtr<ID3D11ShaderResourceView> shaderResourceView;
+                if (BreakIfFailed(m_Device->CreateShaderResourceView(internalState->m_Resource.Get(), &shaderResourceViewDescription, &shaderResourceView))) // Note that the resource here is our texture. We are creating a shader resource view for it.
+                {
+                    AURORA_INFO("Successfully created Shader Resource View.");
+
+                    if (!internalState->m_ShaderResourceView)
+                    {
+                        internalState->m_ShaderResourceView = shaderResourceView;
+                        return -1;
+                    }
+                    internalState->m_Subresources_ShaderResourceView.push_back(shaderResourceView);
+                    return int(internalState->m_Subresources_ShaderResourceView.size() - 1);
+                }
+                else
+                {
+                    AURORA_ERROR("Failed to create Shader Resource View.");
+                    AURORA_ASSERT(0);
+                }
+            }
+
             case Subresource_Type::ConstantBufferView:
             {
             }

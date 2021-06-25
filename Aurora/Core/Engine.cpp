@@ -3,6 +3,7 @@
 #include "../Time/Timer.h"
 #include "../Input/Input.h"
 #include "../Renderer/Renderer.h"
+#include "../Resource/ResourceCache.h"
 #include "EngineContext.h"
 
 namespace Aurora
@@ -17,6 +18,7 @@ namespace Aurora
         m_EngineContext->RegisterSubsystem<WindowContext>();
         m_EngineContext->RegisterSubsystem<Input>();
         m_EngineContext->RegisterSubsystem<Renderer>();
+        m_EngineContext->RegisterSubsystem<ResourceCache>();
 
         // Initialize Subsystem
         m_EngineContext->Initialize();

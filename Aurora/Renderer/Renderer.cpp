@@ -7,12 +7,13 @@ namespace Aurora
 {
     Renderer::Renderer(EngineContext* engineContext) : ISubsystem(engineContext)
     {
+
     }
 
     Renderer::~Renderer()
     {
-    }
 
+    }
 
     bool Renderer::Initialize()
     {
@@ -115,6 +116,7 @@ namespace Aurora
         // We now need an input layout to describe how vertex data memory from a buffer should map to the input variables for the vertex shaders.
         D3D11_INPUT_ELEMENT_DESC inputElementDescription[] = {
             { "POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // We only have 1 input variable to the vertex shader - the XYZ position. Here, our XYZ has 3 components. Each element is a 32-bit float. This corresponds to DXGI_FORMAT_R32G32B32_FLOAT and will appear as a float3 in our shader. A float4 may be R32G32B32A42_FLOAT.
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
         };
 
         DX11_Utility::BreakIfFailed(m_GraphicsDevice->m_Device->CreateInputLayout(inputElementDescription, ARRAYSIZE(inputElementDescription), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_InputLayout));
@@ -124,12 +126,12 @@ namespace Aurora
     {
         // Clockwise winding order. We will define them in visible clipspace as we won't be using matrixes yet. (XY: -1 to 1, Z: 0 to 1).
         float vertexDataArray[]{
-            0.0f, 0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            -0.5f, -0.5f, 0.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+            0.0f, 1.0f, 0.0f, 0.5f, 0.0f,
+            1.0f, -1.0f, 0.0f, 1.0f, 1.0f
         };
 
-        m_VertexStride = 3 * sizeof(float);
+        m_VertexStride = 5 * sizeof(float);
         m_VertexOffset = 0;
         m_VertexCount = 3;
 
@@ -143,7 +145,6 @@ namespace Aurora
 
         m_GraphicsDevice->CreateBuffer(&bufferDescription, &subresourceData, &m_VertexBuffer);
     }
-
 
     void Renderer::CreateRasterizerStates()
     {
