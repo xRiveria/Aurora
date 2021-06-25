@@ -10,6 +10,7 @@ if (!(##expression))               \
 }
 
 #define AURORA_GRAPHICS_DX11
+#define NOMINMAX
 
 // Future Graphics APIs
 // #define AURORA_GRAPHICS_DX11

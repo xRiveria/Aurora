@@ -119,7 +119,7 @@ namespace Aurora
         AURORA_INFO("Completed querying of device features.");
     }
 
-    bool DX11_GraphicsDevice::CreateSwapChain(const RHI_SwapChainDescription* swapChainDescription, RHI_SwapChain* swapChain) const
+    bool DX11_GraphicsDevice::CreateSwapChain(const RHI_SwapChain_Description* swapChainDescription, RHI_SwapChain* swapChain) const
     {
         auto internalState = std::static_pointer_cast<DX11_SwapChainPackage>(swapChain->m_InternalState);
         if (swapChain->m_InternalState == nullptr)
@@ -137,7 +137,7 @@ namespace Aurora
             swapChainCreationInfo.Width = swapChainDescription->m_Width;
             swapChainCreationInfo.Height = swapChainDescription->m_Height;
             swapChainCreationInfo.Format = DX11_ConvertFormat(swapChainDescription->m_Format);
-            swapChainCreationInfo.Stereo = false;
+            swapChainCreationInfo.Stereo = false; // 3D Glasses?
             swapChainCreationInfo.SampleDesc.Count = 1;
             swapChainCreationInfo.SampleDesc.Quality = 0;
             swapChainCreationInfo.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -195,19 +195,123 @@ namespace Aurora
         return true;
     }
 
-    bool DX11_GraphicsDevice::CreateBuffer(RHI_GPU_BufferDescription* bufferDescription, const SubresourceData* initialData, GPUBuffer* buffer) const
+    bool DX11_GraphicsDevice::CreateBuffer(const RHI_GPU_Buffer_Description* bufferDescription, const RHI_Subresource_Data* initialData, RHI_GPU_Buffer* buffer) const
     {
-        std::shared_ptr<DX11_Resource> internalState = std::make_shared<DX11_Resource>();
+        std::shared_ptr<DX11_ResourcePackage> internalState = std::make_shared<DX11_ResourcePackage>();
         buffer->m_InternalState = internalState; 
         buffer->m_Type = GPU_Resource_Type::Buffer;
 
         D3D11_BUFFER_DESC bufferCreationInfo = {};
-        bufferCreationInfo.ByteWidth = bufferDescription->m_ByteWidth; // Size of our data.
+        bufferCreationInfo.ByteWidth = bufferDescription->m_ByteWidth;
         bufferCreationInfo.Usage = DX11_ConvertUsageFlags(bufferDescription->m_Usage);
         bufferCreationInfo.BindFlags = DX11_ParseBindFlags(bufferDescription->m_BindFlags);
         bufferCreationInfo.CPUAccessFlags = DX11_ParseCPUAccessFlags(bufferDescription->m_CPUAccessFlags);
-        // bufferCreationInfo.MiscFlags = DX11_ParseResourceMiscFlags(bufferDescription->m_MiscFlags); /// ?
+        bufferCreationInfo.MiscFlags = DX11_ParseResourceMiscFlags(bufferDescription->m_MiscFlags);
         bufferCreationInfo.StructureByteStride = bufferDescription->m_StructureByteStride;
+
+        D3D11_SUBRESOURCE_DATA data;
+        if (initialData != nullptr)
+        {
+            data = DX11_ConvertSubresourceData(*initialData);
+        }
+
+        buffer->m_Description = *bufferDescription;
+        if (BreakIfFailed(m_Device->CreateBuffer(&bufferCreationInfo, initialData == nullptr ? nullptr : &data, (ID3D11Buffer**)internalState->m_Resource.ReleaseAndGetAddressOf())))
+        {
+            AURORA_INFO("Successfully created Buffer.");
+
+            // Create resource views if needed.
+            if (bufferDescription->m_BindFlags & Bind_Flag::Bind_Shader_Resource)
+            {
+                /// Create subresource.
+            }
+
+            if (bufferDescription->m_BindFlags & Bind_Flag::Bind_Unordered_Access)
+            {
+                /// Create subresource.
+            }
+
+            return true;
+        }
+
+        return false;      
+    }
+
+    bool DX11_GraphicsDevice::CreateTexture(const RHI_Texture_Description* textureDescription, const RHI_Subresource_Data* initialData, RHI_Texture* texture) const
+    {
+        std::shared_ptr<DX11_TexturePackage> internalState = std::make_shared<DX11_TexturePackage>();
+        texture->m_InternalState = internalState;
+        texture->m_Type = GPU_Resource_Type::Texture;
+
+        texture->m_Description = *textureDescription;
+
+        std::vector<D3D11_SUBRESOURCE_DATA> data;
+        if (initialData != nullptr) // Slicing support for texture arrays. See: https://image.slidesharecdn.com/sa2008modernopengl-1231549184153966-1/95/siggraph-asia-2008-modern-opengl-56-638.jpg?cb=1422672731
+        {
+            uint32_t dataCount = textureDescription->m_ArraySize * std::max(1U, textureDescription->m_MipLevels);
+            data.resize(dataCount);
+            for (uint32_t slice = 0; slice < dataCount; ++slice)
+            {
+                data[slice] = DX11_ConvertSubresourceData(initialData[slice]);
+            }
+        }
+
+        switch (texture->m_Description.m_Type)
+        {
+            case Texture_Type::Texture1D:
+            {
+                D3D11_TEXTURE1D_DESC description = DX11_ConvertTextureDescription1D(&texture->m_Description);
+                BreakIfFailed(m_Device->CreateTexture1D(&description, data.data(), (ID3D11Texture1D**)internalState->m_Resource.ReleaseAndGetAddressOf()));
+            }
+            break;
+
+            case Texture_Type::Texture2D:
+            {
+                D3D11_TEXTURE2D_DESC description = DX11_ConvertTextureDescription2D(&texture->m_Description);
+                BreakIfFailed(m_Device->CreateTexture2D(&description, data.data(), (ID3D11Texture2D**)internalState->m_Resource.ReleaseAndGetAddressOf()));
+            }
+            break;
+
+            case Texture_Type::Texture3D:
+            {
+                D3D11_TEXTURE3D_DESC description = DX11_ConvertTextureDescription3D(&texture->m_Description);
+                BreakIfFailed(m_Device->CreateTexture3D(&description, data.data(), (ID3D11Texture3D**)internalState->m_Resource.ReleaseAndGetAddressOf()));
+            }
+            break;
+
+            default:
+            {
+                AURORA_ERROR("Invalid texture type specified.");
+                return false;
+            }
+        }
+
+        AURORA_INFO("Successfully created Texture.");
+
+        if (texture->m_Description.m_MipLevels == 0)
+        {
+            texture->m_Description.m_MipLevels = (uint32_t)log2(std::max(texture->m_Description.m_Width, texture->m_Description.m_Height)) + 1; // +1 for base.
+        }
+
+        if (texture->m_Description.m_BindFlags & Bind_Flag::Bind_Render_Target)
+        {
+            
+        }
+
+        if (texture->m_Description.m_BindFlags & Bind_Flag::Bind_Depth_Stencil)
+        {
+            CreateSubresourceTexture(texture, Subresource_Type::DepthStencilView, 0, -1, 0, -1);
+        }
+
+        if (texture->m_Description.m_BindFlags & Bind_Flag::Bind_Shader_Resource)
+        {
+
+        }
+
+        if (texture->m_Description.m_BindFlags & Bind_Unordered_Access)
+        {
+
+        }
 
         return true;
     }
@@ -226,6 +330,7 @@ namespace Aurora
                 std::memcpy(internalState->m_ShaderCode.data(), shaderByteCode, byteCodeLength); // Copy the shader byte code into our package.
 
                 BreakIfFailed(m_Device->CreateVertexShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
+                AURORA_INFO("Successfully created Vertex Shader.");
                 return true;
             }
             break;
@@ -257,6 +362,7 @@ namespace Aurora
                 shader->m_InternalState = internalState;
 
                 BreakIfFailed(m_Device->CreatePixelShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
+                AURORA_INFO("Successfully created Pixel Shader.");
                 return true;
             }
             break;
@@ -271,5 +377,124 @@ namespace Aurora
 
         AURORA_ERROR("Shader stage not found.");
         return false;
+    }
+    
+    int DX11_GraphicsDevice::CreateSubresourceTexture(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const
+    {
+        DX11_TexturePackage* internalState = ToInternal(texture);
+
+        switch (type)
+        {
+            case Subresource_Type::ConstantBufferView:
+            {
+            }
+
+            case Subresource_Type::DepthStencilView:
+            {
+                D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDescription = {};
+
+                // Try to resolve the resource format.
+                switch (texture->m_Description.m_Format)
+                {
+                    case Format::FORMAT_R16_TYPELESS:
+                        depthStencilViewDescription.Format = DXGI_FORMAT_D16_UNORM;
+                        break;
+                        
+                    case Format::FORMAT_R32_TYPELESS:
+                        depthStencilViewDescription.Format = DXGI_FORMAT_D32_FLOAT;
+                        break;
+
+                    case Format::FORMAT_R24G8_TYPELESS:
+                        depthStencilViewDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+                        break;
+
+                    case Format::FORMAT_R32G8X24_TYPELESS:
+                        depthStencilViewDescription.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+                        break;
+
+                    default:
+                        depthStencilViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
+                        break;
+                }
+
+                if (texture->m_Description.m_Type == Texture_Type::Texture1D)
+                {
+                    if (texture->m_Description.m_ArraySize > 1)
+                    {
+                        depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1DARRAY;
+                        depthStencilViewDescription.Texture1DArray.FirstArraySlice = firstSlice;
+                        depthStencilViewDescription.Texture1DArray.ArraySize = sliceCount;
+                        depthStencilViewDescription.Texture1DArray.MipSlice = firstMip;
+                    }
+                    else
+                    {
+                        depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1D;
+                        depthStencilViewDescription.Texture1D.MipSlice = firstMip;
+                    }
+                }
+                else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
+                {
+                    if (texture->m_Description.m_ArraySize > 1)
+                    {
+                        if (texture->m_Description.m_SampleCount > 1)
+                        {
+                            depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+                            depthStencilViewDescription.Texture2DMSArray.FirstArraySlice = firstSlice;          // MS - Multi-Sampled
+                            depthStencilViewDescription.Texture2DMSArray.ArraySize = sliceCount;
+                        }
+                        else
+                        {
+                            depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+                            depthStencilViewDescription.Texture2DArray.FirstArraySlice = firstSlice;
+                            depthStencilViewDescription.Texture2DArray.ArraySize = sliceCount;
+                            depthStencilViewDescription.Texture2DArray.MipSlice = firstMip;
+
+                        }
+                    }
+                    else
+                    {
+                        if (texture->m_Description.m_SampleCount > 1)
+                        {
+                            depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+                        }
+                        else
+                        {
+                            depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+                            depthStencilViewDescription.Texture2D.MipSlice = firstMip;
+                        }
+                    }
+                }
+
+                ComPtr<ID3D11DepthStencilView> depthStencilView;
+
+                if (BreakIfFailed(m_Device->CreateDepthStencilView(internalState->m_Resource.Get(), &depthStencilViewDescription, &depthStencilView)))
+                {
+                    AURORA_INFO("Successfully created Depth Stencil View.");
+
+                    if (!internalState->m_DepthStencilView)
+                    {
+                        internalState->m_DepthStencilView = depthStencilView;
+                        return -1;
+                    }
+
+                    internalState->m_Subresources_DepthStencilView.push_back(depthStencilView);
+
+                    return int(internalState->m_Subresources_DepthStencilView.size() - 1);
+                }
+                else
+                {
+                    AURORA_ERROR("Failed to create Depth Stencil View.");
+                    AURORA_ASSERT(0);
+                }
+            }
+            break;
+
+            default:
+            {
+                break;
+            }
+        }
+
+        return -1;
     }
 }

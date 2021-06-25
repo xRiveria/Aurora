@@ -27,35 +27,23 @@ namespace Aurora
         void CompileShaders();
         void CreateBuffers();
         void CreateRasterizerStates();
+        void CreateDepth();
 
     private:
-        /// New Abstraction
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
-        // Swapchain
         RHI_SwapChain m_SwapChain;
         RHI_Shader m_VertexShader;
         RHI_Shader m_PixelShader;
+        RHI_GPU_Buffer m_VertexBuffer;
+        RHI_Texture m_DepthTexture;
 
-
-
-
-        // ID3D11Device* m_Device = nullptr; // Device is used to create resources and enumerate the capabilities of a display adapter. Each application must have one device.
-        // ID3D11DeviceContext* m_DeviceContext = nullptr; // Device context contains the circumstance or setting in which a device is used. It is used to set the pipeline state and generate rendering commands using resources owned by the device. 2 types of contexts exist, one of immediate rendering and the other for deferred rendering.
-        
-        // IDXGISwapChain* m_SwapChain = nullptr;
-
-        // ID3D11RenderTargetView* m_RenderTargetView = nullptr;
-        ID3D11DepthStencilView* m_DepthStencilView = nullptr;
-        ID3D11Texture2D* m_DepthStencilBuffer = nullptr;
-
+        /// Future Abstraction
+        //========================================================== 
         ID3D11InputLayout* m_InputLayout = nullptr;
         UINT m_VertexStride = 0;
         UINT m_VertexOffset = 0;
         UINT m_VertexCount = 0;
-        ID3D11Buffer* m_VertexBuffer = nullptr;
-        ID3D11Buffer* m_PixelBuffer = nullptr;
-
 
         ID3D11RasterizerState* m_RasterizerState_Wireframe = nullptr;
     };

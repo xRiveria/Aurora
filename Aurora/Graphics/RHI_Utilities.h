@@ -33,6 +33,11 @@ namespace Aurora
         FORMAT_R10G10B10A2_UINT,
         FORMAT_R11G11B10_FLOAT,
         FORMAT_R8G8B8A8_UNORM,
+        FORMAT_D24_UNORM_S8_UINT,
+
+        FORMAT_R16_TYPELESS,            // Depth (16-bit) / Shader Resource (16-bit)
+        FORMAT_R32_TYPELESS,            // Depth (32-bit) / Shader Resource (32-bit)
+        FORMAT_R24G8_TYPELESS,          // Depth (24-bit) + Stencil (8-bit) + Shader Resource (24-bit)
     };
 
     enum Filter
@@ -108,8 +113,29 @@ namespace Aurora
         Resource_Misc_Indirect_Args          = 1 << 2,
         Resource_Misc_Buffer_Allow_Raw_Views = 1 << 3,
         Resource_Misc_Buffer_Structured      = 1 << 4,
-        Resource_Misc_Tilied                 = 1 << 5,
+        Resource_Misc_Tiled                  = 1 << 5,
         Resource_Misc_Raytracing             = 1 << 6
+    };
+
+    enum Texture_Type
+    {
+        Texture1D,
+        Texture2D,
+        Texture3D
+    };
+
+    enum Image_Layout
+    {
+        Image_Layout_Undefined,                 // Invalid State
+        Image_Layout_RenderTarget,              // Render Target, Write Enabled
+        Image_Layout_DepthStencil,              // Depth Stencil, Write Enabled
+        Image_Layout_DepthStencil_ReadOnly,     // Depth Stencil, Read Only
+        Image_Layout_Shader_Resource,           // Shader Resource, Read Only
+        Image_Layout_Shader_Resource_Compute,   // Shader Resource, Read Only, Non-Pixel Shader
+        Image_Layout_Unordered_Access,          // Shader Resource, Write Enabled
+        Image_Layout_Copy_Source,               // Copy From
+        Image_Layout_Copy_Destination,          // Copy To
+        Image_Layout_Shading_Rate_Source        // Shading Rate Control Per Tile
     };
 
     enum Texture_Address_Mode
@@ -170,8 +196,21 @@ namespace Aurora
         Unknown_Type
     };
 
+    // ===================================================================================================
+
     // Descriptions
-    struct RHI_GPU_BufferDescription
+
+    union ClearValue
+    {
+        float m_Color[4];
+        struct ClearDepthStencil
+        {
+            float m_DepthValue;
+            uint32_t m_StencilValue;
+        } m_DepthStencil;
+    };
+
+    struct RHI_GPU_Buffer_Description
     {
         uint32_t m_ByteWidth = 0;
         Usage m_Usage = Usage::Default;
@@ -182,7 +221,40 @@ namespace Aurora
         Format m_Format = Format::FORMAT_UNKNOWN;   // Only needed for Typed buffer.
     };
 
-    struct RHI_SwapChainDescription
+    struct RHI_Texture_Description
+    {
+        Texture_Type m_Type = Texture_Type::Texture2D;
+        uint32_t m_Width = 0;
+        uint32_t m_Height = 0;
+        uint32_t m_Depth = 0;
+        uint32_t m_ArraySize = 1;
+        uint32_t m_MipLevels = 1;
+        Format m_Format = Format::FORMAT_UNKNOWN;
+        uint32_t m_SampleCount = 1;
+        Usage m_Usage = Usage::Default;
+        uint32_t m_BindFlags = 0;
+        uint32_t m_CPUAccessFlags = 0;
+        uint32_t m_MiscFlags = 0;
+        ClearValue m_ClearValue = {};
+        Image_Layout m_Layout = Image_Layout::Image_Layout_Shader_Resource;
+    };
+
+    struct RHI_Sampler_Description
+    {
+        Filter m_Filter = Filter::FILTER_MIN_MAG_MIP_POINT;
+        Texture_Address_Mode m_AddressU = Texture_Address_Mode::Texture_Address_Clamp;
+        Texture_Address_Mode m_AddressV = Texture_Address_Mode::Texture_Address_Clamp;
+        Texture_Address_Mode m_AddressW = Texture_Address_Mode::Texture_Address_Clamp;
+        ComparisonFunction m_ComparisonFunction = ComparisonFunction::Comparison_Never;
+
+        uint32_t m_MaxAnisotropy = 0;
+        float m_MipLOD_Bias = 0.0f;
+        float m_MinLOD = 0.0f;
+        float m_MaxLOD = FLT_MAX;
+        float m_BorderColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    };
+
+    struct RHI_SwapChain_Description
     {
         uint32_t m_Width = 0;
         uint32_t m_Height = 0;
@@ -193,24 +265,9 @@ namespace Aurora
         float m_ClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
     };
 
-    struct RHI_SamplerDescription
-    {
-        Filter m_Filter                 = Filter::FILTER_MIN_MAG_MIP_POINT;
-        Texture_Address_Mode m_AddressU = Texture_Address_Mode::Texture_Address_Clamp;
-        Texture_Address_Mode m_AddressV = Texture_Address_Mode::Texture_Address_Clamp;
-        Texture_Address_Mode m_AddressW = Texture_Address_Mode::Texture_Address_Clamp;
-        ComparisonFunction m_ComparisonFunction = ComparisonFunction::Comparison_Never;
-
-        uint32_t m_MaxAnisotropy = 0;
-        float m_MIPLOD_Bias = 0.0f;
-        float m_MinLOD = 0.0f;
-        float m_MaxLOD = FLT_MAX;
-        float m_BorderColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    };
-
     // Resources
 
-    struct SubresourceData
+    struct RHI_Subresource_Data
     {
         const void* m_SystemMemory = nullptr;
         uint32_t m_SystemMemoryPitch = 0;
@@ -224,18 +281,26 @@ namespace Aurora
         inline bool IsValid() const { return m_InternalState.get() != nullptr; }
     };
 
+    struct RHI_GPU_Resource : public RHI_GraphicsDeviceInternal
+    {
+        GPU_Resource_Type m_Type = GPU_Resource_Type::Unknown_Type;
+
+        inline bool IsTexture() const { return m_Type == GPU_Resource_Type::Texture; }
+        inline bool IsBuffer() const { return m_Type == GPU_Resource_Type::Buffer; }
+    };
+
     struct RHI_SwapChain : public RHI_GraphicsDeviceInternal
     {
-        RHI_SwapChainDescription m_Description;
+        RHI_SwapChain_Description m_Description;
 
-        const RHI_SwapChainDescription& GetDescription() const { return m_Description; }
+        const RHI_SwapChain_Description& GetDescription() const { return m_Description; }
     };
 
     struct RHI_Sampler : public RHI_GraphicsDeviceInternal
     {
-        RHI_SamplerDescription m_Description;
+        RHI_Sampler_Description m_Description;
         
-        const RHI_SamplerDescription& RetrieveDescription() const { return m_Description; }
+        const RHI_Sampler_Description& RetrieveDescription() const { return m_Description; }
     };
 
     struct StaticSampler
@@ -250,18 +315,17 @@ namespace Aurora
         std::vector<StaticSampler> m_AutoSamplers;  // Ability to set static samplers without explict root signature.
     };
 
-    struct RHI_GPUResource : public RHI_GraphicsDeviceInternal
+    struct RHI_GPU_Buffer : public RHI_GPU_Resource
     {
-        GPU_Resource_Type m_Type;
+        RHI_GPU_Buffer_Description m_Description;
 
-        inline bool IsTexture() const { return m_Type == GPU_Resource_Type::Texture; }
-        inline bool IsBuffer() const { return m_Type == GPU_Resource_Type::Buffer; }
+        const RHI_GPU_Buffer_Description& GetDescription() const { return m_Description; }
     };
 
-    struct GPUBuffer : public RHI_GPUResource
+    struct RHI_Texture : public RHI_GPU_Resource
     {
-        RHI_GPU_BufferDescription m_Description;
+        RHI_Texture_Description m_Description;
 
-        const RHI_GPU_BufferDescription& GetDescription() const { return m_Description; }
+        const RHI_Texture_Description& GetDescription() const { return m_Description; }
     };
 }

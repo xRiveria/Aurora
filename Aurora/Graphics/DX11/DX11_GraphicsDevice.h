@@ -3,7 +3,8 @@
 #include "../RHI_Utilities.h"
 #include <wrl/client.h> // For ComPtr
 
-// Code here will be abstracted in due time to make way for multiple render APIs.
+// Code here will be abstracted in due time to make way for multiple render APIs, such as using virtual overrides from the main graphics class.
+// To Do: Clean up code by using proper referral methods for retrievals, combine functions etc.
 
 namespace Aurora
 {
@@ -15,10 +16,13 @@ namespace Aurora
         DX11_GraphicsDevice(EngineContext* engineContext, bool isDebuggingEnabled = false);
         void QueryFeatureSupport();
 
-        bool CreateSwapChain(const RHI_SwapChainDescription* swapChainDescription, RHI_SwapChain* swapChain) const;
-        bool CreateBuffer(RHI_GPU_BufferDescription* bufferDescription, const SubresourceData* initialData, GPUBuffer* buffer) const;
+        bool CreateSwapChain(const RHI_SwapChain_Description* swapChainDescription, RHI_SwapChain* swapChain) const;
+        bool CreateBuffer(const RHI_GPU_Buffer_Description* bufferDescription, const RHI_Subresource_Data* initialData, RHI_GPU_Buffer* buffer) const;
+        bool CreateTexture(const RHI_Texture_Description* textureDescription, const RHI_Subresource_Data* initialData, RHI_Texture* texture) const; // Automatically creates the needed views.
         bool CreateShader(ShaderStage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const;
 
+        int CreateSubresourceTexture(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const;
+             
     public: 
         /// Will be temporarily public.
 

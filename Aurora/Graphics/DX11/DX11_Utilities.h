@@ -8,66 +8,36 @@ using namespace Microsoft::WRL;
 
 namespace Aurora::DX11_Utility
 {
-	struct DX11_Resource
+	constexpr uint32_t DX11_ParseResourceMiscFlags(uint32_t flags)
 	{
-		ComPtr<ID3D11Resource> m_Resource;
-		ComPtr<ID3D11ShaderResourceView> m_ShaderResourceView;
-		ComPtr<ID3D11UnorderedAccessView> m_UnorderedAccessView;
-		std::vector<ComPtr<ID3D11ShaderResourceView>> m_Subresources_ShaderResourceView;
-		std::vector<ComPtr<ID3D11UnorderedAccessView>> m_Subresources_UnorderedAccessView;
-	};
+		uint32_t parsedFlags = 0;
 
-	struct DX11_VertexShaderPackage
-	{
-		ComPtr<ID3D11VertexShader> m_Resource;
-		std::vector<uint8_t> m_ShaderCode;
-	};
+		if (flags & Resource_Misc_Flag::Resource_Misc_Shared)
+		{
+			parsedFlags |= D3D11_RESOURCE_MISC_SHARED;
+		}
+		if (flags & Resource_Misc_Flag::Resource_Misc_TextureCube)
+		{
+			parsedFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+		}
+		if (flags & Resource_Misc_Flag::Resource_Misc_Indirect_Args)
+		{
+			parsedFlags |= D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+		}
+		if (flags & Resource_Misc_Flag::Resource_Misc_Buffer_Allow_Raw_Views)
+		{
+			parsedFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+		}
+		if (flags & Resource_Misc_Flag::Resource_Misc_Buffer_Structured)
+		{
+			parsedFlags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		}
+		if (flags & Resource_Misc_Flag::Resource_Misc_Tiled)
+		{
+			parsedFlags |= D3D11_RESOURCE_MISC_TILED;
+		}
 
-	struct DX11_PixelShaderPackage
-	{
-		ComPtr<ID3D11PixelShader> m_Resource;
-	};
-
-	struct DX11_HullShaderPackage
-	{
-		ComPtr<ID3D11HullShader> m_Resource;
-	};
-
-	struct DX11_DomainShaderPackage
-	{
-		ComPtr<ID3D11DomainShader> m_Resource;
-	};
-
-	struct DX11_GeometryShaderPackage
-	{
-		ComPtr<ID3D11GeometryShader> m_Resource;
-	};
-
-	struct DX11_ComputeShaderPackage
-	{
-		ComPtr<ID3D11ComputeShader> m_Resource;
-	};
-
-    struct DX11_SwapChainPackage
-    {
-        Microsoft::WRL::ComPtr<IDXGISwapChain1> m_SwapChain;
-        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTargetView;
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> m_BackBuffer;
-    };
-
-	struct DX11_Sampler
-	{
-		ComPtr<ID3D11SamplerState> m_Resource;
-	};
-
-    inline DX11_SwapChainPackage* ToInternal(const RHI_SwapChain* swapchain)
-    {
-        return static_cast<DX11_SwapChainPackage*>(swapchain->m_InternalState.get());
-    }
-
-	inline DX11_Sampler* ToInternal(const RHI_Sampler* sampler)
-	{
-		return static_cast<DX11_Sampler*>(sampler->m_InternalState.get());
+		return parsedFlags;
 	}
 
 	constexpr uint32_t DX11_ParseCPUAccessFlags(uint32_t flags)
@@ -240,10 +210,73 @@ namespace Aurora::DX11_Utility
 			case FORMAT_R8G8B8A8_UNORM:
 				return DXGI_FORMAT_R8G8B8A8_UNORM;
 				break;
+
+			case FORMAT_D24_UNORM_S8_UINT:
+				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+				break;
 		}
 
 		return DXGI_FORMAT_UNKNOWN;
     }
+
+	inline D3D11_TEXTURE1D_DESC DX11_ConvertTextureDescription1D(const RHI_Texture_Description* description)
+	{
+		D3D11_TEXTURE1D_DESC textureDescription = {};
+		textureDescription.Width = description->m_Width;
+		textureDescription.MipLevels = description->m_MipLevels;
+		textureDescription.ArraySize = description->m_ArraySize;
+		textureDescription.Format = DX11_ConvertFormat(description->m_Format);
+		textureDescription.Usage = DX11_ConvertUsageFlags(description->m_Usage);
+		textureDescription.BindFlags = DX11_ParseBindFlags(description->m_BindFlags);
+		textureDescription.CPUAccessFlags = DX11_ParseCPUAccessFlags(description->m_CPUAccessFlags);
+		textureDescription.MiscFlags = DX11_ParseResourceMiscFlags(description->m_MiscFlags);
+
+		return textureDescription;
+	}
+
+	inline D3D11_TEXTURE2D_DESC DX11_ConvertTextureDescription2D(const RHI_Texture_Description* description)
+	{
+		D3D11_TEXTURE2D_DESC textureDescription = {};
+		textureDescription.Width = description->m_Width;
+		textureDescription.Height = description->m_Height;
+		textureDescription.MipLevels = description->m_MipLevels;
+		textureDescription.ArraySize = description->m_ArraySize;
+		textureDescription.Format = DX11_ConvertFormat(description->m_Format);
+		textureDescription.SampleDesc.Count = description->m_SampleCount;
+		textureDescription.SampleDesc.Quality = 0;
+		textureDescription.Usage = DX11_ConvertUsageFlags(description->m_Usage);
+		textureDescription.BindFlags = DX11_ParseBindFlags(description->m_BindFlags);
+		textureDescription.CPUAccessFlags = DX11_ParseCPUAccessFlags(description->m_CPUAccessFlags);
+		textureDescription.MiscFlags = DX11_ParseResourceMiscFlags(description->m_MiscFlags);
+
+		return textureDescription;
+	}
+
+	inline D3D11_TEXTURE3D_DESC DX11_ConvertTextureDescription3D(const RHI_Texture_Description* description)
+	{
+		D3D11_TEXTURE3D_DESC textureDescription = {};
+		textureDescription.Width = description->m_Width;
+		textureDescription.Height = description->m_Height;
+		textureDescription.Depth = description->m_Height;
+		textureDescription.MipLevels = description->m_MipLevels;
+		textureDescription.Format = DX11_ConvertFormat(description->m_Format);
+		textureDescription.Usage = DX11_ConvertUsageFlags(description->m_Usage);
+		textureDescription.BindFlags = DX11_ParseBindFlags(description->m_BindFlags);
+		textureDescription.CPUAccessFlags = DX11_ParseCPUAccessFlags(description->m_CPUAccessFlags);
+		textureDescription.MiscFlags = DX11_ParseResourceMiscFlags(description->m_MiscFlags);
+
+		return textureDescription;
+	}
+
+	inline D3D11_SUBRESOURCE_DATA DX11_ConvertSubresourceData(const RHI_Subresource_Data& initialData)
+	{
+		D3D11_SUBRESOURCE_DATA data = {};
+		data.pSysMem = initialData.m_SystemMemory;
+		data.SysMemPitch = initialData.m_SystemMemoryPitch;
+		data.SysMemSlicePitch = initialData.m_SystemMemorySlicePitch;
+
+		return data;
+	}
 
     inline const char* DXGI_Error_ToString(const HRESULT errorCode)
     {
@@ -292,4 +325,86 @@ namespace Aurora::DX11_Utility
 
         return true;
     }
+
+	// ==========================================================================================================
+
+	struct DX11_ResourcePackage
+	{
+		ComPtr<ID3D11Resource> m_Resource; // ID3D11Buffer inherits from ID3D11Resource.
+		ComPtr<ID3D11ShaderResourceView> m_ShaderResourceView;
+		ComPtr<ID3D11UnorderedAccessView> m_UnorderedAccessView;
+		std::vector<ComPtr<ID3D11ShaderResourceView>> m_Subresources_ShaderResourceView;
+		std::vector<ComPtr<ID3D11UnorderedAccessView>> m_Subresources_UnorderedAccessView;
+	};
+
+	struct DX11_TexturePackage : public DX11_ResourcePackage
+	{
+		ComPtr<ID3D11RenderTargetView> m_RenderTargetView;
+		ComPtr<ID3D11DepthStencilView> m_DepthStencilView;
+		std::vector<ComPtr<ID3D11RenderTargetView>> m_Subresources_RenderTargetView;
+		std::vector<ComPtr<ID3D11DepthStencilView>> m_Subresources_DepthStencilView;
+ 	};
+
+	struct DX11_VertexShaderPackage
+	{
+		ComPtr<ID3D11VertexShader> m_Resource;
+		std::vector<uint8_t> m_ShaderCode;
+	};
+
+	struct DX11_PixelShaderPackage
+	{
+		ComPtr<ID3D11PixelShader> m_Resource;
+	};
+
+	struct DX11_HullShaderPackage
+	{
+		ComPtr<ID3D11HullShader> m_Resource;
+	};
+
+	struct DX11_DomainShaderPackage
+	{
+		ComPtr<ID3D11DomainShader> m_Resource;
+	};
+
+	struct DX11_GeometryShaderPackage
+	{
+		ComPtr<ID3D11GeometryShader> m_Resource;
+	};
+
+	struct DX11_ComputeShaderPackage
+	{
+		ComPtr<ID3D11ComputeShader> m_Resource;
+	};
+
+	struct DX11_SwapChainPackage
+	{
+		Microsoft::WRL::ComPtr<IDXGISwapChain1> m_SwapChain;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTargetView;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_BackBuffer;
+	};
+
+	struct DX11_SamplerPackage
+	{
+		ComPtr<ID3D11SamplerState> m_Resource;
+	};
+
+	inline DX11_SwapChainPackage* ToInternal(const RHI_SwapChain* swapchain)
+	{
+		return static_cast<DX11_SwapChainPackage*>(swapchain->m_InternalState.get());
+	}
+
+	inline DX11_SamplerPackage* ToInternal(const RHI_Sampler* sampler)
+	{
+		return static_cast<DX11_SamplerPackage*>(sampler->m_InternalState.get());
+	}
+
+	inline DX11_TexturePackage* ToInternal(const RHI_Texture* texture)
+	{
+		return static_cast<DX11_TexturePackage*>(texture->m_InternalState.get());
+	}
+
+	inline DX11_ResourcePackage* ToInternal(const RHI_GPU_Buffer* buffer)
+	{
+		return static_cast<DX11_ResourcePackage*>(buffer->m_InternalState.get());
+	}
 }

@@ -18,7 +18,7 @@ namespace Aurora
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
 
-        RHI_SwapChainDescription swapchainDescription;
+        RHI_SwapChain_Description swapchainDescription;
         swapchainDescription.m_Width = 1280;
         swapchainDescription.m_Height = 720;
 
@@ -26,7 +26,7 @@ namespace Aurora
 
         CompileShaders();
         CreateBuffers();
-
+        CreateDepth();
         return true;
     }
 
@@ -38,17 +38,22 @@ namespace Aurora
         float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
         ID3D11RenderTargetView* RTV = internalState->m_RenderTargetView.Get();
+        ID3D11DepthStencilView* DSV = DX11_Utility::ToInternal(&m_DepthTexture)->m_DepthStencilView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(RTV, backgroundColor); // We use the render target view pointer to access the back buffer and clear it to an RGBA color of our choice (values between 0 and 1). If we add a depth buffer later, we will need to clear it as well.
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         // Viewport
         D3D11_VIEWPORT viewportInfo = { 0, 0, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0), 0.0f, 1.0f };
         m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
-        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, nullptr); // Set depth as well here if it exists.
+
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, DSV); // Set depth as well here if it exists.
 
         // Update input assembler with the vertex buffer to draw, and the memory layout so it knows how to feed vertex data from the vertex buffer to the vertex shader.
         m_GraphicsDevice->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // Expects vertices should form a triangle from 3 vertices.
         m_GraphicsDevice->m_DeviceContextImmediate->IASetInputLayout(m_InputLayout); // Give it our input layout.
-        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &m_VertexBuffer, &m_VertexStride, &m_VertexOffset); // Tell it to use our vertex buffer with the earlier set memory stride anmd offset from our data.
+
+        ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&m_VertexBuffer)->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &m_VertexStride, &m_VertexOffset); // Tell it to use our vertex buffer with the earlier set memory stride anmd offset from our data.
         
         ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VertexShader.m_InternalState.get())->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
@@ -128,15 +133,15 @@ namespace Aurora
         m_VertexOffset = 0;
         m_VertexCount = 3;
 
-        D3D11_BUFFER_DESC vertexBufferInfo = {}; // Parameters that describe the bytes between each vertex (XYZ, so 3 floats), the offset into the buffer to start reading (0), and the numbver of vertices (3).
-        vertexBufferInfo.ByteWidth = sizeof(vertexDataArray);
-        vertexBufferInfo.Usage = D3D11_USAGE_DEFAULT; // Based on how the buffer values will change, there are many ways to help driver optimization, such as IMMUTABLE or DEFAULT. Different usage values will require struct fields to be set or not set.
-        vertexBufferInfo.BindFlags = D3D11_BIND_VERTEX_BUFFER; // We are binding a vertex buffer here.
+        RHI_GPU_Buffer_Description bufferDescription;
+        bufferDescription.m_BindFlags = Bind_Flag::Bind_Vertex_Buffer;
+        bufferDescription.m_Usage = Usage::Default;
+        bufferDescription.m_ByteWidth = sizeof(vertexDataArray);
 
-        D3D11_SUBRESOURCE_DATA subresourceData = {}; // Points to the actual vertex array data.
-        subresourceData.pSysMem = vertexDataArray;
+        RHI_Subresource_Data subresourceData;
+        subresourceData.m_SystemMemory = vertexDataArray;
 
-        DX11_Utility::BreakIfFailed(m_GraphicsDevice->m_Device->CreateBuffer(&vertexBufferInfo, &subresourceData, &m_VertexBuffer));
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, &subresourceData, &m_VertexBuffer);
     }
 
 
@@ -147,5 +152,23 @@ namespace Aurora
         wireframeState.CullMode = D3D11_CULL_NONE;
 
         DX11_Utility::BreakIfFailed(m_GraphicsDevice->m_Device->CreateRasterizerState(&wireframeState, &m_RasterizerState_Wireframe));
+    }
+
+    void Renderer::CreateDepth()
+    {
+        RHI_Texture_Description depthStencilDescription;
+        depthStencilDescription.m_Type = Texture_Type::Texture2D;
+        depthStencilDescription.m_Width = 1280;
+        depthStencilDescription.m_Height = 720;
+        depthStencilDescription.m_MipLevels = 1;
+        depthStencilDescription.m_ArraySize = 1;
+        depthStencilDescription.m_Format = Format::FORMAT_D24_UNORM_S8_UINT;
+        depthStencilDescription.m_SampleCount = 1;
+        depthStencilDescription.m_Usage = Usage::Default;
+        depthStencilDescription.m_BindFlags = Bind_Flag::Bind_Depth_Stencil;
+        depthStencilDescription.m_CPUAccessFlags = 0;
+        depthStencilDescription.m_MiscFlags = 0;
+
+        m_GraphicsDevice->CreateTexture(&depthStencilDescription, nullptr, &m_DepthTexture);
     }
 }
