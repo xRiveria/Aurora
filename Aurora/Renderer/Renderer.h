@@ -3,6 +3,7 @@
 #include "ISubsystem.h"
 #include "../Graphics/RHI_Implementation.h"
 #include "../Graphics/RHI_GraphicsDevice.h"
+#include "../Resource/ResourceCache.h"
 
 using namespace DirectX;
 
@@ -28,6 +29,7 @@ namespace Aurora
         void CreateBuffers();
         void CreateRasterizerStates();
         void CreateDepth();
+        void CreateTexture();
 
     public:
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
@@ -37,6 +39,9 @@ namespace Aurora
         RHI_Shader m_PixelShader;
         RHI_GPU_Buffer m_VertexBuffer;
         RHI_Texture m_DepthTexture;
+
+        std::shared_ptr<AuroraResource> m_PyramidTexture = nullptr;
+        RHI_Sampler m_Standard_Texture_Sampler;
 
         /// Future Abstraction
         //========================================================== 

@@ -219,6 +219,210 @@ namespace Aurora::DX11_Utility
 		return DXGI_FORMAT_UNKNOWN;
     }
 
+	constexpr D3D11_FILTER DX11_ConvertFilter(Filter filter)
+	{
+		switch (filter)
+		{
+			case FILTER_MIN_MAG_MIP_POINT:
+				return D3D11_FILTER_MIN_MAG_MIP_POINT;
+				break;
+			case FILTER_MIN_MAG_POINT_MIP_LINEAR:
+				return D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+				break;
+			case FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT:
+				return D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+				break;
+			case FILTER_MIN_POINT_MAG_MIP_LINEAR:
+				return D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+				break;
+			case FILTER_MIN_LINEAR_MAG_MIP_POINT:
+				return D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+				break;
+			case FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+				return D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+				break;
+			case FILTER_MIN_MAG_LINEAR_MIP_POINT:
+				return D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+				break;
+			case FILTER_MIN_MAG_MIP_LINEAR:
+				return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+				break;
+			case FILTER_ANISOTROPIC:
+				return D3D11_FILTER_ANISOTROPIC;
+				break;
+			case FILTER_COMPARISON_MIN_MAG_MIP_POINT:
+				return D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+				break;
+			case FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR:
+				return D3D11_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR;
+				break;
+			case FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT:
+				return D3D11_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT;
+				break;
+			case FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR:
+				return D3D11_FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR;
+				break;
+			case FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT:
+				return D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT;
+				break;
+			case FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+				return D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+				break;
+			case FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
+				return D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+				break;
+			case FILTER_COMPARISON_MIN_MAG_MIP_LINEAR:
+				return D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+				break;
+			case FILTER_COMPARISON_ANISOTROPIC:
+				return D3D11_FILTER_COMPARISON_ANISOTROPIC;
+				break;
+			case FILTER_MINIMUM_MIN_MAG_MIP_POINT:
+				return D3D11_FILTER_MINIMUM_MIN_MAG_MIP_POINT;
+				break;
+			case FILTER_MINIMUM_MIN_MAG_POINT_MIP_LINEAR:
+				return D3D11_FILTER_MINIMUM_MIN_MAG_POINT_MIP_LINEAR;
+				break;
+			case FILTER_MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT:
+				return D3D11_FILTER_MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT;
+				break;
+			case FILTER_MINIMUM_MIN_POINT_MAG_MIP_LINEAR:
+				return D3D11_FILTER_MINIMUM_MIN_POINT_MAG_MIP_LINEAR;
+				break;
+			case FILTER_MINIMUM_MIN_LINEAR_MAG_MIP_POINT:
+				return D3D11_FILTER_MINIMUM_MIN_LINEAR_MAG_MIP_POINT;
+				break;
+			case FILTER_MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+				return D3D11_FILTER_MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+				break;
+			case FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
+				return D3D11_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT;
+				break;
+			case FILTER_MINIMUM_MIN_MAG_MIP_LINEAR:
+				return D3D11_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR;
+				break;
+			case FILTER_MINIMUM_ANISOTROPIC:
+				return D3D11_FILTER_MINIMUM_ANISOTROPIC;
+				break;
+			case FILTER_MAXIMUM_MIN_MAG_MIP_POINT:
+				return D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_POINT;
+				break;
+			case FILTER_MAXIMUM_MIN_MAG_POINT_MIP_LINEAR:
+				return D3D11_FILTER_MAXIMUM_MIN_MAG_POINT_MIP_LINEAR;
+				break;
+			case FILTER_MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT:
+				return D3D11_FILTER_MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT;
+				break;
+			case FILTER_MAXIMUM_MIN_POINT_MAG_MIP_LINEAR:
+				return D3D11_FILTER_MAXIMUM_MIN_POINT_MAG_MIP_LINEAR;
+				break;
+			case FILTER_MAXIMUM_MIN_LINEAR_MAG_MIP_POINT:
+				return D3D11_FILTER_MAXIMUM_MIN_LINEAR_MAG_MIP_POINT;
+				break;
+			case FILTER_MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+				return D3D11_FILTER_MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+				break;
+			case FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
+				return D3D11_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT;
+				break;
+			case FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR:
+				return D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR;
+				break;
+			case FILTER_MAXIMUM_ANISOTROPIC:
+				return D3D11_FILTER_MAXIMUM_ANISOTROPIC;
+				break;
+			default:
+				break;
+			}
+		return D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
+
+	constexpr D3D11_TEXTURE_ADDRESS_MODE DX11_ConvertTextureAddressMode(Texture_Address_Mode mode)
+	{
+		switch (mode)
+		{
+			case Texture_Address_Mode::Texture_Address_Wrap:
+			{
+				return D3D11_TEXTURE_ADDRESS_WRAP;
+				break;
+			}
+			case Texture_Address_Mode::Texture_Address_Mirror:
+			{
+				return D3D11_TEXTURE_ADDRESS_MIRROR;
+				break;
+			}
+			case Texture_Address_Mode::Texture_Address_Clamp:
+			{
+				return D3D11_TEXTURE_ADDRESS_CLAMP;
+				break;
+			}
+			case Texture_Address_Mode::Texture_Address_Border:
+			{
+				return D3D11_TEXTURE_ADDRESS_BORDER;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+
+		return D3D11_TEXTURE_ADDRESS_WRAP;
+	}
+
+	constexpr D3D11_COMPARISON_FUNC DX11_ConvertComparisonFunction(ComparisonFunction function)
+	{
+		switch (function)
+		{
+			case ComparisonFunction::Comparison_Never:
+			{
+				return D3D11_COMPARISON_NEVER;
+				break;
+			}
+			case ComparisonFunction::Comparison_Less:
+			{
+				return D3D11_COMPARISON_LESS;
+				break;
+			}
+			case ComparisonFunction::Comparison_Equal:
+			{
+				return D3D11_COMPARISON_EQUAL;
+				break;
+			}
+			case ComparisonFunction::Comparison_Less_Equal:
+			{
+				return D3D11_COMPARISON_LESS_EQUAL;
+				break;
+			}
+			case ComparisonFunction::Comparison_Greater:
+			{
+				return D3D11_COMPARISON_GREATER;
+				break;
+			}
+			case ComparisonFunction::Comparison_Not_Equal:
+			{
+				return D3D11_COMPARISON_NOT_EQUAL;
+				break;
+			}
+			case ComparisonFunction::Comparison_Greater_Equal:
+			{
+				return D3D11_COMPARISON_GREATER_EQUAL;
+				break;
+			}
+			case ComparisonFunction::Comparison_Always:
+			{
+				return D3D11_COMPARISON_ALWAYS;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+
+		return D3D11_COMPARISON_NEVER;
+	}
+
 	inline D3D11_TEXTURE1D_DESC DX11_ConvertTextureDescription1D(const RHI_Texture_Description* description)
 	{
 		D3D11_TEXTURE1D_DESC textureDescription = {};

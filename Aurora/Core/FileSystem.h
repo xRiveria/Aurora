@@ -13,5 +13,12 @@ namespace Aurora
 
         // Paths
         static std::string GetExtensionFromFilePath(const std::string& filePath);
+
+        // Supported Files in Directory
+    };
+
+    static const std::vector<std::string> g_Supported_Image_Formats
+    {
+
     };
 }

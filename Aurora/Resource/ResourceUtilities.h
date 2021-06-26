@@ -7,7 +7,6 @@ namespace Aurora
     {
         Empty,
         Image,
-        Sound
     };
 
     enum Resource_Load_Mode
@@ -19,8 +18,8 @@ namespace Aurora
 
     enum Resource_Flags
     {
-        Import_Color_Grading_LUT = 1 << 0,  // Image import will convert the resource to 3D color grading LUT.
-        Import_Retain_File_Data  = 1 << 1   // File data will be kept for later reuse. This is required for keeping the resourced serializable. 
+        Import_Color_Grading_LUT = 1 << 0,                     // Image import will convert the resource to 3D color grading LUT.
+        Import_Retain_File_Data  = 1 << 1                      // File data will be kept for later reuse. This is required for keeping the resourced serializable. 
     };
 
     // Audio files in the far future can be included as well.
@@ -28,9 +27,8 @@ namespace Aurora
     {
         Aurora::RHI_Texture m_Texture;
 
-        Resource_Data_Type m_Type = Resource_Data_Type::Empty;
-
         uint32_t m_Flags = 0;
-        std::vector<uint8_t> m_FileData;
+        Resource_Data_Type m_Type = Resource_Data_Type::Empty;
+        std::string m_FilePath;
     };
 }

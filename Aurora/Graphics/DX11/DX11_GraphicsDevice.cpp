@@ -300,20 +300,51 @@ namespace Aurora
 
         if (texture->m_Description.m_BindFlags & Bind_Flag::Bind_Depth_Stencil)
         {
-            CreateSubresourceTexture(texture, Subresource_Type::DepthStencilView, 0, -1, 0, -1);
+            CreateSubresource(texture, Subresource_Type::DepthStencilView, 0, -1, 0, -1);
         }
 
         if (texture->m_Description.m_BindFlags & Bind_Flag::Bind_Shader_Resource)
         {
-            CreateSubresourceTexture(texture, Subresource_Type::ShaderResourceView, 0, -1, 0, -1);
+            CreateSubresource(texture, Subresource_Type::ShaderResourceView, 0, -1, 0, -1);
         }
 
         if (texture->m_Description.m_BindFlags & Bind_Unordered_Access)
         {
-            CreateSubresourceTexture(texture, Subresource_Type::UnorderedAccessView, 0, -1, 0, -1);
+            CreateSubresource(texture, Subresource_Type::UnorderedAccessView, 0, -1, 0, -1);
         }
 
         return true;
+    }
+
+    bool DX11_GraphicsDevice::CreateSampler(const RHI_Sampler_Description* samplerDescription, RHI_Sampler* samplerState)
+    {
+        std::shared_ptr<DX11_SamplerPackage> internalState = std::make_shared<DX11_SamplerPackage>();
+        samplerState->m_InternalState = internalState;
+
+        D3D11_SAMPLER_DESC samplerCreationDescription = {};
+        samplerCreationDescription.Filter = DX11_ConvertFilter(samplerDescription->m_Filter);
+        samplerCreationDescription.AddressU = DX11_ConvertTextureAddressMode(samplerDescription->m_AddressU);
+        samplerCreationDescription.AddressV = DX11_ConvertTextureAddressMode(samplerDescription->m_AddressV);
+        samplerCreationDescription.AddressW = DX11_ConvertTextureAddressMode(samplerDescription->m_AddressW);
+        samplerCreationDescription.MipLODBias = samplerDescription->m_MipLOD_Bias;
+        samplerCreationDescription.MaxAnisotropy = samplerDescription->m_MaxAnisotropy;
+        samplerCreationDescription.ComparisonFunc = DX11_ConvertComparisonFunction(samplerDescription->m_ComparisonFunction);
+        samplerCreationDescription.BorderColor[0] = samplerDescription->m_BorderColor[0];
+        samplerCreationDescription.BorderColor[1] = samplerDescription->m_BorderColor[1];
+        samplerCreationDescription.BorderColor[2] = samplerDescription->m_BorderColor[2];
+        samplerCreationDescription.BorderColor[3] = samplerDescription->m_BorderColor[3];
+        samplerCreationDescription.MinLOD = samplerDescription->m_MinLOD;
+        samplerCreationDescription.MaxLOD = samplerDescription->m_MaxLOD;
+
+        samplerState->m_Description = *samplerDescription;
+        if (BreakIfFailed(m_Device->CreateSamplerState(&samplerCreationDescription, &internalState->m_Resource)))
+        {
+            AURORA_INFO("Successfully created Sampler State.");
+            return true;
+        }
+
+        AURORA_ERROR("Failed to create Sampler State.");
+        return false;
     }
 
     bool DX11_GraphicsDevice::CreateShader(ShaderStage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const
@@ -379,7 +410,7 @@ namespace Aurora
         return false;
     }
     
-    int DX11_GraphicsDevice::CreateSubresourceTexture(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const
+    int DX11_GraphicsDevice::CreateSubresource(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const
     {
         DX11_TexturePackage* internalState = ToInternal(texture);
 
@@ -390,26 +421,69 @@ namespace Aurora
                 D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDescription = {};
 
                 // Try to resolve the resource format.
+                switch (texture->m_Description.m_Format)
+                {
+                    case Format::FORMAT_R16_TYPELESS:
+                        shaderResourceViewDescription.Format = DXGI_FORMAT_R16_UNORM;
+                        break;
 
+                    case Format::FORMAT_R32_TYPELESS:
+                        shaderResourceViewDescription.Format = DXGI_FORMAT_R32_FLOAT;
+                        break;
+
+                    case Format::FORMAT_R24G8_TYPELESS:
+                        shaderResourceViewDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+                        break;
+
+                    case Format::FORMAT_R32G8X24_TYPELESS:
+                        shaderResourceViewDescription.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+                        break;
+
+                    default:
+                        shaderResourceViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
+                        break;
+                }
 
                 if (texture->m_Description.m_Type == Texture_Type::Texture1D)
                 {
                     if (texture->m_Description.m_ArraySize > 1)
                     {
-
+                        shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1DARRAY;
+                        shaderResourceViewDescription.Texture1DArray.FirstArraySlice = firstSlice;
+                        shaderResourceViewDescription.Texture1DArray.ArraySize = sliceCount;
+                        shaderResourceViewDescription.Texture1DArray.MostDetailedMip = firstMip;
+                        shaderResourceViewDescription.Texture1DArray.MipLevels = mipCount;
                     }
                     else
                     {
-
+                        shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
+                        shaderResourceViewDescription.Texture1D.MostDetailedMip = firstMip;
+                        shaderResourceViewDescription.Texture1D.MipLevels = mipCount;
                     }
                 }
                 else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
                 {
-
+                    if (texture->m_Description.m_ArraySize > 1)
+                    {
+                        ///
+                    }
+                    else
+                    {
+                        if (texture->m_Description.m_SampleCount > 1)
+                        {
+                            shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+                        }
+                        else
+                        {
+                            shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+                            shaderResourceViewDescription.Texture2D.MostDetailedMip = firstMip;
+                            shaderResourceViewDescription.Texture2D.MipLevels = mipCount;
+                        }
+                    }
                 }
                 else if (texture->m_Description.m_Type == Texture_Type::Texture3D)
                 {
-
+                    ///
                 }
 
                 ComPtr<ID3D11ShaderResourceView> shaderResourceView;
@@ -431,10 +505,91 @@ namespace Aurora
                     AURORA_ASSERT(0);
                 }
             }
+            break;
+
+            case Subresource_Type::UnorderedAccessView:
+            {
+                D3D11_UNORDERED_ACCESS_VIEW_DESC unorderedAccessViewDescription = {};
+
+                // Try to resolve resource format.
+                switch (texture->m_Description.m_Format)
+                {
+                    case Format::FORMAT_R16_TYPELESS:
+                        unorderedAccessViewDescription.Format = DXGI_FORMAT_R16_UNORM;
+                        break;
+
+                    case Format::FORMAT_R32_TYPELESS:
+                        unorderedAccessViewDescription.Format = DXGI_FORMAT_R32_FLOAT;
+                        break;
+
+                    case Format::FORMAT_R24G8_TYPELESS:
+                        unorderedAccessViewDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+                        break;
+
+                    case Format::FORMAT_R32G8X24_TYPELESS:
+                        unorderedAccessViewDescription.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+                        break;
+
+                    default:
+                        unorderedAccessViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
+                        break;
+                }
+
+                if (texture->m_Description.m_Type == Texture_Type::Texture1D)
+                {
+                    if (texture->m_Description.m_ArraySize > 1)
+                    {
+
+                    }
+                    else
+                    {
+                        unorderedAccessViewDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
+                        unorderedAccessViewDescription.Texture1D.MipSlice = firstMip;
+                    }
+                }
+                else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
+                {
+                    if (texture->m_Description.m_ArraySize > 1)
+                    {
+
+                    }
+                    else
+                    {
+                        unorderedAccessViewDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+                        unorderedAccessViewDescription.Texture2D.MipSlice = firstMip;
+                    }
+                }
+                else if (texture->m_Description.m_Type == Texture_Type::Texture3D)
+                {
+
+                }
+
+                ComPtr<ID3D11UnorderedAccessView> unorderedAccessView;
+                if (BreakIfFailed(m_Device->CreateUnorderedAccessView(internalState->m_Resource.Get(), &unorderedAccessViewDescription, &unorderedAccessView)))
+                {
+                    AURORA_INFO("Successfully created Unordered Access View.");
+
+                    if (!internalState->m_UnorderedAccessView)
+                    {
+                        internalState->m_UnorderedAccessView = unorderedAccessView;
+                        return -1;
+                    }
+                    internalState->m_Subresources_UnorderedAccessView.push_back(unorderedAccessView);
+                    return int(internalState->m_Subresources_UnorderedAccessView.size() - 1);
+                }
+                else
+                {
+                    AURORA_ERROR("Failed to create Unordered Access View.");
+                    AURORA_ASSERT(0);
+                }
+            }
+            break;
 
             case Subresource_Type::ConstantBufferView:
             {
             }
+            break;
+
 
             case Subresource_Type::DepthStencilView:
             {

@@ -18,10 +18,11 @@ namespace Aurora
 
         bool CreateSwapChain(const RHI_SwapChain_Description* swapChainDescription, RHI_SwapChain* swapChain) const;
         bool CreateBuffer(const RHI_GPU_Buffer_Description* bufferDescription, const RHI_Subresource_Data* initialData, RHI_GPU_Buffer* buffer) const;
-        bool CreateTexture(const RHI_Texture_Description* textureDescription, const RHI_Subresource_Data* initialData, RHI_Texture* texture) const; // Automatically creates the needed views via CreateSubresourceTexture.
+        bool CreateTexture(const RHI_Texture_Description* textureDescription, const RHI_Subresource_Data* initialData, RHI_Texture* texture) const; // Automatically creates the needed views via CreateSubresource.
+        bool CreateSampler(const RHI_Sampler_Description* samplerDescription, RHI_Sampler* samplerState);
         bool CreateShader(ShaderStage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const;
 
-        int CreateSubresourceTexture(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const;
+        int CreateSubresource(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const;
              
     public: 
         /// Will be temporarily public.

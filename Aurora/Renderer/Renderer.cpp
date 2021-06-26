@@ -28,6 +28,7 @@ namespace Aurora
         CompileShaders();
         CreateBuffers();
         CreateDepth();
+        CreateTexture();
         return true;
     }
 
@@ -52,6 +53,12 @@ namespace Aurora
         // Update input assembler with the vertex buffer to draw, and the memory layout so it knows how to feed vertex data from the vertex buffer to the vertex shader.
         m_GraphicsDevice->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // Expects vertices should form a triangle from 3 vertices.
         m_GraphicsDevice->m_DeviceContextImmediate->IASetInputLayout(m_InputLayout); // Give it our input layout.
+
+        ID3D11SamplerState* samplerState = DX11_Utility::ToInternal(&m_Standard_Texture_Sampler)->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
+
+        ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&m_PyramidTexture->m_Texture)->m_ShaderResourceView.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
 
         ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&m_VertexBuffer)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &m_VertexStride, &m_VertexOffset); // Tell it to use our vertex buffer with the earlier set memory stride anmd offset from our data.
@@ -171,5 +178,21 @@ namespace Aurora
         depthStencilDescription.m_MiscFlags = 0;
 
         m_GraphicsDevice->CreateTexture(&depthStencilDescription, nullptr, &m_DepthTexture);
+    }
+
+    void Renderer::CreateTexture()
+    {
+        m_PyramidTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Pyramid.jpg", "../Resources/Textures/Pyramid.jpg");
+
+        RHI_Sampler_Description samplerDescription;
+        samplerDescription.m_Filter = Filter::FILTER_MIN_MAG_MIP_LINEAR;
+        samplerDescription.m_AddressU = Texture_Address_Mode::Texture_Address_Wrap;
+        samplerDescription.m_AddressV = Texture_Address_Mode::Texture_Address_Wrap;
+        samplerDescription.m_AddressW = Texture_Address_Mode::Texture_Address_Wrap;
+        samplerDescription.m_ComparisonFunction = ComparisonFunction::Comparison_Never;
+        samplerDescription.m_MinLOD = 0;
+        samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;
+
+        m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Standard_Texture_Sampler);
     }
 }
