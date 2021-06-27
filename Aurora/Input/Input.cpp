@@ -29,6 +29,21 @@ namespace Aurora
     void Input::Tick(float deltaTime)
     {
         glfwPollEvents();
+
+        PollMouse();  // To ensure that our mouse position and delta is always computed.
+    }
+
+    void Input::PollMouse()
+    {
+        // Get current mouse position.
+        double xPosition, yPosition;
+        glfwGetCursorPos(static_cast<GLFWwindow*>(m_QueryWindow), &xPosition, &yPosition);
+
+        // Get delta.
+        m_MousePositionDelta = { xPosition - m_MousePositionPreviousFrame.first, yPosition - m_MousePositionPreviousFrame.second };
+
+        // Save current mouse position.
+        m_MousePositionPreviousFrame = { xPosition, yPosition };
     }
 
     bool Input::SetQueryWindow(void* window)

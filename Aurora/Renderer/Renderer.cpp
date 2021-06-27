@@ -20,8 +20,8 @@ namespace Aurora
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
 
         RHI_SwapChain_Description swapchainDescription;
-        swapchainDescription.m_Width = 1280;
-        swapchainDescription.m_Height = 720;
+        swapchainDescription.m_Width = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0));
+        swapchainDescription.m_Height = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0));
 
         m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
 
@@ -29,6 +29,11 @@ namespace Aurora
         CreateBuffers();
         CreateDepth();
         CreateTexture();
+
+        m_Camera = std::make_shared<Camera>(m_EngineContext);
+        m_Camera->SetPosition(0.0f, 0.0f, -2.0f);
+        m_Camera->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
+
         return true;
     }
 
@@ -70,14 +75,11 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
 
         //==========================================================================================================================
-        // Update Constant Buffer
-        static float zRotation = 0;
-        zRotation += 0.01f;
-        if (zRotation > 180.0f)
-        {
-            zRotation = 0.0f;
-        }
-        transform.m_MVP = XMMatrixRotationRollPitchYaw(0.0f, 0.0f, zRotation) * XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+        // Update Transform Component
+        m_Transform.m_ModelMatrix = XMMatrixIdentity(); // XMMatrixRotationRollPitchYaw(0.0f, 0.0f, zRotation) * XMMatrixScaling(0.5f, 0.5f, 1.0f) * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+        // m_Camera->ComputeLookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.0f)); // Set our camera to stare at a position. 
+
+        transform.m_MVP = m_Transform.m_ModelMatrix * m_Camera->GetViewMatrix() * m_Camera->GetProjectionMatrix();
         transform.m_MVP = XMMatrixTranspose(transform.m_MVP);
 
         m_ConstantBufferMapping.m_Flags = Mapping_Flag::Flag_Write;
@@ -98,6 +100,8 @@ namespace Aurora
 
        m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(nullptr, nullptr, 0);
        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(nullptr, nullptr, 0);
+
+       m_Camera->Tick(deltaTime);
     }
 
     void Renderer::CompileShaders()
@@ -197,8 +201,8 @@ namespace Aurora
     {
         RHI_Texture_Description depthStencilDescription;
         depthStencilDescription.m_Type = Texture_Type::Texture2D;
-        depthStencilDescription.m_Width = 1280;
-        depthStencilDescription.m_Height = 720;
+        depthStencilDescription.m_Width = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0));
+        depthStencilDescription.m_Height = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0));
         depthStencilDescription.m_MipLevels = 1;
         depthStencilDescription.m_ArraySize = 1;
         depthStencilDescription.m_Format = Format::FORMAT_D24_UNORM_S8_UINT;

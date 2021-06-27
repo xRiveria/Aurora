@@ -4,6 +4,7 @@
 #include "../Graphics/RHI_Implementation.h"
 #include "../Graphics/RHI_GraphicsDevice.h"
 #include "../Resource/ResourceCache.h"
+#include "../Scene/Components/Camera.h"
 
 using namespace DirectX;
 
@@ -12,7 +13,14 @@ namespace Aurora
     // Ensure 16-byte alignment.
     struct CB_VertexShader
     {
-        XMMATRIX m_MVP;
+        XMMATRIX m_MVP = XMMatrixIdentity();
+    };
+
+    struct TransformComponent
+    {
+        XMMATRIX m_ModelMatrix = XMMatrixIdentity();
+        XMMATRIX m_ProjectionMatrix = XMMatrixIdentity();
+        XMMATRIX m_ViewMatrix = XMMatrixIdentity();
     };
 
     class Renderer : public ISubsystem
@@ -44,9 +52,13 @@ namespace Aurora
         RHI_Sampler m_Standard_Texture_Sampler;
         
         /// Entity Encapsulation
+        TransformComponent m_Transform;
         CB_VertexShader transform;
         RHI_Mapping m_ConstantBufferMapping;
         RHI_GPU_Buffer m_ConstantBuffer_VertexTransform;
+
+        // Camera
+        std::shared_ptr<Camera> m_Camera;
 
         /// Future Abstraction
         //========================================================== 

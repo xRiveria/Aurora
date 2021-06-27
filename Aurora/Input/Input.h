@@ -22,9 +22,14 @@ namespace Aurora
         bool Initialize() override;
         void Tick(float deltaTime) override;
 
+        void PollMouse();
+
         bool SetQueryWindow(void* window); // The window we're querying inputs for.
 
         // Use the below functions to create shortcut keys/check for input.
+        const std::pair<float, float> GetMousePositionPreviousFrame() const { return m_MousePositionPreviousFrame; }
+        const std::pair<float, float> GetMousePositionDelta() const { return m_MousePositionDelta; }
+
         bool IsKeyPressed(int keyCode);
         bool IsMouseButtonPressed(int mouseCode);
         void SetupInputCallbacks() const;
@@ -33,5 +38,8 @@ namespace Aurora
 
     private:
         void* m_QueryWindow = nullptr;
+
+        std::pair<float, float> m_MousePositionPreviousFrame;
+        std::pair<float, float> m_MousePositionDelta;
     };
 }
