@@ -11,3 +11,9 @@
 #include "EngineContext.h"
 #include "../Log/Log.h"
 #include "../Input/InputUtilities.h"
+
+// Math
+#include "../Math/MathUtilities.h"
+
+// Global Engine Utilities
+#include "EngineUtilities.h"

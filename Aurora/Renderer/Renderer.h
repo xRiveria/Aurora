@@ -31,6 +31,7 @@ namespace Aurora
         
         bool Initialize() override;
         void Tick(float deltaTime) override;
+        void DrawModel(); /// Pause.
 
     private:
         void CompileShaders();
@@ -46,6 +47,8 @@ namespace Aurora
         RHI_Shader m_VertexShader;
         RHI_Shader m_PixelShader;
         RHI_GPU_Buffer m_VertexBuffer;
+
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilState;
         RHI_Texture m_DepthTexture;
 
         std::shared_ptr<AuroraResource> m_PyramidTexture = nullptr;

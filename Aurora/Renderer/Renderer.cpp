@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "../Window/WindowContext.h"
 #include "../Graphics/DX11/DX11_Utilities.h" //Temporary
+#include "../Scene/World.h"
 
 namespace Aurora
 {
@@ -29,11 +30,13 @@ namespace Aurora
         CreateBuffers();
         CreateDepth();
         CreateTexture();
+        CreateRasterizerStates();
 
         m_Camera = std::make_shared<Camera>(m_EngineContext);
         m_Camera->SetPosition(0.0f, 0.0f, -2.0f);
         m_Camera->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
+        m_EngineContext->GetSubsystem<World>()->LoadModel("../Resources/Models/Hollow_Knight/v3.obj");
         return true;
     }
 
@@ -54,6 +57,8 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
 
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, DSV); // Set depth as well here if it exists.
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetDepthStencilState(m_DepthStencilState.Get(), 0);
+        m_GraphicsDevice->m_DeviceContextImmediate->RSSetState(m_RasterizerState_Wireframe);
 
         // Update input assembler with the vertex buffer to draw, and the memory layout so it knows how to feed vertex data from the vertex buffer to the vertex shader.
         m_GraphicsDevice->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // Expects vertices should form a triangle from 3 vertices.
@@ -95,13 +100,33 @@ namespace Aurora
         // When we call Draw, the pipeline will use all the states we just set, the vertex buffer and the shaders. We also need to tell it how many vertices to draw from our buffer.
         m_GraphicsDevice->m_DeviceContextImmediate->Draw(m_VertexCount, 0);
 
+        DrawModel();
+
         // Swap buffers. DXGI calls this Present(). This should be after all of our draw calls. This will be from our swapchain.
         internalState->m_SwapChain->Present(1, 0);
 
-       m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(nullptr, nullptr, 0);
-       m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(nullptr, nullptr, 0);
+       // m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(nullptr, nullptr, 0);
+       // m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(nullptr, nullptr, 0);
 
        m_Camera->Tick(deltaTime);
+    }
+
+    void Renderer::DrawModel()
+    {
+        World* world = m_EngineContext->GetSubsystem<World>();
+        MeshComponent meshComponent = world->m_MeshComponent;
+
+        UINT offset = 0;
+        UINT modelStride = 5 * sizeof(float);
+
+        ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.m_BaseTexture->m_Texture)->m_ShaderResourceView.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
+
+        ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
+        //ID3D11Buffer* indexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_IndexBuffer)->m_Resource.Get();
+        //m_GraphicsDevice->m_DeviceContextImmediate->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+        m_GraphicsDevice->m_DeviceContextImmediate->Draw(meshComponent.m_VertexPositions.size(), 0);
     }
 
     void Renderer::CompileShaders()
@@ -191,7 +216,7 @@ namespace Aurora
     void Renderer::CreateRasterizerStates()
     {
         D3D11_RASTERIZER_DESC wireframeState = {};
-        wireframeState.FillMode = D3D11_FILL_WIREFRAME;
+        wireframeState.FillMode = D3D11_FILL_SOLID;
         wireframeState.CullMode = D3D11_CULL_NONE;
 
         DX11_Utility::BreakIfFailed(m_GraphicsDevice->m_Device->CreateRasterizerState(&wireframeState, &m_RasterizerState_Wireframe));
@@ -213,6 +238,14 @@ namespace Aurora
         depthStencilDescription.m_MiscFlags = 0;
 
         m_GraphicsDevice->CreateTexture(&depthStencilDescription, nullptr, &m_DepthTexture);
+
+        /// To Abstract
+        D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
+        depthStencilDesc.DepthEnable = true;
+        depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+        depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+
+        m_GraphicsDevice->m_Device->CreateDepthStencilState(&depthStencilDesc, m_DepthStencilState.GetAddressOf());
     }
 
     void Renderer::CreateTexture()

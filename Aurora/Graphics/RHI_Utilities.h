@@ -38,6 +38,16 @@ namespace Aurora
         FORMAT_R16_TYPELESS,            // Depth (16-bit) / Shader Resource (16-bit)
         FORMAT_R32_TYPELESS,            // Depth (32-bit) / Shader Resource (32-bit)
         FORMAT_R24G8_TYPELESS,          // Depth (24-bit) + Stencil (8-bit) + Shader Resource (24-bit)
+
+        FORMAT_R32_UINT,
+
+        FORMAT_R16_UINT
+    };
+
+    enum IndexBuffer_Format
+    {
+        Format_16Bit,
+        Format_32Bit
     };
 
     enum Filter
@@ -111,7 +121,7 @@ namespace Aurora
         Resource_Misc_Shared                 = 1 << 0,
         Resource_Misc_TextureCube            = 1 << 1,
         Resource_Misc_Indirect_Args          = 1 << 2,
-        Resource_Misc_Buffer_Allow_Raw_Views = 1 << 3,
+        Resource_Misc_Buffer_Allow_Raw_Views = 1 << 3,   // Contents are addressable by a byte offset. See: https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources#byte-address-buffer
         Resource_Misc_Buffer_Structured      = 1 << 4,
         Resource_Misc_Tiled                  = 1 << 5,
         Resource_Misc_Raytracing             = 1 << 6

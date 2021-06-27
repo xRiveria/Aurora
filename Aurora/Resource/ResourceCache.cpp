@@ -81,23 +81,25 @@ namespace Aurora
                         textureDescription.m_BindFlags = Bind_Flag::Bind_Shader_Resource | Bind_Flag::Bind_Unordered_Access;
                         textureDescription.m_CPUAccessFlags = 0;
                         textureDescription.m_Format = Format::FORMAT_R8G8B8A8_UNORM;
-                        textureDescription.m_MipLevels = (uint32_t)log2(std::max(width, height)) + 1; // + 1 for base level.
+                        textureDescription.m_MipLevels = 1; // (uint32_t)log2(std::max(width, height)) + 1; // + 1 for base level.
                         textureDescription.m_MiscFlags = 0;
                         textureDescription.m_Usage = Usage::Default;
                         textureDescription.m_Layout = Image_Layout::Image_Layout_Shader_Resource;
 
-                        uint32_t mipWidth = width;
-                        std::vector<RHI_Subresource_Data> initializationData(textureDescription.m_MipLevels);
-                        for (uint32_t mip = 0; mip < textureDescription.m_MipLevels; mip++)
-                        {
-                            initializationData[mip].m_SystemMemory = data;
-                            initializationData[mip].m_SystemMemoryPitch = static_cast<uint32_t>(mipWidth * channelCount);
-                            mipWidth = std::max(1U, mipWidth / 2);
-                        }
-
-                        loadSuccess = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice->CreateTexture(&textureDescription, initializationData.data(), &resource->m_Texture);
+                        //uint32_t mipWidth = width;
+                        RHI_Subresource_Data initializationData;
+                        
+                        initializationData.m_SystemMemory = data;
+                        initializationData.m_SystemMemoryPitch = static_cast<uint32_t>(width * sizeof(unsigned char) * channelCount);
+                        
+                        loadSuccess = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice->CreateTexture(&textureDescription, &initializationData, &resource->m_Texture);
                         /// Set resource name.
                     }
+                }
+                else
+                {
+                    AURORA_ERROR("Failed to load texture with path: %s.", filePath.c_str());
+                    return nullptr;
                 }
 
                 stbi_image_free(data);
