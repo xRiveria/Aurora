@@ -590,7 +590,6 @@ namespace Aurora
             }
             break;
 
-
             case Subresource_Type::DepthStencilView:
             {
                 D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDescription = {};
@@ -698,5 +697,49 @@ namespace Aurora
         }
 
         return -1;
+    }
+
+    void DX11_GraphicsDevice::Map(const RHI_GPU_Resource* resource, RHI_Mapping* mapping)
+    {
+        DX11_ResourcePackage* internalState = ToInternal(resource);
+
+        D3D11_MAPPED_SUBRESOURCE mapResult = {};
+        D3D11_MAP mapType = D3D11_MAP_READ_WRITE;
+
+        if (mapping->m_Flags & Mapping_Flag::Flag_Read)
+        {
+            if (mapping->m_Flags & Mapping_Flag::Flag_Write)
+            {
+                mapType = D3D11_MAP_READ_WRITE;
+            }
+            else
+            {
+                mapType = D3D11_MAP_READ;
+            }
+        }
+        else if (mapping->m_Flags & Mapping_Flag::Flag_Write)
+        {
+            mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+        }
+
+        /// Should we use D3D11_MAP_FLAG_DO_NOT_WAIT?
+        if (BreakIfFailed(m_DeviceContextImmediate->Map(internalState->m_Resource.Get(), 0, mapType, 0, &mapResult)))
+        {
+            // AURORA_INFO("Successfully mapped resource."); // Spam...
+            mapping->m_Data = mapResult.pData;
+            mapping->m_RowPitch = mapResult.RowPitch;
+        }
+        else
+        {
+            AURORA_ERROR("Failed to map resource.");
+            mapping->m_Data = nullptr;
+            mapping->m_RowPitch = 0;
+        }
+    }
+
+    void DX11_GraphicsDevice::Unmap(const RHI_GPU_Resource* resource)
+    {
+        DX11_ResourcePackage* internalState = ToInternal(resource);
+        m_DeviceContextImmediate->Unmap(internalState->m_Resource.Get(), 0);
     }
 }

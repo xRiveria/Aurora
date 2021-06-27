@@ -23,7 +23,9 @@ namespace Aurora
         bool CreateShader(ShaderStage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const;
 
         int CreateSubresource(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const;
-             
+        void Map(const RHI_GPU_Resource* resource, RHI_Mapping* mappingDescription);
+        void Unmap(const RHI_GPU_Resource* resource);
+
     public: 
         /// Will be temporarily public.
 

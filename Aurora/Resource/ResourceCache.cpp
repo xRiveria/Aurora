@@ -97,15 +97,6 @@ namespace Aurora
 
                         loadSuccess = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice->CreateTexture(&textureDescription, initializationData.data(), &resource->m_Texture);
                         /// Set resource name.
-
-                        for (uint32_t i = 0; i < resource->m_Texture.m_Description.m_MipLevels; ++i)
-                        {
-                            int subresourceIndex;
-                            subresourceIndex = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice->CreateSubresource(&resource->m_Texture, Subresource_Type::ShaderResourceView, 0, 1, i, 1);
-                            AURORA_ASSERT(subresourceIndex == i);
-                            subresourceIndex = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice->CreateSubresource(&resource->m_Texture, Subresource_Type::UnorderedAccessView, 0, 1, i, 1);
-                            AURORA_ASSERT(subresourceIndex == i);
-                        }
                     }
                 }
 
@@ -115,29 +106,5 @@ namespace Aurora
         }
 
         return resource;
-
-        /*
-        if (loadSuccess)
-        {
-            resource->m_Type = resourceType;
-            resource->m_Flags = flags;
-
-            if (resource->m_FileData.empty() && (flags & Resource_Load_Mode::Import_Allow_Retain_File_Data))
-            {
-                // Resource was loaded with external file data, and we want to retain the file data.
-                resource->m_FileData.resize(fileSize);
-                std::memcpy(resource->m_FileData.data(), fileData, fileSize);
-            }
-            else if (!resource->m_FileData.empty() && (flags & Resource_Load_Mode::Import_Allow_Retain_File_Data) == 0) // Retaining of data is false.
-            {
-                // Resource was loaded using file name and we want to discard file data.
-                resource->m_FileData.clear();
-            }
-
-            /// Mip Levels.
-            
-            return resource;
-        }
-        */
     }
 }

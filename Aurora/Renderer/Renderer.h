@@ -9,10 +9,10 @@ using namespace DirectX;
 
 namespace Aurora
 {
-    struct ConstantBuffer_PerObject
+    // Ensure 16-byte alignment.
+    struct CB_VertexShader
     {
-        XMMATRIX m_WVP;
-        XMVECTOR m_Color;
+        XMMATRIX m_MVP;
     };
 
     class Renderer : public ISubsystem
@@ -42,6 +42,11 @@ namespace Aurora
 
         std::shared_ptr<AuroraResource> m_PyramidTexture = nullptr;
         RHI_Sampler m_Standard_Texture_Sampler;
+        
+        /// Entity Encapsulation
+        CB_VertexShader transform;
+        RHI_Mapping m_ConstantBufferMapping;
+        RHI_GPU_Buffer m_ConstantBuffer_VertexTransform;
 
         /// Future Abstraction
         //========================================================== 

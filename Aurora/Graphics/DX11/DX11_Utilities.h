@@ -611,4 +611,9 @@ namespace Aurora::DX11_Utility
 	{
 		return static_cast<DX11_ResourcePackage*>(buffer->m_InternalState.get());
 	}
+
+	inline DX11_ResourcePackage* ToInternal(const RHI_GPU_Resource* resource)
+	{
+		return static_cast<DX11_ResourcePackage*>(resource->m_InternalState.get());
+	}
 }

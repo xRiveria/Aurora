@@ -69,6 +69,27 @@ namespace Aurora
         ID3D11PixelShader* pixelShader = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_PixelShader.m_InternalState.get())->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
 
+        //==========================================================================================================================
+        // Update Constant Buffer
+        static float zRotation = 0;
+        zRotation += 0.01f;
+        if (zRotation > 180.0f)
+        {
+            zRotation = 0.0f;
+        }
+        transform.m_MVP = XMMatrixRotationRollPitchYaw(0.0f, 0.0f, zRotation) * XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+        transform.m_MVP = XMMatrixTranspose(transform.m_MVP);
+
+        m_ConstantBufferMapping.m_Flags = Mapping_Flag::Flag_Write;
+        m_GraphicsDevice->Map(&m_ConstantBuffer_VertexTransform, &m_ConstantBufferMapping);
+        CopyMemory(m_ConstantBufferMapping.m_Data, &transform, sizeof(CB_VertexShader));
+        m_GraphicsDevice->Unmap(&m_ConstantBuffer_VertexTransform);
+
+        ID3D11Buffer* constantBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&m_ConstantBuffer_VertexTransform)->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->VSSetConstantBuffers(0, 1, &constantBuffer);
+
+        //==========================================================================================================================
+
         // When we call Draw, the pipeline will use all the states we just set, the vertex buffer and the shaders. We also need to tell it how many vertices to draw from our buffer.
         m_GraphicsDevice->m_DeviceContextImmediate->Draw(m_VertexCount, 0);
 
@@ -151,6 +172,16 @@ namespace Aurora
         subresourceData.m_SystemMemory = vertexDataArray;
 
         m_GraphicsDevice->CreateBuffer(&bufferDescription, &subresourceData, &m_VertexBuffer);
+
+        // HLSL is column major. DX11 Math library is row major. Thus, we transpose before sending the data to the shader.
+        RHI_GPU_Buffer_Description constantBufferDescription;
+        constantBufferDescription.m_BindFlags = Bind_Flag::Bind_Constant_Buffer;
+        constantBufferDescription.m_Usage = Usage::Dynamic;
+        constantBufferDescription.m_CPUAccessFlags = CPU_Access::CPU_Access_Write;
+        constantBufferDescription.m_ByteWidth = sizeof(CB_VertexShader);
+        constantBufferDescription.m_StructureByteStride = 0;
+
+        m_GraphicsDevice->CreateBuffer(&constantBufferDescription, nullptr, &m_ConstantBuffer_VertexTransform);
     }
 
     void Renderer::CreateRasterizerStates()

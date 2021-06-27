@@ -265,6 +265,22 @@ namespace Aurora
         float m_ClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
     };
 
+    enum Mapping_Flag
+    {
+        Flag_Empty = 0,
+        Flag_Read  = 1 << 0,
+        Flag_Write = 1 << 1
+    };
+
+    struct RHI_Mapping
+    {
+        uint32_t m_Flags = Mapping_Flag::Flag_Empty;
+        size_t m_Offset = 0;
+        size_t m_Size = 0;
+        uint32_t m_RowPitch = 0;  // Output
+        void* m_Data = nullptr;   // Output
+    };
+
     // Resources
 
     struct RHI_Subresource_Data
