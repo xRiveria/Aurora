@@ -8,6 +8,11 @@
 
 namespace Aurora
 {
+    // To abstract to respective header.
+    typedef uint8_t RHI_CommandList;
+    static const RHI_CommandList g_CommandList_Count   = 32;
+    static const RHI_CommandList g_CommandList_Invalid = g_CommandList_Count;
+
     class EngineContext;
 
     class DX11_GraphicsDevice
@@ -25,6 +30,13 @@ namespace Aurora
         int CreateSubresource(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const;
         void Map(const RHI_GPU_Resource* resource, RHI_Mapping* mappingDescription);
         void Unmap(const RHI_GPU_Resource* resource);
+
+        void BindVertexBuffers(const RHI_GPU_Buffer* const* vertexBuffers, uint32_t slot, uint32_t count, const uint32_t* strides, const uint32_t* offsets, RHI_CommandList commandList);
+        void BindConstantBuffer(ShaderStage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList);
+        void BindPipelineState(const RHI_PipelineState* pipelineStateObject, RHI_CommandList commandList);
+        void UpdateBuffer(const RHI_GPU_Buffer* buffer, const void* data, RHI_CommandList commandList, int dataSize = -1);
+        void Draw(uint32_t vertexCount, uint32_t startVertexLocation, RHI_CommandList commandList);
+        void DrawIndexed(uint32_t indexCount, uint32_t startIndexLocation, uint32_t baseVertexLocation, RHI_CommandList commandList);
 
     public: 
         /// Will be temporarily public.

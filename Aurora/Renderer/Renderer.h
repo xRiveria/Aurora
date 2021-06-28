@@ -5,6 +5,7 @@
 #include "../Graphics/RHI_GraphicsDevice.h"
 #include "../Resource/ResourceCache.h"
 #include "../Scene/Components/Camera.h"
+#include "RendererEnums.h"
 
 using namespace DirectX;
 
@@ -14,6 +15,13 @@ namespace Aurora
     struct CB_VertexShader
     {
         XMMATRIX m_MVP = XMMatrixIdentity();
+        XMMATRIX m_WorldMatrix = XMMatrixIdentity();
+    };
+
+    struct CB_PixelLight
+    {
+        XMFLOAT3 m_AmbientLightColor;
+        float m_AmbientLightStrength;
     };
 
     struct TransformComponent
@@ -34,6 +42,9 @@ namespace Aurora
         void DrawModel(); /// Pause.
         void Present();
 
+        // Shenanigans
+        void DrawDebugWorld(RHI_CommandList commandList);
+
     private:
         void CompileShaders();
         void CreateBuffers();
@@ -43,6 +54,8 @@ namespace Aurora
         
 
     public:
+        bool m_DrawGridHelper = true;
+
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
         RHI_SwapChain m_SwapChain;
@@ -59,8 +72,12 @@ namespace Aurora
         /// Entity Encapsulation
         TransformComponent m_Transform;
         CB_VertexShader transform;
+        CB_PixelLight light;
+
         RHI_Mapping m_ConstantBufferMapping;
         RHI_GPU_Buffer m_ConstantBuffer_VertexTransform;
+
+        RHI_GPU_Buffer m_ConstantBuffer_PixelLight;
 
         // Camera
         std::shared_ptr<Camera> m_Camera;

@@ -119,16 +119,27 @@ namespace Aurora
                         );
                     }
 
+                    XMFLOAT3 normals = XMFLOAT3(0, 0, 0);
+                    if (!object_Attributes.normals.empty())
+                    {
+                        normals = XMFLOAT3(
+                            object_Attributes.normals[index.normal_index * 3 + 0],
+                            object_Attributes.normals[index.normal_index * 3 + 1],
+                            object_Attributes.normals[index.normal_index * 3 + 2]
+                        );
+                    }
+
                     /// Material Indexing.
 
                     if (transformToLeftHanded)
                     {
                         position.z *= -1;
-                        // normals.z  *= -1;
+                        normals.z  *= -1;
                     }
 
                     m_MeshComponent.m_VertexPositions.push_back(position);
                     m_MeshComponent.m_UVSet_0.push_back(texCoords);
+                    m_MeshComponent.m_VertexNormals.push_back(normals);
 
                     // Eliminate duplicate vertices by means of hashing.
                     // size_t vertexHash = 0;
@@ -203,7 +214,7 @@ namespace Aurora
             const XMFLOAT3& position = m_MeshComponent.m_VertexPositions[i];
             /// Normals.
             /// Wind Weights.
-            vertices[i].Populate(position, m_MeshComponent.m_UVSet_0[i]);
+            vertices[i].Populate(position, m_MeshComponent.m_UVSet_0[i], m_MeshComponent.m_VertexNormals[i]);
              
             minimumVector = Aurora::Math::Minimum(minimumVector, position);
             maximumVector = Aurora::Math::Maximum(maximumVector, position);

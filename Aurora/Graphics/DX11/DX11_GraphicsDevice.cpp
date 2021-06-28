@@ -742,4 +742,22 @@ namespace Aurora
         DX11_ResourcePackage* internalState = ToInternal(resource);
         m_DeviceContextImmediate->Unmap(internalState->m_Resource.Get(), 0);
     }
+    void DX11_GraphicsDevice::BindVertexBuffers(const RHI_GPU_Buffer* const* vertexBuffers, uint32_t slot, uint32_t count, const uint32_t* strides, const uint32_t* offsets, RHI_CommandList commandList)
+    {
+    }
+    void DX11_GraphicsDevice::BindConstantBuffer(ShaderStage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList)
+    {
+    }
+    void DX11_GraphicsDevice::BindPipelineState(const RHI_PipelineState* pipelineStateObject, RHI_CommandList commandList)
+    {
+    }
+    void DX11_GraphicsDevice::UpdateBuffer(const RHI_GPU_Buffer* buffer, const void* data, RHI_CommandList commandList, int dataSize)
+    {
+    }
+    void DX11_GraphicsDevice::Draw(uint32_t vertexCount, uint32_t startVertexLocation, RHI_CommandList commandList)
+    {
+    }
+    void DX11_GraphicsDevice::DrawIndexed(uint32_t indexCount, uint32_t startIndexLocation, uint32_t baseVertexLocation, RHI_CommandList commandList)
+    {
+    }
 }

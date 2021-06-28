@@ -21,7 +21,8 @@ namespace Aurora
 
         const XMMATRIX& GetViewMatrix() const { return m_ViewMatrix; }
         const XMMATRIX& GetProjectionMatrix() const { return m_ProjectionMatrix; }
-
+        const XMMATRIX& GetViewProjectionMatrix() const { return m_ViewMatrix * m_ProjectionMatrix; }
+       
         void SetPosition(float x, float y, float z);
         void SetRotation(float x, float y, float z);
         void AdjustRotation(float x, float y, float z);

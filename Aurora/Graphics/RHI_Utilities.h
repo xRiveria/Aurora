@@ -190,6 +190,17 @@ namespace Aurora
         ShaderStage_Count
     };
 
+    enum Primitive_Topology
+    {
+        Undefined,
+        TriangleList,
+        TriangleStrip,
+        PointList,
+        LineList,
+        LineStrip,
+        PatchList
+    };
+
     enum Subresource_Type
     {
         ConstantBufferView,
@@ -206,6 +217,90 @@ namespace Aurora
         Unknown_Type
     };
 
+    enum Fill_Mode
+    {
+        Fill_Wireframe,
+        Fill_Solid
+    };
+
+    enum Cull_Mode
+    {
+        Cull_None,
+        Cull_Front,
+    };
+
+    enum Depth_Write_Mask
+    {
+        Depth_Write_Mask_Zero,
+        Depth_Write_Mask_All
+    };
+
+    enum Stencil_Operation
+    {
+        Stencil_Operation_Keep,
+        Stencil_Operation_Zero,
+        Stencil_Operation_Replace,
+        Stencil_Operation_Increment_Saturation,
+        Stencil_Operation_Decrement_Saturation,
+        Stencil_Operation_Invert,
+        Stencil_Operation_Increment,
+        Stencil_Operation_Decrement
+    };
+
+    struct Depth_Stencil_Operation
+    {
+        Stencil_Operation m_StencilFailOperation = Stencil_Operation::Stencil_Operation_Keep;
+        Stencil_Operation m_StencilDepthFailOperation = Stencil_Operation::Stencil_Operation_Keep;
+        Stencil_Operation m_StencilPassOperation = Stencil_Operation::Stencil_Operation_Keep;
+        ComparisonFunction m_StencilComparisonFunction = ComparisonFunction::Comparison_Never;
+    };
+
+    enum Blend_Operation
+    {
+        Blend_Operation_Add,
+        Blend_Operation_Subtract,
+        Blend_Operation_ReverseSubtract,
+        Blend_Operation_Minimum,
+        Blend_Operation_Maximum
+    };
+
+    enum Blend_Factor
+    {
+        Blend_Zero,
+        Blend_One,
+        Blend_Source_Color,
+        Blend_Inverse_Source_Color,
+        Blend_Source_Alpha,
+        Blend_Inverse_Source_Alpha,
+        Blend_Destination_Alpha,
+        Blend_Inverse_Destination_Alpha,
+        Blend_Destination_Color,
+        Blend_Inverse_Destination_Color,
+        Blend_Source_Alpha_Saturate,
+        Blend_Blend_Factor,
+        Blend_Inverse_Blend_Factor,
+        Blend_Source1_Color,
+        Blend_Inverse_Source1_Color,
+        Blend_Source1_Alpha,
+        Blend_Inverse_Source1_Alpha
+    };
+
+    enum Color_Write_State
+    {
+        Color_Write_Disabled     = 0,
+        Color_Write_Enable_Red   = 1,
+        Color_Write_Enable_Green = 2,
+        Color_Write_Enable_Blue  = 4,
+        Color_Write_Enable_Alpha = 5,
+        Color_Write_Enable_All   = ((( Color_Write_Enable_Red | Color_Write_Enable_Green) | Color_Write_Enable_Blue) | Color_Write_Enable_Alpha)
+    };
+
+    enum Input_Classification
+    {
+        Input_Per_Vertex_Data,
+        Input_Per_Instance_Data
+    };
+
     // ===================================================================================================
 
     // Descriptions
@@ -218,6 +313,70 @@ namespace Aurora
             float m_DepthValue;
             uint32_t m_StencilValue;
         } m_DepthStencil;
+    };
+
+    struct RHI_RasterizerState
+    {
+        Fill_Mode m_FillMode                        = Fill_Mode::Fill_Solid;
+        Cull_Mode m_CullMode                        = Cull_Mode::Cull_None;
+        bool m_IsFrontCounterClockwise              = false;
+        int32_t m_DepthBias                         = 0;
+        float m_DepthBiasClamp                      = 0.0f;
+        float m_DepthBiasSlopeScaled                = 0.0f;
+        bool m_IsDepthClippingEnabled               = false;
+        bool m_IsMultisamplingEnabled               = false;
+        bool m_IsAntialiasedLiningEnabled           = false;
+        bool m_IsConservativeRasterizationEnabled   = false;
+        uint32_t m_ForcedSampleCount                = 0;
+    };
+
+    struct RHI_DepthStencilState
+    {
+        bool m_IsDepthEnabled                        = false;
+        Depth_Write_Mask m_DepthWriteMask            = Depth_Write_Mask::Depth_Write_Mask_Zero;
+        ComparisonFunction m_DepthComparisonFunction = ComparisonFunction::Comparison_Never;
+        bool m_IsStencilEnabled                      = false;
+        uint8_t m_StencilReadMask                    = 0xff;
+        uint8_t m_StencilWriteMask                   = 0xff;
+        Depth_Stencil_Operation m_FrontFaceOperation;
+        Depth_Stencil_Operation m_BackFaceOperation;
+    };
+
+    struct RHI_BlendState
+    {
+        bool m_IsAlphaToCoverageEnabled = false;
+        bool m_IsIndependentBlendingEnabled = false;
+
+        struct RenderTargetBlendState
+        {
+            bool m_IsBlendingEnabled               = false;
+            Blend_Factor m_SourceBlendFactor       = Blend_Factor::Blend_Source_Alpha;
+            Blend_Factor m_DestinationBlendFactor  = Blend_Factor::Blend_Inverse_Source_Alpha;
+            Blend_Operation m_BlendOperation       = Blend_Operation::Blend_Operation_Add;
+            Blend_Factor m_SourceBlendAlpha        = Blend_Factor::Blend_One;
+            Blend_Factor m_DestinationBlendAlpha   = Blend_Factor::Blend_One;
+            Blend_Operation m_BlendOperationAlpha  = Blend_Operation::Blend_Operation_Add;
+            uint8_t m_RenderTargetWriteMask        = Color_Write_State::Color_Write_Enable_All;
+        };
+
+        RenderTargetBlendState m_RenderTarget[8];
+    };
+
+    struct RHI_InputLayout
+    {
+        static const uint32_t APPEND_ALIGNED_ELEMENT = 0xffffffff; // Automatically figure out AlignedByteOffset depending on format.
+
+        struct Element
+        {
+            std::string m_SemanticName;
+            uint32_t m_SemanticIndex = 0;
+            Format m_Format = Format::FORMAT_UNKNOWN;
+            uint32_t m_InputSlot = 0;
+            uint32_t m_AlignedByteOffset = APPEND_ALIGNED_ELEMENT;
+            Input_Classification m_InputSlotClass = Input_Classification::Input_Per_Vertex_Data;
+        };
+
+        std::vector<Element> m_Elements;
     };
 
     struct RHI_GPU_Buffer_Description
@@ -353,5 +512,26 @@ namespace Aurora
         RHI_Texture_Description m_Description;
 
         const RHI_Texture_Description& GetDescription() const { return m_Description; }
+    };
+
+    struct RHI_PipelineState_Description
+    {
+        const RHI_Shader* m_VertexShader = nullptr;
+        const RHI_Shader* m_PixelShader = nullptr;
+
+        const RHI_BlendState* m_BlendState = nullptr;
+        const RHI_RasterizerState* m_RasterizerState = nullptr;
+        const RHI_DepthStencilState* m_DepthStencilState = nullptr;
+        const RHI_InputLayout* m_InputLayout = nullptr;
+        Primitive_Topology m_PrimitiveTopology = Primitive_Topology::TriangleList;
+        uint32_t m_SampleMask = 0xFFFFFFFF;
+    };
+
+    struct RHI_PipelineState : public RHI_GraphicsDeviceInternal
+    {
+        size_t hash = 0;
+        RHI_PipelineState_Description m_Description;
+
+        const RHI_PipelineState_Description& GetDescription() const { return m_Description; }
     };
 }
