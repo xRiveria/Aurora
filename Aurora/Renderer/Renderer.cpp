@@ -58,7 +58,7 @@ namespace Aurora
 
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, DSV); // Set depth as well here if it exists.
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetDepthStencilState(m_DepthStencilState.Get(), 0);
-        m_GraphicsDevice->m_DeviceContextImmediate->RSSetState(m_RasterizerState_Wireframe);
+        //m_GraphicsDevice->m_DeviceContextImmediate->RSSetState(m_RasterizerState_Wireframe);
 
         // Update input assembler with the vertex buffer to draw, and the memory layout so it knows how to feed vertex data from the vertex buffer to the vertex shader.
         m_GraphicsDevice->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // Expects vertices should form a triangle from 3 vertices.
@@ -81,7 +81,7 @@ namespace Aurora
 
         //==========================================================================================================================
         // Update Transform Component
-        m_Transform.m_ModelMatrix = XMMatrixIdentity(); // XMMatrixRotationRollPitchYaw(0.0f, 0.0f, zRotation) * XMMatrixScaling(0.5f, 0.5f, 1.0f) * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+        m_Transform.m_ModelMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f); // XMMatrixRotationRollPitchYaw(0.0f, 0.0f, zRotation) * XMMatrixScaling(0.5f, 0.5f, 1.0f) * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
         // m_Camera->ComputeLookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.0f)); // Set our camera to stare at a position. 
 
         transform.m_MVP = m_Transform.m_ModelMatrix * m_Camera->GetViewMatrix() * m_Camera->GetProjectionMatrix();
@@ -103,11 +103,11 @@ namespace Aurora
         DrawModel();
 
         // Swap buffers. DXGI calls this Present(). This should be after all of our draw calls. This will be from our swapchain.
-        internalState->m_SwapChain->Present(1, 0);
 
        // m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(nullptr, nullptr, 0);
        // m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(nullptr, nullptr, 0);
 
+       Present();
        m_Camera->Tick(deltaTime);
     }
 
@@ -126,7 +126,13 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
         //ID3D11Buffer* indexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_IndexBuffer)->m_Resource.Get();
         //m_GraphicsDevice->m_DeviceContextImmediate->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-        m_GraphicsDevice->m_DeviceContextImmediate->Draw(meshComponent.m_VertexPositions.size(), 0);
+        m_GraphicsDevice->m_DeviceContextImmediate->Draw((UINT)meshComponent.m_VertexPositions.size(), 0);
+    }
+
+    void Renderer::Present()
+    {
+        auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
+        internalState->m_SwapChain->Present(1, 0);
     }
 
     void Renderer::CompileShaders()

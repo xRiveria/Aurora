@@ -32,6 +32,7 @@ namespace Aurora
         bool Initialize() override;
         void Tick(float deltaTime) override;
         void DrawModel(); /// Pause.
+        void Present();
 
     private:
         void CompileShaders();
@@ -39,6 +40,7 @@ namespace Aurora
         void CreateRasterizerStates();
         void CreateDepth();
         void CreateTexture();
+        
 
     public:
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;

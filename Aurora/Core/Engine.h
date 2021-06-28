@@ -14,7 +14,7 @@ namespace Aurora
 
         void Tick() const; // Supplies deltaTime from the Time subsystem.
 
-        EngineContext* RetrieveEngineContext() const { return m_EngineContext.get(); }
+        EngineContext* GetEngineContext() const { return m_EngineContext.get(); }
 
     private:
         std::shared_ptr<EngineContext> m_EngineContext;
