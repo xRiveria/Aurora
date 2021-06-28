@@ -9,14 +9,14 @@ namespace Aurora
 {
     namespace RendererGlobals
     {
-        RHI_GPU_Buffer g_ConstantBuffers[CBType_Count];
-
         enum DebugRendering
         {
             DebugRendering_Grid,
             DebugRendering_Count
         };
-        RHI_PipelineState m_PSO_Debug[DebugRendering_Count];
+
+        RHI_PipelineState g_PSO_Debug[DebugRendering_Count];
+        RHI_GPU_Buffer g_ConstantBuffers[CB_Count];
     }
 
     Renderer::Renderer(EngineContext* engineContext) : ISubsystem(engineContext)
@@ -32,6 +32,7 @@ namespace Aurora
     bool Renderer::Initialize()
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
+        CreateDefaultSamplers(); ///
 
         RHI_SwapChain_Description swapchainDescription;
         swapchainDescription.m_Width = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0));
@@ -305,13 +306,17 @@ namespace Aurora
         m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Standard_Texture_Sampler);
     }
 
+    void Renderer::CreateDefaultSamplers()
+    {
+    }
+
     void Renderer::DrawDebugWorld(RHI_CommandList commandList)
     {
         if (m_DrawGridHelper)
         {
             /// Begin Profiler.
 
-            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Debug[RendererGlobals::DebugRendering_Grid], commandList);
+            m_GraphicsDevice->BindPipelineState(&RendererGlobals::g_PSO_Debug[RendererGlobals::DebugRendering_Grid], commandList);
             
             static float color = 0.7f;
             static uint32_t gridVertexCount = 0;
@@ -359,9 +364,9 @@ namespace Aurora
             XMStoreFloat4x4(&miscBuffer.g_Transform, m_Camera->GetViewProjectionMatrix());
             miscBuffer.g_Color = float4(1.0f, 1.0f, 1.0f, 1.0f);
 
-            m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CBType_Misc], &miscBuffer, commandList);
-            m_GraphicsDevice->BindConstantBuffer(ShaderStage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CBType_Misc], CB_GETBINDSLOT(Misc_ConstantBuffer), commandList);
-            m_GraphicsDevice->BindConstantBuffer(ShaderStage::Pixel_Shader, &RendererGlobals::g_ConstantBuffers[CBType_Misc], CB_GETBINDSLOT(Misc_ConstantBuffer), commandList);
+            m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Misc], &miscBuffer, commandList);
+            m_GraphicsDevice->BindConstantBuffer(ShaderStage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Misc], CB_GETBINDSLOT(Misc_ConstantBuffer), commandList);
+            m_GraphicsDevice->BindConstantBuffer(ShaderStage::Pixel_Shader, &RendererGlobals::g_ConstantBuffers[CB_Misc], CB_GETBINDSLOT(Misc_ConstantBuffer), commandList);
 
             // Drawing
             const RHI_GPU_Buffer* vertexBuffers[] = { &gridBuffer };

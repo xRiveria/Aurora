@@ -222,6 +222,10 @@ namespace Aurora::DX11_Utility
 			case FORMAT_R16_UINT:
 				return DXGI_FORMAT_R16_UINT;
 				break;
+
+			case FORMAT_R16G16_FLOAT:
+				return DXGI_FORMAT_R16G16_FLOAT;
+				break;
 		}
 
 		return DXGI_FORMAT_UNKNOWN;
@@ -557,6 +561,14 @@ namespace Aurora::DX11_Utility
 		std::vector<ComPtr<ID3D11DepthStencilView>> m_Subresources_DepthStencilView;
  	};
 
+	struct DX11_PipelineStatePackage
+	{
+		ComPtr<ID3D11BlendState> m_BlendState;
+		ComPtr<ID3D11DepthStencilState> m_DepthStencilState;
+		ComPtr<ID3D11RasterizerState> m_RasterizerState;
+		ComPtr<ID3D11InputLayout> m_InputLayout;
+	};
+
 	struct DX11_VertexShaderPackage
 	{
 		ComPtr<ID3D11VertexShader> m_Resource;
@@ -599,6 +611,11 @@ namespace Aurora::DX11_Utility
 	{
 		ComPtr<ID3D11SamplerState> m_Resource;
 	};
+
+	inline DX11_PipelineStatePackage* ToInternal(const RHI_PipelineState* pipelineState)
+	{
+		return static_cast<DX11_PipelineStatePackage*>(pipelineState->m_InternalState.get());
+	}
 
 	inline DX11_SwapChainPackage* ToInternal(const RHI_SwapChain* swapchain)
 	{

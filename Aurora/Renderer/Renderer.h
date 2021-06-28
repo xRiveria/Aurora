@@ -1,6 +1,5 @@
 #pragma once
 #include "EngineContext.h"
-#include "ISubsystem.h"
 #include "../Graphics/RHI_Implementation.h"
 #include "../Graphics/RHI_GraphicsDevice.h"
 #include "../Resource/ResourceCache.h"
@@ -39,7 +38,7 @@ namespace Aurora
         
         bool Initialize() override;
         void Tick(float deltaTime) override;
-        void DrawModel(); /// Pause.
+        void DrawModel();
         void Present();
 
         // Shenanigans
@@ -51,8 +50,15 @@ namespace Aurora
         void CreateRasterizerStates();
         void CreateDepth();
         void CreateTexture();
-        
 
+    public:
+        /// New Abstraction
+        // const RHI_GPU_Buffer* GetConstantBuffer(CB_Types bufferType) { return &RendererGlobals::g_ConstantBuffers[bufferType]; }
+
+    private:
+        /// New Abstraction
+        void CreateDefaultSamplers();
+        
     public:
         bool m_DrawGridHelper = true;
 

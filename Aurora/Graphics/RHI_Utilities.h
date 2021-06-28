@@ -39,6 +39,8 @@ namespace Aurora
         FORMAT_R32_TYPELESS,            // Depth (32-bit) / Shader Resource (32-bit)
         FORMAT_R24G8_TYPELESS,          // Depth (24-bit) + Stencil (8-bit) + Shader Resource (24-bit)
 
+        FORMAT_R16G16_FLOAT,
+
         FORMAT_R32_UINT,
 
         FORMAT_R16_UINT
