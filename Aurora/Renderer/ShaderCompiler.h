@@ -1,7 +1,7 @@
 #pragma once
 #include "../Graphics/RHI_Utilities.h"
 
-namespace Aurora
+namespace Aurora::ShaderCompiler
 {
     enum Compiler_Flag
     {
@@ -25,7 +25,6 @@ namespace Aurora
     {
         std::shared_ptr<void> m_InternalState;
         inline bool IsValid() const { return m_InternalState.get() != nullptr; }
-
         const uint8_t* m_ShaderData = nullptr;
         size_t m_ShaderSize = 0;
         std::vector<uint8_t> m_ShaderHash;
@@ -38,7 +37,7 @@ namespace Aurora
     public:
         void Initialize();
 
-        void Compile(const CompilerInput& input, const CompilerOutput& output);
+        void Compile(const CompilerInput& input, CompilerOutput& output);
 
         bool SaveShaderAndMetadata(const std::string& shaderFileName, const CompilerOutput& output);
         bool IsShaderOutdated(const std::string& shaderFileName);

@@ -21,10 +21,10 @@ namespace Aurora
     bool Renderer::Initialize()
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
-        //m_ShaderCompiler.Initialize();
-        //LoadBuffers();
-        //LoadShaders();
-
+        m_ShaderCompiler.Initialize();
+        LoadShaders();
+        LoadBuffers();
+        LoadPipelineStates();
 
         RHI_SwapChain_Description swapchainDescription;
         swapchainDescription.m_Width = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0));
@@ -32,7 +32,6 @@ namespace Aurora
 
         m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
 
-        CompileShaders();
         CreateBuffers();
         CreateDepth();
         CreateTexture();
@@ -43,6 +42,7 @@ namespace Aurora
         m_Camera->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
         m_EngineContext->GetSubsystem<World>()->LoadModel("../Resources/Models/Hollow_Knight/v3.obj");
+        // LoadShader(Shader_Stage::Pixel_Shader, m_VertexShader, "Triangle.hlsl", Shader_Model::ShaderModel_6_0);
         return true;
     }
 
@@ -183,57 +183,6 @@ namespace Aurora
     {
         auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
         internalState->m_SwapChain->Present(1, 0);
-    }
-
-    void Renderer::CompileShaders()
-    {
-        /// Compile shaders. Returns a compiled blob (binary large object) for each shader. Can also capture error blobs we can use to print error messages in case our shaders don't compile.
-        UINT flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG;
-        ID3DBlob* vsBlob = nullptr, * psBlob = nullptr, * errorBlob = nullptr;
-
-        // Compile Vertex RHI_Shader
-        if (!DX11_Utility::BreakIfFailed(D3DCompileFromFile(L"../Resources/Shaders/Triangle.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "vs_main", "vs_5_0", flags, 0, &vsBlob, &errorBlob)))
-        {
-            if (errorBlob)
-            {
-                AURORA_ERROR((char*)errorBlob->GetBufferPointer());
-                errorBlob->Release();
-            }
-
-            if (vsBlob)
-            {
-                vsBlob->Release();
-                AURORA_ASSERT(false);
-            }
-        }
-
-        // Compile Pixel RHI_Shader
-        if (!DX11_Utility::BreakIfFailed(D3DCompileFromFile(L"../Resources/Shaders/Triangle.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "ps_main", "ps_5_0", flags, 0, &psBlob, &errorBlob)))
-        {
-            if (errorBlob)
-            {
-                AURORA_ERROR((char*)errorBlob->GetBufferPointer());
-                errorBlob->Release();
-            }
-
-            if (psBlob)
-            {
-                psBlob->Release();
-                AURORA_ASSERT(false);
-            }
-        }
-
-        m_GraphicsDevice->CreateShader(Shader_Stage::Vertex_Shader, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_VertexShader);
-        m_GraphicsDevice->CreateShader(Shader_Stage::Pixel_Shader, psBlob->GetBufferPointer(), psBlob->GetBufferSize(), &m_PixelShader);
-
-        // We now need an input layout to describe how vertex data memory from a buffer should map to the input variables for the vertex shaders.
-        D3D11_INPUT_ELEMENT_DESC inputElementDescription[] = {
-            { "POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // We only have 1 input variable to the vertex shader - the XYZ position. Here, our XYZ has 3 components. Each element is a 32-bit float. This corresponds to DXGI_FORMAT_R32G32B32_FLOAT and will appear as a float3 in our shader. A float4 may be R32G32B32A42_FLOAT.
-            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-        };
-
-        DX11_Utility::BreakIfFailed(m_GraphicsDevice->m_Device->CreateInputLayout(inputElementDescription, ARRAYSIZE(inputElementDescription), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_InputLayout));
     }
 
     void Renderer::CreateBuffers()

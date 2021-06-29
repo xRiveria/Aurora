@@ -12,6 +12,7 @@ enum BlendMode_Types
 
 enum InputLayout_Types
 {
+	OnDemandTriangle,
 	InputLayout_Position,
 	InputLayout_Position_Texture,
 	InputLayout_Position_PreviousPosition,

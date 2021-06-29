@@ -410,11 +410,143 @@ namespace Aurora
         return false;
     }
 
+    /* Solid! */
+    bool DX11_GraphicsDevice::CreatePipelineState(const RHI_PipelineState_Description* description, RHI_PipelineState* pipelineStateObject) const
+    {
+        std::shared_ptr<DX11_PipelineStatePackage> internalState = std::make_shared<DX11_PipelineStatePackage>();
+        pipelineStateObject->m_InternalState = internalState;
+        pipelineStateObject->m_Description = *description;
+
+        if (description->m_InputLayout != nullptr)
+        {
+            std::vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescriptions(description->m_InputLayout->m_Elements.size());
+            for (size_t i = 0; i < inputElementDescriptions.size(); ++i)
+            {
+                inputElementDescriptions[i].SemanticName = description->m_InputLayout->m_Elements[i].m_SemanticName.c_str();
+                inputElementDescriptions[i].SemanticIndex = description->m_InputLayout->m_Elements[i].m_SemanticIndex;
+                inputElementDescriptions[i].Format = DX11_ConvertFormat(description->m_InputLayout->m_Elements[i].m_Format);
+                inputElementDescriptions[i].InputSlot = description->m_InputLayout->m_Elements[i].m_InputSlot;
+                inputElementDescriptions[i].AlignedByteOffset = description->m_InputLayout->m_Elements[i].m_AlignedByteOffset;
+                if (inputElementDescriptions[i].AlignedByteOffset == RHI_InputLayout::APPEND_ALIGNED_ELEMENT)
+                {
+                    inputElementDescriptions[i].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+                }         
+                inputElementDescriptions[i].InputSlotClass = DX11_ConvertInputClassification(description->m_InputLayout->m_Elements[i].m_InputSlotClass);
+                inputElementDescriptions[i].InstanceDataStepRate = 0;
+
+                if (inputElementDescriptions[i].InputSlotClass == D3D11_INPUT_PER_INSTANCE_DATA)
+                {
+                    inputElementDescriptions[i].InstanceDataStepRate = -1;
+                }
+            }
+
+            AURORA_ASSERT(description->m_VertexShader != nullptr);
+            DX11_VertexShaderPackage* vertexInternal = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(description->m_VertexShader->m_InternalState.get());
+            if (BreakIfFailed(m_Device->CreateInputLayout(inputElementDescriptions.data(), (UINT)inputElementDescriptions.size(), vertexInternal->m_ShaderCode.data(), vertexInternal->m_ShaderCode.size(), &internalState->m_InputLayout)))
+            {
+                AURORA_INFO("Successfully created Input Layout.");
+            }
+        }
+
+        if (description->m_BlendState != nullptr)
+        {
+            D3D11_BLEND_DESC blendDescription;
+            blendDescription.AlphaToCoverageEnable = description->m_BlendState->m_IsAlphaToCoverageEnabled;
+            blendDescription.IndependentBlendEnable = description->m_BlendState->m_IsIndependentBlendingEnabled;
+
+            for (int i = 0; i < 8; ++i)
+            {
+                blendDescription.RenderTarget[i].BlendEnable = description->m_BlendState->m_RenderTarget[i].m_IsBlendingEnabled;
+                blendDescription.RenderTarget[i].SrcBlend = DX11_ConvertBlendFactor(description->m_BlendState->m_RenderTarget[i].m_SourceBlendFactor);
+                blendDescription.RenderTarget[i].DestBlend = DX11_ConvertBlendFactor(description->m_BlendState->m_RenderTarget[i].m_DestinationBlendFactor);
+                blendDescription.RenderTarget[i].BlendOp = DX11_ConvertBlendOperation(description->m_BlendState->m_RenderTarget[i].m_BlendOperation);
+                blendDescription.RenderTarget[i].SrcBlendAlpha = DX11_ConvertBlendFactor(description->m_BlendState->m_RenderTarget[i].m_SourceBlendAlpha);
+                blendDescription.RenderTarget[i].DestBlendAlpha = DX11_ConvertBlendFactor(description->m_BlendState->m_RenderTarget[i].m_DestinationBlendAlpha);
+                blendDescription.RenderTarget[i].BlendOpAlpha = DX11_ConvertBlendOperation(description->m_BlendState->m_RenderTarget[i].m_BlendOperationAlpha);
+                blendDescription.RenderTarget[i].RenderTargetWriteMask = DX11_ParseColorWriteMask(description->m_BlendState->m_RenderTarget[i].m_RenderTargetWriteMask);
+            }
+
+            if (BreakIfFailed(m_Device->CreateBlendState(&blendDescription, &internalState->m_BlendState)))
+            {
+                AURORA_INFO("Successfully created Blend State.");
+            }
+        }
+        
+        if (description->m_DepthStencilState != nullptr)
+        {
+            D3D11_DEPTH_STENCIL_DESC depthStencilDescription;
+            depthStencilDescription.DepthEnable = description->m_DepthStencilState->m_IsDepthEnabled;
+            depthStencilDescription.DepthWriteMask = DX11_ConvertDepthWriteMask(description->m_DepthStencilState->m_DepthWriteMask);
+            depthStencilDescription.DepthFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_DepthComparisonFunction);
+            depthStencilDescription.StencilEnable = description->m_DepthStencilState->m_IsStencilEnabled;
+            depthStencilDescription.StencilReadMask = description->m_DepthStencilState->m_StencilReadMask;
+            depthStencilDescription.StencilWriteMask = description->m_DepthStencilState->m_StencilWriteMask;
+            depthStencilDescription.FrontFace.StencilDepthFailOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_FrontFaceOperation.m_StencilDepthFailOperation);
+            depthStencilDescription.FrontFace.StencilFailOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_FrontFaceOperation.m_StencilFailOperation);
+            depthStencilDescription.FrontFace.StencilFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_FrontFaceOperation.m_StencilComparisonFunction);
+            depthStencilDescription.FrontFace.StencilPassOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_FrontFaceOperation.m_StencilPassOperation);
+            depthStencilDescription.BackFace.StencilDepthFailOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_BackFaceOperation.m_StencilDepthFailOperation);
+            depthStencilDescription.BackFace.StencilFailOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_BackFaceOperation.m_StencilFailOperation);
+            depthStencilDescription.BackFace.StencilFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_BackFaceOperation.m_StencilComparisonFunction);
+            depthStencilDescription.BackFace.StencilPassOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_BackFaceOperation.m_StencilPassOperation);
+
+            if (BreakIfFailed(m_Device->CreateDepthStencilState(&depthStencilDescription, &internalState->m_DepthStencilState)))
+            {
+                AURORA_INFO("Successfully created Depth Stencil State.");
+            }
+        }
+        
+        if (description->m_RasterizerState != nullptr)
+        {
+            D3D11_RASTERIZER_DESC rasterizerDescription;
+            rasterizerDescription.FillMode = DX11_ConvertFillMode(description->m_RasterizerState->m_FillMode);
+            rasterizerDescription.CullMode = DX11_ConvertCullMode(description->m_RasterizerState->m_CullMode);
+            rasterizerDescription.FrontCounterClockwise = description->m_RasterizerState->m_IsFrontCounterClockwise;
+            rasterizerDescription.DepthBias = description->m_RasterizerState->m_DepthBias;
+            rasterizerDescription.DepthBiasClamp = description->m_RasterizerState->m_DepthBiasClamp;
+            rasterizerDescription.SlopeScaledDepthBias = description->m_RasterizerState->m_DepthBiasSlopeScaled;
+            rasterizerDescription.DepthClipEnable = description->m_RasterizerState->m_IsDepthClippingEnabled;
+            rasterizerDescription.ScissorEnable = true;
+            rasterizerDescription.MultisampleEnable = description->m_RasterizerState->m_IsMultisamplingEnabled;
+            rasterizerDescription.AntialiasedLineEnable = description->m_RasterizerState->m_IsAntialiasedLiningEnabled;
+
+            /// Perhaps we can support conservative rasterization in due time.
+            if (BreakIfFailed(m_Device->CreateRasterizerState(&rasterizerDescription, &internalState->m_RasterizerState)))
+            {
+                AURORA_INFO("Successfully created Rasterizer State.");
+            }
+        }
+
+        return true;
+    }
+    
+
+
+
+
+
+
+
+
+
+
+    void DX11_GraphicsDevice::BindPipelineState(const RHI_PipelineState* pipelineStateObject, RHI_CommandList commandList)
+    {
+        // If the pipeline state has already been bound, we will return.
+        if (m_PSO_Active[commandList] == pipelineStateObject)
+        {
+            return;
+        }
+
+        m_PSO_Active[commandList] = pipelineStateObject;
+        m_PSO_IsDirty[commandList] = true;
+    }
+
     bool DX11_GraphicsDevice::CreateRenderPass(const RHI_RenderPass_Description* renderPassDescription, RHI_RenderPass* renderPass) const
     {
         return false;
     }
-    
+
     int DX11_GraphicsDevice::CreateSubresource(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const
     {
         DX11_TexturePackage* internalState = ToInternal(texture);
@@ -748,10 +880,6 @@ namespace Aurora
         m_DeviceContextImmediate->Unmap(internalState->m_Resource.Get(), 0);
     }
 
-
-
-
-
     RHI_CommandList DX11_GraphicsDevice::BeginCommandList(Queue_Type queue)
     {
         return RHI_CommandList();
@@ -828,18 +956,6 @@ namespace Aurora
             default:
                 break;
         }
-    }
-
-    void DX11_GraphicsDevice::BindPipelineState(const RHI_PipelineState* pipelineStateObject, RHI_CommandList commandList)
-    {
-        // If the pipeline state has already been bound, we will return.
-        if (m_PSO_Active[commandList] == pipelineStateObject)
-        {
-            return;
-        }
-
-        m_PSO_Active[commandList] = pipelineStateObject;
-        m_PSO_IsDirty[commandList] = true;
     }
 
     void DX11_GraphicsDevice::ValidatePSO(RHI_CommandList commandList)

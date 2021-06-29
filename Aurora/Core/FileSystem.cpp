@@ -4,6 +4,7 @@
 #include <regex>
 #include <Windows.h>
 #include <shellapi.h>
+#include <fstream>
 
 namespace Aurora
 {
@@ -41,6 +42,23 @@ namespace Aurora
         return buffer;
     }
 
+    bool FileSystem::Exists(const std::string& filePath)
+    {
+        try
+        {
+            if (std::filesystem::exists(filePath))
+            {
+                return true;
+            }
+        }
+        catch (std::filesystem::filesystem_error& error)
+        {
+            AURORA_WARNING("%s, %s", error.what(), filePath.c_str());
+        }
+
+        return false;
+    }
+
     std::string FileSystem::GetExtensionFromFilePath(const std::string& filePath)
     {
         std::string extension;
@@ -60,5 +78,48 @@ namespace Aurora
     std::string FileSystem::GetNameFromFilePath(const std::string& filePath)
     {
         return std::filesystem::path(filePath).filename().generic_string();
+    }
+
+    std::string FileSystem::ReplaceExtension(const std::string& filePath, const std::string& fileExtension)
+    {
+        std::string path = filePath;
+        size_t key = path.rfind('.');
+
+        if (key != std::string::npos)
+        {
+            return (path.substr(0, key + 1) + fileExtension);
+        }
+
+        return 0;
+    }
+
+    std::string FileSystem::MakePathAbsolute(const std::string& filePath)
+    {
+        std::filesystem::path path = filePath;
+        std::filesystem::path absolutePath = std::filesystem::absolute(path);
+
+        if (!absolutePath.empty())
+        {
+            return absolutePath.string();
+        }
+
+        return 0;
+    }
+
+    bool FileSystem::PushFileDataToBuffer(const std::string& fileName, std::vector<uint8_t>& data)
+    {
+        std::ifstream file(fileName, std::ios::binary | std::ios::ate);
+        if (file.is_open())
+        {
+            size_t dataSize = (size_t)file.tellg();
+            file.seekg(0, file.beg);
+            data.resize(dataSize);
+            file.read((char*)data.data(), dataSize);
+            file.close();
+            return true;
+        }
+
+        AURORA_ERROR("File not found: %s.", fileName.c_str());
+        return false;
     }
 }

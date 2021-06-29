@@ -55,7 +55,8 @@ namespace Aurora
         /// New Abstraction
         void LoadBuffers();
         void LoadShaders();
-        void LoadShader(Shader_Stage shaderStage, RHI_Shader& shader, const std::string& filePath, Shader_Model minimumShaderModel);
+        bool LoadShader(Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel = Shader_Model::ShaderModel_5_0);
+        void LoadPipelineStates();
         // void ReloadShaders();  // Fire shader reload event. Calls LoadShaders() again.
 
         // const RHI_GPU_Buffer* GetConstantBuffer(CB_Types bufferType) { return &RendererGlobals::g_ConstantBuffers[bufferType]; }
@@ -72,7 +73,7 @@ namespace Aurora
         /// New Abstraction
         void CreateDefaultSamplers();
 
-        ShaderCompiler m_ShaderCompiler;
+        ShaderCompiler::ShaderCompiler m_ShaderCompiler;
         
     public:
         bool m_DrawGridHelper = true;

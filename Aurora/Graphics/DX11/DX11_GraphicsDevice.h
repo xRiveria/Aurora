@@ -36,6 +36,7 @@ namespace Aurora
         bool CreateSampler(const RHI_Sampler_Description* samplerDescription, RHI_Sampler* samplerState) const;
         bool CreateShader(Shader_Stage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const;
         bool CreateRenderPass(const RHI_RenderPass_Description* renderPassDescription, RHI_RenderPass* renderPass) const;
+        bool CreatePipelineState(const RHI_PipelineState_Description* description, RHI_PipelineState* pipelineStateObject) const;
 
         int CreateSubresource(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const;
         void Map(const RHI_GPU_Resource* resource, RHI_Mapping* mappingDescription);
@@ -72,6 +73,8 @@ namespace Aurora
         void DrawIndexed(uint32_t indexCount, uint32_t startIndexLocation, uint32_t baseVertexLocation, RHI_CommandList commandList);
 
         void CommitAllocations(RHI_CommandList commandList);
+
+        Shader_Format GetShaderFormat() const { return Shader_Format::ShaderFormat_HLSL5; }
 
     public: 
         /// Will be temporarily public.

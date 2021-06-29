@@ -8,6 +8,180 @@ using namespace Microsoft::WRL;
 
 namespace Aurora::DX11_Utility
 {
+	constexpr D3D11_BLEND DX11_ConvertBlendFactor(Blend_Factor factor)
+	{
+		switch (factor)
+		{
+			case Blend_Factor::Blend_Zero:
+				return D3D11_BLEND_ZERO;
+				break;
+
+			case Blend_Factor::Blend_One:
+				return D3D11_BLEND_ONE;
+				break;
+			
+			case Blend_Factor::Blend_Source_Color:
+				return D3D11_BLEND_SRC_COLOR;
+				break;
+
+			case Blend_Factor::Blend_Inverse_Source_Color:
+				return D3D11_BLEND_INV_SRC_COLOR;
+				break;
+
+			case Blend_Factor::Blend_Source_Alpha:
+				return D3D11_BLEND_SRC_ALPHA;
+				break;
+
+			case Blend_Factor::Blend_Inverse_Source_Alpha:
+				return D3D11_BLEND_INV_SRC_ALPHA;
+				break;
+
+			case Blend_Factor::Blend_Destination_Alpha:
+				return D3D11_BLEND_DEST_ALPHA;
+				break;
+
+			case Blend_Factor::Blend_Inverse_Destination_Alpha:
+				return D3D11_BLEND_INV_DEST_ALPHA;
+				break;
+
+			case Blend_Factor::Blend_Destination_Color:
+				return D3D11_BLEND_DEST_COLOR;
+				break;
+
+			case Blend_Factor::Blend_Inverse_Destination_Color:
+				return D3D11_BLEND_INV_DEST_COLOR;
+				break;
+
+			case Blend_Factor::Blend_Source_Alpha_Saturate:
+				return D3D11_BLEND_SRC_ALPHA_SAT;
+				break;
+
+			case Blend_Factor::Blend_Blend_Factor:
+				return D3D11_BLEND_BLEND_FACTOR;
+				break;
+
+			case Blend_Factor::Blend_Inverse_Blend_Factor:
+				return D3D11_BLEND_INV_BLEND_FACTOR;
+				break;
+
+			case Blend_Factor::Blend_Source1_Color:
+				return D3D11_BLEND_SRC1_COLOR;
+				break;
+
+			case Blend_Factor::Blend_Inverse_Source1_Color:
+				return D3D11_BLEND_INV_SRC1_COLOR;
+				break;
+
+			case Blend_Factor::Blend_Source1_Alpha:
+				return D3D11_BLEND_SRC1_ALPHA;
+				break;
+
+			case Blend_Factor::Blend_Inverse_Source1_Alpha:
+				return D3D11_BLEND_INV_SRC1_ALPHA;
+				break;
+				
+			default:
+				break;
+		}
+
+		return D3D11_BLEND_ZERO;
+	}
+
+	constexpr D3D11_BLEND_OP DX11_ConvertBlendOperation(Blend_Operation operation)
+	{
+		switch (operation)
+		{
+			case Blend_Operation::Blend_Operation_Add:
+				return D3D11_BLEND_OP_ADD;
+				break;
+
+			case Blend_Operation::Blend_Operation_Subtract:
+				return D3D11_BLEND_OP_SUBTRACT;
+				break;
+
+			case Blend_Operation::Blend_Operation_ReverseSubtract:
+				return D3D11_BLEND_OP_REV_SUBTRACT;
+				break;
+
+			case Blend_Operation::Blend_Operation_Minimum:
+				return D3D11_BLEND_OP_MIN;
+				break;
+
+			case Blend_Operation::Blend_Operation_Maximum:
+				return D3D11_BLEND_OP_MAX;
+				break;
+
+			default:
+				break;
+		}
+
+		return D3D11_BLEND_OP_ADD;
+	}
+
+	constexpr uint32_t DX11_ParseColorWriteMask(uint32_t mask)
+	{
+		uint32_t flags = 0;
+
+		if (mask == Color_Write_Mask::Color_Write_Enable_All)
+		{
+			return D3D11_COLOR_WRITE_ENABLE_ALL;
+		}
+		else
+		{
+			if (mask & Color_Write_Mask::Color_Write_Enable_Red)
+			{
+				flags |= D3D11_COLOR_WRITE_ENABLE_RED;
+			}
+			if (mask & Color_Write_Mask::Color_Write_Enable_Green)
+			{
+				flags |= D3D11_COLOR_WRITE_ENABLE_GREEN;
+			}
+			if (mask & Color_Write_Mask::Color_Write_Enable_Blue)
+			{
+				flags |= D3D11_COLOR_WRITE_ENABLE_BLUE;
+			}
+			if (mask & Color_Write_Mask::Color_Write_Enable_Alpha)
+			{
+				flags |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
+			}
+		}
+
+		return flags;
+	}
+
+	constexpr D3D11_STENCIL_OP DX11_ConvertStencilOperation(Stencil_Operation operation)
+	{
+		switch (operation)
+		{
+			case Stencil_Operation::Stencil_Operation_Keep:
+				return D3D11_STENCIL_OP_KEEP;
+				break;
+			case Stencil_Operation::Stencil_Operation_Zero:
+				return D3D11_STENCIL_OP_ZERO;
+				break;
+			case Stencil_Operation::Stencil_Operation_Replace:
+				return D3D11_STENCIL_OP_REPLACE;
+				break;
+			case Stencil_Operation::Stencil_Operation_Increment_Saturation:
+				return D3D11_STENCIL_OP_INCR_SAT;
+				break;
+			case Stencil_Operation::Stencil_Operation_Decrement_Saturation:
+				return D3D11_STENCIL_OP_DECR_SAT;
+				break;
+			case Stencil_Operation::Stencil_Operation_Invert:
+				return D3D11_STENCIL_OP_INVERT;
+				break;
+			case Stencil_Operation::Stencil_Operation_Increment:
+				return D3D11_STENCIL_OP_INCR;
+				break;
+			case Stencil_Operation::Stencil_Operation_Decrement:
+				return D3D11_STENCIL_OP_DECR;
+				break;
+		}
+
+		return D3D11_STENCIL_OP_KEEP;
+	}
+
 	constexpr uint32_t DX11_ParseResourceMiscFlags(uint32_t flags)
 	{
 		uint32_t parsedFlags = 0;
@@ -121,6 +295,82 @@ namespace Aurora::DX11_Utility
 		}
 
 		return D3D11_USAGE_DEFAULT;
+	}
+
+	constexpr D3D11_FILL_MODE DX11_ConvertFillMode(Fill_Mode fillMode)
+	{
+		switch (fillMode)
+		{
+			case Fill_Mode::Fill_Wireframe:
+				return D3D11_FILL_WIREFRAME;
+				break;
+
+			case Fill_Mode::Fill_Solid:
+				return D3D11_FILL_SOLID;
+				break;
+
+			default:
+				break;
+		}
+
+		return D3D11_FILL_WIREFRAME;
+	}
+	
+	constexpr D3D11_DEPTH_WRITE_MASK DX11_ConvertDepthWriteMask(Depth_Write_Mask mask)
+	{
+		switch (mask)
+		{
+			case Depth_Write_Mask::Depth_Write_Mask_Zero:
+				return D3D11_DEPTH_WRITE_MASK_ZERO;
+				break;
+
+			case Depth_Write_Mask::Depth_Write_Mask_All:
+				return D3D11_DEPTH_WRITE_MASK_ALL;
+				break;
+
+			default:
+				break;
+		}
+
+		return D3D11_DEPTH_WRITE_MASK_ZERO;
+	}
+
+	constexpr D3D11_CULL_MODE DX11_ConvertCullMode(Cull_Mode cullMode)
+	{
+		switch (cullMode)
+		{
+			case Cull_Mode::Cull_None:
+				return D3D11_CULL_NONE;
+				break;
+			case Cull_Mode::Cull_Front:
+				return D3D11_CULL_FRONT;
+				break;
+			case Cull_Mode::Cull_Back:
+				return D3D11_CULL_BACK;
+				break;
+			default:
+				break;
+		}
+
+		return D3D11_CULL_NONE;
+	}
+
+	constexpr D3D11_INPUT_CLASSIFICATION DX11_ConvertInputClassification(Input_Classification classification)
+	{
+		switch (classification)
+		{
+			case Input_Per_Vertex_Data:
+				return D3D11_INPUT_PER_VERTEX_DATA;
+				break;
+
+			case Input_Per_Instance_Data:
+				return D3D11_INPUT_PER_INSTANCE_DATA;
+				break;
+			default:
+				break;
+		}
+
+		return D3D11_INPUT_PER_VERTEX_DATA;
 	}
 
     constexpr DXGI_FORMAT DX11_ConvertFormat(Format format)

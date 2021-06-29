@@ -229,6 +229,7 @@ namespace Aurora
     {
         Cull_None,
         Cull_Front,
+        Cull_Back
     };
 
     enum Depth_Write_Mask
@@ -287,7 +288,7 @@ namespace Aurora
         Blend_Inverse_Source1_Alpha
     };
 
-    enum Color_Write_State
+    enum Color_Write_Mask
     {
         Color_Write_Disabled     = 0,
         Color_Write_Enable_Red   = 1,
@@ -366,7 +367,7 @@ namespace Aurora
             Blend_Factor m_SourceBlendAlpha        = Blend_Factor::Blend_One;
             Blend_Factor m_DestinationBlendAlpha   = Blend_Factor::Blend_One;
             Blend_Operation m_BlendOperationAlpha  = Blend_Operation::Blend_Operation_Add;
-            uint8_t m_RenderTargetWriteMask        = Color_Write_State::Color_Write_Enable_All;
+            uint8_t m_RenderTargetWriteMask        = Color_Write_Mask::Color_Write_Enable_All;
         };
 
         RenderTargetBlendState m_RenderTarget[8];
@@ -378,12 +379,12 @@ namespace Aurora
 
         struct Element
         {
-            std::string m_SemanticName;
-            uint32_t m_SemanticIndex = 0;
-            Format m_Format = Format::FORMAT_UNKNOWN;
-            uint32_t m_InputSlot = 0;
-            uint32_t m_AlignedByteOffset = APPEND_ALIGNED_ELEMENT;
-            Input_Classification m_InputSlotClass = Input_Classification::Input_Per_Vertex_Data;
+            std::string m_SemanticName;                                                                         // Semantic name in Shader.
+            uint32_t m_SemanticIndex = 0;                                                                       // Semantic index in Shader.
+            Format m_Format = Format::FORMAT_UNKNOWN;                                                           // Semantic format in shader.
+            uint32_t m_InputSlot = 0;                                                                           // Semantic Slot
+            uint32_t m_AlignedByteOffset = APPEND_ALIGNED_ELEMENT;                                              // Byte Offset
+            Input_Classification m_InputSlotClass = Input_Classification::Input_Per_Vertex_Data;                // Input Slot Type
         };
 
         std::vector<Element> m_Elements;
