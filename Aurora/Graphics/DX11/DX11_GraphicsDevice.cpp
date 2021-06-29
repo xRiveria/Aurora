@@ -316,7 +316,7 @@ namespace Aurora
         return true;
     }
 
-    bool DX11_GraphicsDevice::CreateSampler(const RHI_Sampler_Description* samplerDescription, RHI_Sampler* samplerState)
+    bool DX11_GraphicsDevice::CreateSampler(const RHI_Sampler_Description* samplerDescription, RHI_Sampler* samplerState) const
     {
         std::shared_ptr<DX11_SamplerPackage> internalState = std::make_shared<DX11_SamplerPackage>();
         samplerState->m_InternalState = internalState;
@@ -347,13 +347,13 @@ namespace Aurora
         return false;
     }
 
-    bool DX11_GraphicsDevice::CreateShader(ShaderStage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const
+    bool DX11_GraphicsDevice::CreateShader(Shader_Stage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const
     {
         shader->m_Stage = shaderStage;
 
         switch (shaderStage)
         {
-            case ShaderStage::Vertex_Shader:
+            case Shader_Stage::Vertex_Shader:
             {
                 std::shared_ptr<DX11_VertexShaderPackage> internalState = std::make_shared<DX11_VertexShaderPackage>();
                 shader->m_InternalState = internalState;
@@ -366,28 +366,28 @@ namespace Aurora
             }
             break;
 
-            case ShaderStage::Domain_Shader:
+            case Shader_Stage::Domain_Shader:
             {
                 /// Soon.
                 return false;
             }
             break;
 
-            case ShaderStage::Hull_Shader:
+            case Shader_Stage::Hull_Shader:
             {
                 /// Soon.
                 return false;
             }
             break;
 
-            case ShaderStage::Geometry_Shader:
+            case Shader_Stage::Geometry_Shader:
             {
                 /// Soon.
                 return false;
             }
             break;
 
-            case ShaderStage::Pixel_Shader:
+            case Shader_Stage::Pixel_Shader:
             {
                 std::shared_ptr<DX11_PixelShaderPackage> internalState = std::make_shared<DX11_PixelShaderPackage>();
                 shader->m_InternalState = internalState;
@@ -398,7 +398,7 @@ namespace Aurora
             }
             break;
 
-            case ShaderStage::Compute_Shader:
+            case Shader_Stage::Compute_Shader:
             {
                 /// Soon.
                 return false;
@@ -407,6 +407,11 @@ namespace Aurora
         }
 
         AURORA_ERROR("Shader stage not found.");
+        return false;
+    }
+
+    bool DX11_GraphicsDevice::CreateRenderPass(const RHI_RenderPass_Description* renderPassDescription, RHI_RenderPass* renderPass) const
+    {
         return false;
     }
     
@@ -747,7 +752,28 @@ namespace Aurora
 
 
 
-    void DX11_GraphicsDevice::BindSampler(ShaderStage shaderStage, const RHI_Sampler* sampler, uint32_t slot, RHI_CommandList commandList)
+    RHI_CommandList DX11_GraphicsDevice::BeginCommandList(Queue_Type queue)
+    {
+        return RHI_CommandList();
+    }
+
+    void DX11_GraphicsDevice::SubmitCommandLists()
+    {
+    }
+
+    void DX11_GraphicsDevice::RenderPassBegin(const RHI_RenderPass* renderPass, RHI_CommandList commandList)
+    {
+    }
+
+    void DX11_GraphicsDevice::RenderPassEnd(RHI_CommandList commandList)
+    {
+    }
+
+    void DX11_GraphicsDevice::BindViewports(uint32_t numberOfViewports, const RHI_Viewport* viewports, RHI_CommandList commandList)
+    {
+    }
+
+    void DX11_GraphicsDevice::BindSampler(Shader_Stage shaderStage, const RHI_Sampler* sampler, uint32_t slot, RHI_CommandList commandList)
     {
         if (sampler != nullptr && sampler->IsValid())
         {
@@ -756,10 +782,10 @@ namespace Aurora
 
             switch (shaderStage)
             {
-                 case ShaderStage::Vertex_Shader:
+                 case Shader_Stage::Vertex_Shader:
                      m_DeviceContexts[commandList]->VSSetSamplers(slot, 1, &sampler);
                      break;
-                 case ShaderStage::Pixel_Shader:
+                 case Shader_Stage::Pixel_Shader:
                      m_DeviceContexts[commandList]->PSSetSamplers(slot, 1, &sampler);
                      break;
 
@@ -783,18 +809,18 @@ namespace Aurora
         m_DeviceContexts[commandList]->IASetVertexBuffers(slot, count, buffers, strides, (offsets != nullptr ? offsets : reinterpret_cast<const uint32_t*>(__nullBlob)));
     }
 
-    void DX11_GraphicsDevice::BindConstantBuffer(ShaderStage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList)
+    void DX11_GraphicsDevice::BindConstantBuffer(Shader_Stage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList)
     {
         ID3D11Buffer* constantBuffer = buffer != nullptr && buffer->IsValid() ? (ID3D11Buffer*)ToInternal(buffer)->m_Resource.Get() : nullptr;
 
         // We have to decide which shader type to bind our constant buffer to.
         switch (stage)
         {
-            case ShaderStage::Vertex_Shader:
+            case Shader_Stage::Vertex_Shader:
                 m_DeviceContexts[commandList]->VSSetConstantBuffers(slot, 1, &constantBuffer);
                 break;
                 
-            case ShaderStage::Pixel_Shader:
+            case Shader_Stage::Pixel_Shader:
                 m_DeviceContexts[commandList]->PSSetConstantBuffers(slot, 1, &constantBuffer);
                 break;
 
@@ -838,7 +864,7 @@ namespace Aurora
             {
                 for (auto& x : pipelineDescription.m_VertexShader->m_AutoSamplers)
                 {
-                    BindSampler(ShaderStage::Vertex_Shader, &x.m_Sampler, x.m_Slot, commandList);
+                    BindSampler(Shader_Stage::Vertex_Shader, &x.m_Sampler, x.m_Slot, commandList);
                 }
             }
         }
@@ -853,7 +879,7 @@ namespace Aurora
             {
                 for (auto& x : pipelineDescription.m_PixelShader->m_AutoSamplers)
                 {
-                    BindSampler(ShaderStage::Pixel_Shader, &x.m_Sampler, x.m_Slot, commandList);
+                    BindSampler(Shader_Stage::Pixel_Shader, &x.m_Sampler, x.m_Slot, commandList);
                 }
             }
         }

@@ -180,7 +180,7 @@ namespace Aurora
         RenderTarget_And_Viewport_ArrayIndex_Without_GS = 1 << 5
     };
 
-    enum ShaderStage
+    enum Shader_Stage
     {
         Vertex_Shader,
         Pixel_Shader,
@@ -305,7 +305,15 @@ namespace Aurora
 
     // ===================================================================================================
 
-    // Descriptions
+    struct RHI_Viewport
+    {
+        float m_TopLeftX = 0.0f;
+        float m_TopLeftY = 0.0f;
+        float m_Width = 0.0f;
+        float m_Height = 0.0f;
+        float m_MinimumDepth = 0.0f;
+        float m_MaximumDepth = 1.0f;
+    };
 
     union ClearValue
     {
@@ -452,6 +460,25 @@ namespace Aurora
         void* m_Data = nullptr;   // Output
     };
 
+    enum Shader_Format
+    {
+        ShaderFormat_None,
+        ShaderFormat_HLSL5,
+        ShaderFormat_HLSL6,
+        ShaderFormat_SPIRV
+    };
+
+    enum Shader_Model
+    {
+        ShaderModel_5_0,
+        ShaderModel_6_0,
+        ShaderModel_6_1,
+        ShaderModel_6_2,
+        ShaderModel_6_3,
+        ShaderModel_6_4,
+        ShaderModel_6_5
+    };
+
     // Resources
 
     struct RHI_Subresource_Data
@@ -498,7 +525,7 @@ namespace Aurora
 
     struct RHI_Shader : public RHI_GraphicsDeviceInternal
     {
-        ShaderStage m_Stage = ShaderStage::ShaderStage_Count;
+        Shader_Stage m_Stage = Shader_Stage::ShaderStage_Count;
         std::vector<StaticSampler> m_AutoSamplers;  // Ability to set static samplers without explict root signature.
     };
 
@@ -516,6 +543,107 @@ namespace Aurora
         const RHI_Texture_Description& GetDescription() const { return m_Description; }
     };
 
+    struct RHI_RenderPass_Attachment
+    {
+        enum RenderPass_Attachment_Type
+        {
+            AttachmentType_Render_Target,
+            AttachmentType_Depth_Stencil,
+            AttachmentType_Resolve,
+            AttachmentType_Shading_Rate_Source
+        } m_Type = RenderPass_Attachment_Type::AttachmentType_Render_Target;
+
+        enum RenderPass_Load_Operation
+        {
+            LoadOperation_Load,
+            LoadOperation_Clear,
+            LoadOperation_DontCare
+        } m_LoadOperation = RenderPass_Load_Operation::LoadOperation_Load;
+
+        const RHI_Texture* m_Texture = nullptr;
+        int m_Subresource = -1;
+
+        enum RenderPass_Store_Operation
+        {
+            StoreOperation_Store,
+            StoreOperation_DontCare
+        } m_StoreOperation = RenderPass_Store_Operation::StoreOperation_Store;
+
+        Image_Layout m_InitialLayout = Image_Layout::Image_Layout_Undefined;    // Layout before the render pass.
+        Image_Layout m_SubpassLayout = Image_Layout::Image_Layout_Undefined;    // Layout within the render pass.
+        Image_Layout m_FinalLayout = Image_Layout::Image_Layout_Undefined;      // Layout after the render pass.
+
+        static RHI_RenderPass_Attachment RenderTarget(const RHI_Texture* resource = nullptr, RenderPass_Load_Operation loadOperation = RenderPass_Load_Operation::LoadOperation_Clear,
+                                                      RenderPass_Store_Operation storeOperation = RenderPass_Store_Operation::StoreOperation_DontCare, Image_Layout initialLayout = Image_Layout::Image_Layout_Shader_Resource,
+                                                      Image_Layout subpassLayout = Image_Layout::Image_Layout_RenderTarget, Image_Layout finalLayout = Image_Layout::Image_Layout_Shader_Resource)
+        {
+            RHI_RenderPass_Attachment attachment;
+            attachment.m_Type = RenderPass_Attachment_Type::AttachmentType_Render_Target;
+            attachment.m_Texture = resource;
+            attachment.m_LoadOperation = loadOperation;
+            attachment.m_StoreOperation = storeOperation;
+            attachment.m_InitialLayout = initialLayout;
+            attachment.m_SubpassLayout = subpassLayout;
+            attachment.m_FinalLayout = finalLayout;
+
+            return attachment;
+        }
+
+        static RHI_RenderPass_Attachment DepthStencil(const RHI_Texture* resource = nullptr, RenderPass_Load_Operation loadOperation = RenderPass_Load_Operation::LoadOperation_Load,
+                                                      RenderPass_Store_Operation storeOperation = RenderPass_Store_Operation::StoreOperation_Store, Image_Layout initialLayout = Image_Layout::Image_Layout_DepthStencil,
+                                                      Image_Layout subpassLayout = Image_Layout::Image_Layout_DepthStencil, Image_Layout finalLayout = Image_Layout::Image_Layout_DepthStencil)
+        {
+            RHI_RenderPass_Attachment attachment;
+            attachment.m_Type = RenderPass_Attachment_Type::AttachmentType_Depth_Stencil;
+            attachment.m_Texture = resource;
+            attachment.m_LoadOperation = loadOperation;
+            attachment.m_StoreOperation = storeOperation;
+            attachment.m_InitialLayout = initialLayout;
+            attachment.m_SubpassLayout = subpassLayout;
+            attachment.m_FinalLayout = finalLayout;
+
+            return attachment;
+        }
+
+        static RHI_RenderPass_Attachment Resolve(const RHI_Texture* resource = nullptr, Image_Layout initialLayout = Image_Layout::Image_Layout_Shader_Resource,
+                                                 Image_Layout finalLayout = Image_Layout::Image_Layout_Shader_Resource)
+        {
+            RHI_RenderPass_Attachment attachment;
+            attachment.m_Type = RenderPass_Attachment_Type::AttachmentType_Resolve;
+            attachment.m_Texture = resource;
+            attachment.m_InitialLayout = initialLayout;
+            attachment.m_FinalLayout = finalLayout;
+
+            return attachment;
+        }
+
+        static RHI_RenderPass_Attachment ShadingRateSource(const RHI_Texture* resource = nullptr, Image_Layout initialLayout = Image_Layout::Image_Layout_Shading_Rate_Source,
+                                                           Image_Layout finalLayout = Image_Layout::Image_Layout_Shading_Rate_Source)
+        {
+            RHI_RenderPass_Attachment attachment;
+            attachment.m_Type = RenderPass_Attachment_Type::AttachmentType_Shading_Rate_Source;
+            attachment.m_Texture = resource;
+            attachment.m_InitialLayout = initialLayout;
+            attachment.m_SubpassLayout = Image_Layout::Image_Layout_Shading_Rate_Source;
+            attachment.m_FinalLayout = finalLayout;
+
+            return attachment;
+        }
+    };
+
+    // Descriptions
+    struct RHI_RenderPass_Description
+    {
+        enum RenderPass_Flag
+        {
+            Flag_Empty = 0,
+            Flag_Allow_UAV_Writes = 1 << 0
+        };
+
+        uint32_t m_Flags = RenderPass_Flag::Flag_Empty;
+        std::vector<RHI_RenderPass_Attachment> m_Attachments;
+    };
+
     struct RHI_PipelineState_Description
     {
         const RHI_Shader* m_VertexShader = nullptr;
@@ -531,9 +659,17 @@ namespace Aurora
 
     struct RHI_PipelineState : public RHI_GraphicsDeviceInternal
     {
-        size_t hash = 0;
+        size_t m_Hash = 0;
         RHI_PipelineState_Description m_Description;
 
         const RHI_PipelineState_Description& GetDescription() const { return m_Description; }
+    };
+
+    struct RHI_RenderPass : public RHI_GraphicsDeviceInternal
+    {
+        size_t m_Hash = 0;
+        RHI_RenderPass_Description m_Description;
+
+        const RHI_RenderPass_Description& GetDescription() const { return m_Description; }
     };
 }

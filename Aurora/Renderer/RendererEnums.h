@@ -73,3 +73,9 @@ enum RS_Types
 	RS_Sky,
 	RS_Count
 };
+
+// Render Passes
+enum RenderPass_Type
+{
+	RenderPass_Main
+};

@@ -4,6 +4,10 @@
 #include "Mappings/SamplerMappings.h"
 #include <DirectXMath.h>
 
+#define EngineCode
+
+#ifdef EngineCode
+
 using namespace DirectX;
 
 // Application Side Types
@@ -24,3 +28,10 @@ typedef XMINT4     int4;
 #define CBUFFER(name, slot) static const int CB_GETBINDSLOT(name) = slot; struct alignas(16) name
 #define CONSTANTBUFFER(name, type, slot) CBUFFER(name, slot)
 #define ROOTCONSTANTS(name, type, slot) CBUFFER(name, slot)
+
+#else
+
+#define CBUFFER(name, slot) cbuffer name : register(b ## slot)
+#define CONSTANTBUFFER(name, type, slot) ConstantBuffer< type > name : register(b ## slot)
+
+#endif

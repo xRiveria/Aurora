@@ -5,6 +5,7 @@
 #include "../Resource/ResourceCache.h"
 #include "../Scene/Components/Camera.h"
 #include "RendererEnums.h"
+#include "ShaderCompiler.h"
 
 using namespace DirectX;
 
@@ -42,7 +43,6 @@ namespace Aurora
         void Present();
 
         // Shenanigans
-        void DrawDebugWorld(RHI_CommandList commandList);
 
     private:
         void CompileShaders();
@@ -53,11 +53,26 @@ namespace Aurora
 
     public:
         /// New Abstraction
+        void LoadBuffers();
+        void LoadShaders();
+        void LoadShader(Shader_Stage shaderStage, RHI_Shader& shader, const std::string& filePath, Shader_Model minimumShaderModel);
+        // void ReloadShaders();  // Fire shader reload event. Calls LoadShaders() again.
+
         // const RHI_GPU_Buffer* GetConstantBuffer(CB_Types bufferType) { return &RendererGlobals::g_ConstantBuffers[bufferType]; }
+        void UpdateCameraConstantBuffer(const Camera& camera, RHI_CommandList commandList);
+        void BindCommonResources(RHI_CommandList commandList);
+        void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
+        
+
+        void DrawScene(RenderPass_Type renderPassType, RHI_CommandList commandList, uint32_t drawFlags);
+        void RenderMeshs(RHI_CommandList commandList);
+        void DrawDebugWorld(RHI_CommandList commandList);
 
     private:
         /// New Abstraction
         void CreateDefaultSamplers();
+
+        ShaderCompiler m_ShaderCompiler;
         
     public:
         bool m_DrawGridHelper = true;

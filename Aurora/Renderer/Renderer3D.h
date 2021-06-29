@@ -36,6 +36,10 @@ namespace Aurora
         // Depth Buffer
         RHI_Texture m_DepthBuffer_Main; // Used for depth-testing. Can be used for MSAA.
 
+        // Render Passes
+        RHI_RenderPass m_RenderPass_DepthPrePass;
+        RHI_RenderPass m_RenderPass_Main;
+
     private:
         std::shared_ptr<Camera> m_Camera; // This will be part of our ECS in the future. For now, it is a standalone camera.
 

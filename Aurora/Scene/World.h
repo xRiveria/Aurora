@@ -59,6 +59,7 @@ namespace Aurora
         ~World();
 
         // Entity
+        void DrawScene();
 
         /// Make this return an entity once our ECS is implemented.
         void LoadModel(const std::string& filePath);
