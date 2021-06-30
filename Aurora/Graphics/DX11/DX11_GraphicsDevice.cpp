@@ -474,17 +474,10 @@ namespace Aurora
         
         if (description->m_DepthStencilState != nullptr)
         {
-            //depthStencilDesc.DepthEnable = true;
-            //depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
-            //depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
-
-            D3D11_DEPTH_STENCIL_DESC depthStencilDescription;
+            D3D11_DEPTH_STENCIL_DESC depthStencilDescription = {};
             depthStencilDescription.DepthEnable = description->m_DepthStencilState->m_IsDepthEnabled;
             depthStencilDescription.DepthWriteMask = DX11_ConvertDepthWriteMask(description->m_DepthStencilState->m_DepthWriteMask);
-            depthStencilDescription.DepthFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_DepthComparisonFunction);
-
-            /* Disabled for now.
-            * 
+            depthStencilDescription.DepthFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_DepthComparisonFunction);   
             depthStencilDescription.StencilEnable = description->m_DepthStencilState->m_IsStencilEnabled;
             depthStencilDescription.StencilReadMask = description->m_DepthStencilState->m_StencilReadMask;
             depthStencilDescription.StencilWriteMask = description->m_DepthStencilState->m_StencilWriteMask;
@@ -496,8 +489,7 @@ namespace Aurora
             depthStencilDescription.BackFace.StencilFailOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_BackFaceOperation.m_StencilFailOperation);
             depthStencilDescription.BackFace.StencilFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_BackFaceOperation.m_StencilComparisonFunction);
             depthStencilDescription.BackFace.StencilPassOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_BackFaceOperation.m_StencilPassOperation);
-            */
-
+            
             if (BreakIfFailed(m_Device->CreateDepthStencilState(&depthStencilDescription, &internalState->m_DepthStencilState)))
             {
                 AURORA_INFO("Successfully created Depth Stencil State.");
@@ -515,7 +507,7 @@ namespace Aurora
             rasterizerDescription.DepthBiasClamp = description->m_RasterizerState->m_DepthBiasClamp;
             rasterizerDescription.SlopeScaledDepthBias = description->m_RasterizerState->m_DepthBiasSlopeScaled;
             rasterizerDescription.DepthClipEnable = description->m_RasterizerState->m_IsDepthClippingEnabled;
-            rasterizerDescription.ScissorEnable = false; /// No scissor for now.
+            rasterizerDescription.ScissorEnable = true;
             rasterizerDescription.MultisampleEnable = description->m_RasterizerState->m_IsMultisamplingEnabled;
             rasterizerDescription.AntialiasedLineEnable = description->m_RasterizerState->m_IsAntialiasedLiningEnabled;
 

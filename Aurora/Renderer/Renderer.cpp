@@ -36,13 +36,23 @@ namespace Aurora
         CreateDepth();
         CreateTexture();
 
-
         m_Camera = std::make_shared<Camera>(m_EngineContext);
         m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
         m_Camera->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
         m_EngineContext->GetSubsystem<World>()->LoadModel("../Resources/Models/Hollow_Knight/v3.obj");
         m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+
+        // For scissor rects in our rasterizer set.
+        D3D11_RECT pRects[8];
+        for (uint32_t i = 0; i < 8; ++i)
+        {
+            pRects[i].bottom = INT32_MAX;
+            pRects[i].left = INT32_MIN;
+            pRects[i].right = INT32_MAX;
+            pRects[i].top = INT32_MIN;
+        }
+        m_GraphicsDevice->m_DeviceContextImmediate->RSSetScissorRects(8, pRects);
 
         return true;
     }

@@ -95,7 +95,7 @@ namespace Aurora
                     shape.mesh.indices[i + 2]
                 };
 
-                bool flipCulling = true;
+                bool flipCulling = false;
                 if (flipCulling)
                 {
                     reorderedIndices[1] = shape.mesh.indices[i + 2];

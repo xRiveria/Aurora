@@ -177,7 +177,7 @@ namespace Aurora
         RHI_DepthStencilState depthStencilState;
         depthStencilState.m_IsDepthEnabled = true;
         depthStencilState.m_DepthWriteMask = Depth_Write_Mask::Depth_Write_Mask_All;
-        depthStencilState.m_DepthComparisonFunction = ComparisonFunction::Comparison_Greater;
+        depthStencilState.m_DepthComparisonFunction = ComparisonFunction::Comparison_Less; /// Reverse Z?
         depthStencilState.m_IsStencilEnabled = true;
         depthStencilState.m_StencilReadMask = 0;
         depthStencilState.m_StencilWriteMask = 0xFF;
@@ -228,7 +228,7 @@ namespace Aurora
 
         pipelineDescription.m_VertexShader = &m_VertexShader;
         pipelineDescription.m_PixelShader = &m_PixelShader;
-        pipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire];
+        pipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Front];
         pipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
         pipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
 
