@@ -1,5 +1,3 @@
-#pragma once
-
 // Slot Matchings
 
 // Common Buffers - These are usable by all shaders.

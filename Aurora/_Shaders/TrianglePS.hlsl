@@ -1,3 +1,4 @@
+
 // Outputs from vertex shader go here. Can be interpolated to pixel shader.
 struct vs_out
 {
@@ -18,8 +19,6 @@ cbuffer lightConstantBuffer : register(b0)
 float4 main(vs_out input) : SV_TARGET // Pixel shader entry point which must return a float4 RGBA color value. 
 {
     float3 sampleColor = objectTexture.Sample(objectSamplerState, input.outTexCoord);
-    float3 ambientLight = ambientLightColor * ambientLightStrength;
-    float3 finalColor = sampleColor * ambientLight;
 
-    return float4(finalColor, 1.0); // Must return an RGBA colour.
+    return float4(sampleColor, 1.0); // Must return an RGBA colour.
 }

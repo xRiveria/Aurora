@@ -3,6 +3,10 @@
 #include "ISubsystem.h"
 #include "../Graphics/RHI_Implementation.h"
 #include "../Renderer/Renderer.h"
+#include "../Renderer/Material.h"
+#include <DirectXPackedVector.h>
+
+using namespace DirectX::PackedVector;
 
 namespace Aurora
 {
@@ -28,7 +32,7 @@ namespace Aurora
     {
         XMFLOAT3 m_Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
         XMFLOAT2 m_TexCoord = XMFLOAT2(0.0f, 0.0f);
-        XMFLOAT3 m_Normals  = XMFLOAT3(0.0f, 0.0f, 0.0f);
+        XMFLOAT3 m_Normals = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
         static const Format m_Format = Format::FORMAT_R32G32B32A32_FLOAT;  // XYZW
 
@@ -50,6 +54,18 @@ namespace Aurora
         {
             return XMLoadFloat3(&m_Position);
         }
+    };
+
+    struct Vertex_TexCoords
+    {
+        XMHALF2 m_TexCoords = XMHALF2(0.0f, 0.0f);
+
+        void Populate(const XMFLOAT2& texCoords)
+        {
+            m_TexCoords = XMHALF2(texCoords.x, texCoords.y);
+        }
+
+        static const Format m_Format = Format::FORMAT_R16G16_FLOAT;
     };
 
     class World : public ISubsystem

@@ -2,13 +2,21 @@
 #include "Renderer.h"
 #include "FileSystem.h"
 #include "../Graphics/DX11/DX11_Utilities.h"
+#include "../Scene/World.h"
 
 namespace Aurora
 {
     namespace RendererGlobals
     {
-        RHI_GPU_Buffer   g_ConstantBuffers[CB_Count];
-        RHI_InputLayout  g_InputLayouts[InputLayout_Count];
+        RHI_Shader            g_Shaders[Shader_Types::Shader_Type_Count];
+        RHI_DepthStencilState g_DepthStencilStates[DS_Types::DS_Count];
+        RHI_BlendState        g_BlendStates[BS_Types::BS_Count];
+        RHI_RasterizerState   g_RasterizerStates[RS_Types::RS_Count];
+        RHI_GPU_Buffer        g_ConstantBuffers[CB_Types::CB_Count];
+        RHI_InputLayout       g_InputLayouts[InputLayout_Types::InputLayout_Count];
+
+        // Pipeline States
+        RHI_PipelineState m_PSO_Object_Wire;
 
         std::string g_ShaderPath = "_Shaders/";
         std::string g_ShaderSourcePath = "../Aurora/_Shaders/";
@@ -75,33 +83,132 @@ namespace Aurora
             { "TEXCOORD", 0, Format::FORMAT_R32G32_FLOAT,    0, 12, Input_Classification::Input_Per_Vertex_Data },
             { "NORMAL",   0, Format::FORMAT_R32G32B32_FLOAT, 0, 20, Input_Classification::Input_Per_Vertex_Data }
         };
+    }
 
+    void Renderer::LoadStates()
+    {
+        RHI_RasterizerState rasterizerState;
+        rasterizerState.m_FillMode = Fill_Mode::Fill_Solid;
+        rasterizerState.m_CullMode = Cull_Mode::Cull_Back;
+        rasterizerState.m_IsFrontCounterClockwise = true;
+        rasterizerState.m_DepthBias = 0;
+        rasterizerState.m_DepthBiasClamp = 0;
+        rasterizerState.m_DepthBiasSlopeScaled = 0;
+        rasterizerState.m_IsDepthClippingEnabled = true;
+        rasterizerState.m_IsMultisamplingEnabled = false;
+        rasterizerState.m_IsAntialiasedLiningEnabled = false;
+        rasterizerState.m_IsConservativeRasterizationEnabled = false;
+
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_Front] = rasterizerState;
+
+        rasterizerState.m_FillMode = Fill_Mode::Fill_Solid;
+        rasterizerState.m_CullMode = Cull_Mode::Cull_Front;
+        rasterizerState.m_IsFrontCounterClockwise = true;
+        rasterizerState.m_DepthBias = 0;
+        rasterizerState.m_DepthBiasClamp = 0;
+        rasterizerState.m_DepthBiasSlopeScaled = 0;
+        rasterizerState.m_IsDepthClippingEnabled = true;
+        rasterizerState.m_IsMultisamplingEnabled = false;
+        rasterizerState.m_IsAntialiasedLiningEnabled = false;
+        rasterizerState.m_IsConservativeRasterizationEnabled = false;
+
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_Back] = rasterizerState;
+
+        rasterizerState.m_FillMode = Fill_Mode::Fill_Solid;
+        rasterizerState.m_CullMode = Cull_Mode::Cull_None;
+        rasterizerState.m_IsFrontCounterClockwise = true;
+        rasterizerState.m_DepthBias = 0;
+        rasterizerState.m_DepthBiasClamp = 0;
+        rasterizerState.m_DepthBiasSlopeScaled = 0;
+        rasterizerState.m_IsDepthClippingEnabled = true;
+        rasterizerState.m_IsMultisamplingEnabled = false;
+        rasterizerState.m_IsAntialiasedLiningEnabled = false;
+        rasterizerState.m_IsConservativeRasterizationEnabled = false;
+
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_DoubleSided] = rasterizerState;
+
+        rasterizerState.m_FillMode = Fill_Mode::Fill_Solid;
+        rasterizerState.m_CullMode = Cull_Mode::Cull_Back;
+        rasterizerState.m_IsFrontCounterClockwise = true;
+        rasterizerState.m_DepthBias = -1;
+        rasterizerState.m_DepthBiasClamp = 0;
+        rasterizerState.m_DepthBiasSlopeScaled = -4.0f;
+        rasterizerState.m_IsDepthClippingEnabled = true;
+        rasterizerState.m_IsMultisamplingEnabled = false;
+        rasterizerState.m_IsAntialiasedLiningEnabled = false;
+        rasterizerState.m_IsConservativeRasterizationEnabled = false;
         
-        std::vector<D3D11_INPUT_ELEMENT_DESC> description(RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements.size());
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_Shadow] = rasterizerState;
+        rasterizerState.m_CullMode = Cull_Mode::Cull_None;
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_Shadow_DoubleSided] = rasterizerState;
 
-        for (size_t i = 0; i < description.size(); ++i)
-        {
-            description[i].SemanticName = RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements[i].m_SemanticName.c_str();
-            description[i].SemanticIndex = RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements[i].m_SemanticIndex;
-            description[i].Format = DX11_Utility::DX11_ConvertFormat(RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements[i].m_Format);
-            description[i].InputSlot = RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements[i].m_InputSlot;
-            description[i].AlignedByteOffset = RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements[i].m_AlignedByteOffset;
-            description[i].InputSlotClass = DX11_Utility::DX11_ConvertInputClassification(RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements[i].m_InputSlotClass);
-            description[i].InstanceDataStepRate = 0;
+        rasterizerState.m_FillMode = Fill_Mode::Fill_Wireframe;
+        rasterizerState.m_CullMode = Cull_Mode::Cull_Back;
+        rasterizerState.m_IsFrontCounterClockwise = true;
+        rasterizerState.m_DepthBias = 0;
+        rasterizerState.m_DepthBiasClamp = 0;
+        rasterizerState.m_DepthBiasSlopeScaled = 0;
+        rasterizerState.m_IsDepthClippingEnabled = true;
+        rasterizerState.m_IsMultisamplingEnabled = false;
+        rasterizerState.m_IsAntialiasedLiningEnabled = false;
+        rasterizerState.m_IsConservativeRasterizationEnabled = false;
 
-            if (description[i].InputSlotClass == D3D11_INPUT_PER_INSTANCE_DATA)
-            {
-                description[i].InstanceDataStepRate = -1;
-            }
-        }
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire] = rasterizerState;
+        rasterizerState.m_IsAntialiasedLiningEnabled = true;
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire_Smooth] = rasterizerState;
 
-        // We usually create this with the pipeline state. For now, we will create it here.
-        auto vs_internal = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VertexShader.m_InternalState.get());
-        m_GraphicsDevice->m_Device->CreateInputLayout(description.data(), (UINT)description.size(), vs_internal->m_ShaderCode.data(), vs_internal->m_ShaderCode.size(), &m_InputLayout);      
+        rasterizerState.m_FillMode = Fill_Mode::Fill_Wireframe;
+        rasterizerState.m_CullMode = Cull_Mode::Cull_None;
+        rasterizerState.m_IsFrontCounterClockwise = true;
+        rasterizerState.m_DepthBias = 0;
+        rasterizerState.m_DepthBiasClamp = 0;
+        rasterizerState.m_DepthBiasSlopeScaled = 0;
+        rasterizerState.m_IsDepthClippingEnabled = true;
+        rasterizerState.m_IsMultisamplingEnabled = false;
+        rasterizerState.m_IsAntialiasedLiningEnabled = false;
+        rasterizerState.m_IsConservativeRasterizationEnabled = false;
+
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire_DoubleSided] = rasterizerState;
+        rasterizerState.m_IsAntialiasedLiningEnabled = true;
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire_DoubleSided_Smooth] = rasterizerState;
+
+        /// Occludee, Sky, Voxelize.
+
+        RHI_DepthStencilState depthStencilState;
+        depthStencilState.m_IsDepthEnabled = true;
+        depthStencilState.m_DepthWriteMask = Depth_Write_Mask::Depth_Write_Mask_All;
+        depthStencilState.m_DepthComparisonFunction = ComparisonFunction::Comparison_Greater;
+        depthStencilState.m_IsStencilEnabled = true;
+        depthStencilState.m_StencilReadMask = 0;
+        depthStencilState.m_StencilWriteMask = 0xFF;
+        depthStencilState.m_FrontFaceOperation.m_StencilComparisonFunction = ComparisonFunction::Comparison_Always;
+        depthStencilState.m_FrontFaceOperation.m_StencilPassOperation = Stencil_Operation::Stencil_Operation_Replace;
+        depthStencilState.m_FrontFaceOperation.m_StencilFailOperation = Stencil_Operation::Stencil_Operation_Keep;
+        depthStencilState.m_FrontFaceOperation.m_StencilDepthFailOperation = Stencil_Operation::Stencil_Operation_Keep;
+        depthStencilState.m_BackFaceOperation.m_StencilComparisonFunction = ComparisonFunction::Comparison_Always;
+        depthStencilState.m_BackFaceOperation.m_StencilPassOperation = Stencil_Operation::Stencil_Operation_Replace;
+        depthStencilState.m_BackFaceOperation.m_StencilFailOperation = Stencil_Operation::Stencil_Operation_Keep;
+        depthStencilState.m_BackFaceOperation.m_StencilDepthFailOperation = Stencil_Operation::Stencil_Operation_Keep;
+
+        RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default] = depthStencilState;
+
+        RHI_BlendState blendState;
+        blendState.m_RenderTarget[0].m_IsBlendingEnabled = false;
+        blendState.m_RenderTarget[0].m_SourceBlendFactor = Blend_Factor::Blend_Source_Alpha;
+        blendState.m_RenderTarget[0].m_DestinationBlendFactor = Blend_Factor::Blend_Inverse_Source_Alpha;
+        blendState.m_RenderTarget[0].m_BlendOperation = Blend_Operation::Blend_Operation_Maximum;
+        blendState.m_RenderTarget[0].m_SourceBlendAlpha = Blend_Factor::Blend_One;
+        blendState.m_RenderTarget[0].m_DestinationBlendAlpha = Blend_Factor::Blend_Zero;
+        blendState.m_RenderTarget[0].m_BlendOperationAlpha = Blend_Operation::Blend_Operation_Add;
+        blendState.m_RenderTarget[0].m_RenderTargetWriteMask = Color_Write_Mask::Color_Write_Enable_All;
+        blendState.m_IsAlphaToCoverageEnabled = false;
+        blendState.m_IsIndependentBlendingEnabled = false;
+
+        RendererGlobals::g_BlendStates[BS_Types::BS_Opaque] = blendState;
     }
 
     void Renderer::LoadBuffers()
-    {
+    {    
         RHI_GPU_Buffer_Description bufferDescription;
 
         // The following buffers will be dynamic - short lifetime, fast update, slow read.
@@ -115,8 +222,18 @@ namespace Aurora
         AURORA_INFO("Successfully created Camera Constant Buffer.");
     }
 
-    inline void Renderer::LoadPipelineStates()
+    void Renderer::LoadPipelineStates()
     {
+        RHI_PipelineState_Description pipelineDescription;
 
+        pipelineDescription.m_VertexShader = &m_VertexShader;
+        pipelineDescription.m_PixelShader = &m_PixelShader;
+        pipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire];
+        pipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
+        pipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
+
+        pipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
+
+        m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_Wire);
     }
 }

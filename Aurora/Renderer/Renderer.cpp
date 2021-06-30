@@ -23,6 +23,7 @@ namespace Aurora
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
         m_ShaderCompiler.Initialize();
         LoadShaders();
+        LoadStates();
         LoadBuffers();
         LoadPipelineStates();
 
@@ -32,21 +33,20 @@ namespace Aurora
 
         m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
 
-        CreateBuffers();
         CreateDepth();
         CreateTexture();
-        CreateRasterizerStates();
+
 
         m_Camera = std::make_shared<Camera>(m_EngineContext);
-        m_Camera->SetPosition(0.0f, 0.0f, -2.0f);
+        m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
         m_Camera->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
         m_EngineContext->GetSubsystem<World>()->LoadModel("../Resources/Models/Hollow_Knight/v3.obj");
-        // LoadShader(Shader_Stage::Pixel_Shader, m_VertexShader, "Triangle.hlsl", Shader_Model::ShaderModel_6_0);
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+
         return true;
     }
 
-    /// So how does the data in the shader get these information? 
     void Renderer::UpdateCameraConstantBuffer(const Camera& camera, RHI_CommandList commandList)
     {
         ConstantBufferData_Camera constantBuffer;
@@ -61,16 +61,14 @@ namespace Aurora
 
     void Renderer::BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList)
     {
-        // Stage, Buffer, Buffer Slot, Command List
-        // m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame], CB_GETBINDSLOT(ConstantBufferData_Frame), commandList);
         m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], CB_GETBINDSLOT(ConstantBufferData_Camera), commandList);
     }
 
     void Renderer::Tick(float deltaTime)
     {
-        //UpdateCameraConstantBuffer(*m_Camera.get(), 0);
-        //BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
-        //BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
+        UpdateCameraConstantBuffer(*m_Camera.get(), 0);
+        BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
+        BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
 
         auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
 
@@ -85,64 +83,12 @@ namespace Aurora
         // Viewport
         D3D11_VIEWPORT viewportInfo = { 0, 0, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0), 0.0f, 1.0f };
         m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
-
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, DSV); // Set depth as well here if it exists.
-        m_GraphicsDevice->m_DeviceContextImmediate->OMSetDepthStencilState(m_DepthStencilState.Get(), 0);
-        //m_GraphicsDevice->m_DeviceContextImmediate->RSSetState(m_RasterizerState_Wireframe);
-
-        // Update input assembler with the vertex buffer to draw, and the memory layout so it knows how to feed vertex data from the vertex buffer to the vertex shader.
-        m_GraphicsDevice->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // Expects vertices should form a triangle from 3 vertices.
-        m_GraphicsDevice->m_DeviceContextImmediate->IASetInputLayout(m_InputLayout); // Give it our input layout.
 
         ID3D11SamplerState* samplerState = DX11_Utility::ToInternal(&m_Standard_Texture_Sampler)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
 
-        ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&m_PyramidTexture->m_Texture)->m_ShaderResourceView.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
-
-        ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&m_VertexBuffer)->m_Resource.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &m_VertexStride, &m_VertexOffset); // Tell it to use our vertex buffer with the earlier set memory stride anmd offset from our data.
-        
-        ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VertexShader.m_InternalState.get())->m_Resource.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
-
-        ID3D11PixelShader* pixelShader = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_PixelShader.m_InternalState.get())->m_Resource.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
-
-        //==========================================================================================================================
-        // Update Transform Component
-        m_Transform.m_ModelMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f); // XMMatrixRotationRollPitchYaw(0.0f, 0.0f, zRotation) * XMMatrixScaling(0.5f, 0.5f, 1.0f) * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-        // m_Camera->ComputeLookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.0f)); // Set our camera to stare at a position. 
-
-        transform.m_MVP = m_Transform.m_ModelMatrix * m_Camera->GetViewMatrix() * m_Camera->GetProjectionMatrix();
-        transform.m_WorldMatrix = m_Transform.m_ModelMatrix * m_Camera->GetViewMatrix();  // Calculate World Matrix
-
-        m_ConstantBufferMapping.m_Flags = Mapping_Flag::Flag_Write;
-        m_GraphicsDevice->Map(&m_ConstantBuffer_VertexTransform, &m_ConstantBufferMapping);
-        CopyMemory(m_ConstantBufferMapping.m_Data, &transform, sizeof(CB_VertexShader));
-        m_GraphicsDevice->Unmap(&m_ConstantBuffer_VertexTransform);
-
-        ID3D11Buffer* constantBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&m_ConstantBuffer_VertexTransform)->m_Resource.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->VSSetConstantBuffers(0, 1, &constantBuffer);
-
-        //==========================================================================================================================
-
-        // When we call Draw, the pipeline will use all the states we just set, the vertex buffer and the shaders. We also need to tell it how many vertices to draw from our buffer.
-        // m_GraphicsDevice->m_DeviceContextImmediate->Draw(m_VertexCount, 0); // Triangle
-
-
-
-
-        // When we call Draw, the pipeline will use all the states we just set, the vertex buffer and the shaders. We also need to tell it how many vertices to draw from our buffer.
-        // m_GraphicsDevice->m_DeviceContextImmediate->Draw(m_VertexCount, 0); // Triangle
-
         DrawModel();
-        //DrawDebugWorld(0);
-
-        // Swap buffers. DXGI calls this Present(). This should be after all of our draw calls. This will be from our swapchain.
-
-       // m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(nullptr, nullptr, 0);
-       // m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(nullptr, nullptr, 0);
 
         Present();
         m_Camera->Tick(deltaTime);
@@ -150,16 +96,6 @@ namespace Aurora
 
     void Renderer::DrawModel()
     {
-        light.m_AmbientLightColor = XMFLOAT3(1.0f, 1.0f, 1.0f);
-        light.m_AmbientLightStrength = 1.0f;
-
-        m_ConstantBufferMapping.m_Flags = Mapping_Flag::Flag_Write;
-        m_GraphicsDevice->Map(&m_ConstantBuffer_PixelLight, &m_ConstantBufferMapping);
-        CopyMemory(m_ConstantBufferMapping.m_Data, &light, sizeof(CB_PixelLight));
-        m_GraphicsDevice->Unmap(&m_ConstantBuffer_PixelLight);
-        ID3D11Buffer* constantBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&m_ConstantBuffer_PixelLight)->m_Resource.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetConstantBuffers(0, 1, &constantBuffer);
-
         World* world = m_EngineContext->GetSubsystem<World>();
         MeshComponent meshComponent = world->m_MeshComponent;
 
@@ -171,70 +107,14 @@ namespace Aurora
 
         ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
-        //ID3D11Buffer* indexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_IndexBuffer)->m_Resource.Get();
-        //m_GraphicsDevice->m_DeviceContextImmediate->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-        m_GraphicsDevice->m_DeviceContextImmediate->Draw((UINT)meshComponent.m_VertexPositions.size(), 0);
 
-        m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(nullptr, nullptr, 0);
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(nullptr, nullptr, 0);
+        m_GraphicsDevice->m_DeviceContextImmediate->Draw((UINT)meshComponent.m_VertexPositions.size(), 0);
     }
 
     void Renderer::Present()
     {
         auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
         internalState->m_SwapChain->Present(1, 0);
-    }
-
-    void Renderer::CreateBuffers()
-    {
-        // Clockwise winding order. We will define them in visible clipspace as we won't be using matrixes yet. (XY: -1 to 1, Z: 0 to 1).
-        float vertexDataArray[]{
-            -1.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-            0.0f, 1.0f, 0.0f, 0.5f, 0.0f,
-            1.0f, -1.0f, 0.0f, 1.0f, 1.0f
-        };
-
-        m_VertexStride = 5 * sizeof(float);
-        m_VertexOffset = 0;
-        m_VertexCount = 3;
-
-        RHI_GPU_Buffer_Description bufferDescription;
-        bufferDescription.m_BindFlags = Bind_Flag::Bind_Vertex_Buffer;
-        bufferDescription.m_Usage = Usage::Default;
-        bufferDescription.m_ByteWidth = sizeof(vertexDataArray);
-
-        RHI_Subresource_Data subresourceData;
-        subresourceData.m_SystemMemory = vertexDataArray;
-
-        m_GraphicsDevice->CreateBuffer(&bufferDescription, &subresourceData, &m_VertexBuffer);
-
-        RHI_GPU_Buffer_Description constantBufferDescription;
-        constantBufferDescription.m_BindFlags = Bind_Flag::Bind_Constant_Buffer;
-        constantBufferDescription.m_Usage = Usage::Dynamic;
-        constantBufferDescription.m_CPUAccessFlags = CPU_Access::CPU_Access_Write;
-        constantBufferDescription.m_ByteWidth = sizeof(CB_VertexShader);
-        constantBufferDescription.m_StructureByteStride = 0;
-
-        m_GraphicsDevice->CreateBuffer(&constantBufferDescription, nullptr, &m_ConstantBuffer_VertexTransform);
-
-
-        RHI_GPU_Buffer_Description pixelConstantBufferDescription;
-        pixelConstantBufferDescription.m_BindFlags = Bind_Flag::Bind_Constant_Buffer;
-        pixelConstantBufferDescription.m_Usage = Usage::Dynamic;
-        pixelConstantBufferDescription.m_CPUAccessFlags = CPU_Access::CPU_Access_Write;
-        pixelConstantBufferDescription.m_ByteWidth = sizeof(CB_PixelLight);
-        pixelConstantBufferDescription.m_StructureByteStride = 0;
-
-        m_GraphicsDevice->CreateBuffer(&pixelConstantBufferDescription, nullptr, &m_ConstantBuffer_PixelLight);
-    }
-
-    void Renderer::CreateRasterizerStates()
-    {
-        D3D11_RASTERIZER_DESC wireframeState = {};
-        wireframeState.FillMode = D3D11_FILL_SOLID;
-        wireframeState.CullMode = D3D11_CULL_NONE;
-
-        DX11_Utility::BreakIfFailed(m_GraphicsDevice->m_Device->CreateRasterizerState(&wireframeState, &m_RasterizerState_Wireframe));
     }
 
     void Renderer::CreateDepth()
@@ -253,20 +133,10 @@ namespace Aurora
         depthStencilDescription.m_MiscFlags = 0;
 
         m_GraphicsDevice->CreateTexture(&depthStencilDescription, nullptr, &m_DepthTexture);
-
-        /// To Abstract
-        D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
-        depthStencilDesc.DepthEnable = true;
-        depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
-        depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
-
-        m_GraphicsDevice->m_Device->CreateDepthStencilState(&depthStencilDesc, m_DepthStencilState.GetAddressOf());
     }
 
     void Renderer::CreateTexture()
     {
-        m_PyramidTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Pyramid.jpg", "../Resources/Textures/Pyramid.jpg");
-
         RHI_Sampler_Description samplerDescription;
         samplerDescription.m_Filter = Filter::FILTER_MIN_MAG_MIP_LINEAR;
         samplerDescription.m_AddressU = Texture_Address_Mode::Texture_Address_Wrap;
@@ -277,140 +147,5 @@ namespace Aurora
         samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;
 
         m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Standard_Texture_Sampler);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    void Renderer::BindCommonResources(RHI_CommandList commandList)
-    {
-    }
-
-    void Renderer::CreateDefaultSamplers()
-    {
-    }
-
-    void Renderer::DrawScene(RenderPass_Type renderPassType, RHI_CommandList commandList, uint32_t drawFlags)
-    {
-        // We will draw everything, no questions asked. No culling, filter or whatsoever.
-        BindCommonResources(commandList);
-        BindConstantBuffers(Shader_Stage::Vertex_Shader, commandList);
-        BindConstantBuffers(Shader_Stage::Pixel_Shader, commandList);
-
-        /// Queuing in the future?
-        RenderMeshs(commandList);
-    }
-
-    void Renderer::RenderMeshs(RHI_CommandList commandList)
-    {
-        MeshComponent meshComponent = m_EngineContext->GetSubsystem<World>()->m_MeshComponent;  // Perhaps we will have a queue for this in the future. A collection of mesh components to be rendered, if we might.
-
-        /// No Index Support for now.
-        // m_GraphicsDevice->BindIndexBuffer(&meshComponent.m_IndexBuffer, meshComponent.GetIndexFormat(), 0, commandList);
-
-        const RHI_GPU_Buffer* buffers[] = {
-            &meshComponent.m_VertexBuffer_Position
-        };
-
-        uint32_t strides[] = {
-            sizeof(Vertex_Position)
-        };
-
-        uint32_t offsets[] = {
-            0
-        };
-
-        m_GraphicsDevice->BindVertexBuffers(buffers, 0, ARRAYSIZE(buffers), strides, offsets, commandList);
-
-        /// Bind Pipeline State Object. 
-        m_GraphicsDevice->Draw(meshComponent.m_VertexPositions.size(), 0, commandList);
-
-    }
-
-    void Renderer::DrawDebugWorld(RHI_CommandList commandList)
-    {
-        if (m_DrawGridHelper)
-        {
-            /// Begin Profiler.
-
-            // m_GraphicsDevice->BindPipelineState(&RendererGlobals::g_PSO_Debug[RendererGlobals::DebugRendering_Grid], commandList);
-            
-            static float color = 0.7f;
-            static uint32_t gridVertexCount = 0;
-            static RHI_GPU_Buffer gridBuffer;
-
-            if (!gridBuffer.IsValid()) // Buffer is invalid if its internal resource is empty.
-            {
-                const float h = 0.01f; // Avoid Z-fighting with zero plane
-                const int a = 20;
-                XMFLOAT3 verts[((a + 1) * 2 + (a + 1) * 2) * 2];
-
-                int count = 0;
-                for (int i = 0; i <= a; ++i)
-                {
-                    verts[count++] = XMFLOAT3(i - a * 0.5f, h, -a * 0.5f);
-                    verts[count++] = (i == a / 2 ? XMFLOAT3(0, 0, 1) : XMFLOAT3(color, color, color));
-
-                    verts[count++] = XMFLOAT3(i - a * 0.5f, h, +a * 0.5f);
-                    verts[count++] = (i == a / 2 ? XMFLOAT3(0, 0, 1) : XMFLOAT3(color, color, color));
-                }
-                for (int j = 0; j <= a; ++j)
-                {
-                    verts[count++] = XMFLOAT3(-a * 0.5f, h, j - a * 0.5f);
-                    verts[count++] = (j == a / 2 ? XMFLOAT3(1, 0, 0) : XMFLOAT3(color, color, color));
-
-                    verts[count++] = XMFLOAT3(+a * 0.5f, h, j - a * 0.5f);
-                    verts[count++] = (j == a / 2 ? XMFLOAT3(1, 0, 0) : XMFLOAT3(color, color, color));
-
-                }
-
-                gridVertexCount = ARRAYSIZE(verts) / 2;
-
-                RHI_GPU_Buffer_Description bufferDescription;
-                bufferDescription.m_Usage = Usage::Immutable;
-                bufferDescription.m_ByteWidth = sizeof(verts);
-                bufferDescription.m_BindFlags = Bind_Flag::Bind_Vertex_Buffer;
-                bufferDescription.m_CPUAccessFlags = 0;
-
-                RHI_Subresource_Data initializationData;
-                initializationData.m_SystemMemory = verts;
-                m_GraphicsDevice->CreateBuffer(&bufferDescription, &initializationData, &gridBuffer);
-            }
-
-            // Misc_ConstantBuffer miscBuffer;
-            // XMStoreFloat4x4(&miscBuffer.g_Transform, m_Camera->GetViewProjectionMatrix());
-            // miscBuffer.g_Color = float4(1.0f, 1.0f, 1.0f, 1.0f);
-
-            //m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Misc], &miscBuffer, commandList);
-            //m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Misc], CB_GETBINDSLOT(Misc_ConstantBuffer), commandList);
-            //m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Pixel_Shader, &RendererGlobals::g_ConstantBuffers[CB_Misc], CB_GETBINDSLOT(Misc_ConstantBuffer), commandList);
-
-            // Drawing
-            const RHI_GPU_Buffer* vertexBuffers[] = { &gridBuffer };
-            const uint32_t strides[] = { sizeof(XMFLOAT3) + sizeof(XMFLOAT2) };         
-            UINT offset = 0;
-
-            ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&gridBuffer)->m_Resource.Get();
-            m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, strides, &offset);
-            //ID3D11Buffer* indexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_IndexBuffer)->m_Resource.Get();
-            //m_GraphicsDevice->m_DeviceContextImmediate->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-            m_GraphicsDevice->m_DeviceContextImmediate->Draw((UINT)gridVertexCount, 0);
-
-            //m_GraphicsDevice->BindVertexBuffers(vertexBuffers, 0, ARRAYSIZE(vertexBuffers), strides, nullptr, commandList);
-            //m_GraphicsDevice->Draw(gridVertexCount, 0, commandList);
-            
-            /// End Profiler.
-        }
     }
 }

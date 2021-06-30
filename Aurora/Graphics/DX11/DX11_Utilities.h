@@ -342,12 +342,15 @@ namespace Aurora::DX11_Utility
 			case Cull_Mode::Cull_None:
 				return D3D11_CULL_NONE;
 				break;
+
 			case Cull_Mode::Cull_Front:
 				return D3D11_CULL_FRONT;
 				break;
+
 			case Cull_Mode::Cull_Back:
 				return D3D11_CULL_BACK;
 				break;
+
 			default:
 				break;
 		}

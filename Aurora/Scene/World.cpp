@@ -134,7 +134,7 @@ namespace Aurora
                     if (transformToLeftHanded)
                     {
                         position.z *= -1;
-                        normals.z  *= -1;
+                        normals.z *= -1;
                     }
 
                     m_MeshComponent.m_VertexPositions.push_back(position);
@@ -149,7 +149,7 @@ namespace Aurora
                     // {
                     // uniqueVertices[vertexHash] = (uint32_t)m_MeshComponent.m_VertexPositions.size();
 
-                        
+
                     // }
 
                     // m_MeshComponent.m_Indices.push_back(uniqueVertices[vertexHash]);
@@ -215,7 +215,7 @@ namespace Aurora
             /// Normals.
             /// Wind Weights.
             vertices[i].Populate(position, m_MeshComponent.m_UVSet_0[i], m_MeshComponent.m_VertexNormals[i]);
-             
+
             minimumVector = Aurora::Math::Minimum(minimumVector, position);
             maximumVector = Aurora::Math::Maximum(maximumVector, position);
         }

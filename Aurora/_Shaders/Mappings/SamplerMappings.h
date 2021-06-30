@@ -1,5 +1,3 @@
-#pragma once
-
 // Slot Matchings
 
 // Persistent Samplers - These are bound once and stay alive forever.

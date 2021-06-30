@@ -72,8 +72,6 @@ namespace Aurora
         void Draw(uint32_t vertexCount, uint32_t startVertexLocation, RHI_CommandList commandList);
         void DrawIndexed(uint32_t indexCount, uint32_t startIndexLocation, uint32_t baseVertexLocation, RHI_CommandList commandList);
 
-        void CommitAllocations(RHI_CommandList commandList);
-
         Shader_Format GetShaderFormat() const { return Shader_Format::ShaderFormat_HLSL5; }
 
     public: 
@@ -97,7 +95,7 @@ namespace Aurora
 
         std::vector<const RHI_SwapChain*> m_SwapChains[g_CommandList_Count] = {};
         
-        const RHI_PipelineState* m_PSO_Active[g_CommandList_Count] = {};
+        RHI_PipelineState m_PSO_Active;
         bool m_PSO_IsDirty[g_CommandList_Count] = {};
         void ValidatePSO(RHI_CommandList commandList);
 

@@ -1,14 +1,8 @@
-#pragma once
 #include "Mappings/ConstantBufferMappings.h"
 #include "Mappings/ResourceMappings.h"
 #include "Mappings/SamplerMappings.h"
-#include <DirectXMath.h>
 
-#define EngineCode
-
-#ifdef EngineCode
-
-using namespace DirectX;
+#ifdef __cplusplus
 
 // Application Side Types
 typedef XMMATRIX   matrix;

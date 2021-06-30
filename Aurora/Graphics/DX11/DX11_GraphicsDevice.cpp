@@ -474,10 +474,17 @@ namespace Aurora
         
         if (description->m_DepthStencilState != nullptr)
         {
+            //depthStencilDesc.DepthEnable = true;
+            //depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+            //depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+
             D3D11_DEPTH_STENCIL_DESC depthStencilDescription;
             depthStencilDescription.DepthEnable = description->m_DepthStencilState->m_IsDepthEnabled;
             depthStencilDescription.DepthWriteMask = DX11_ConvertDepthWriteMask(description->m_DepthStencilState->m_DepthWriteMask);
             depthStencilDescription.DepthFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_DepthComparisonFunction);
+
+            /* Disabled for now.
+            * 
             depthStencilDescription.StencilEnable = description->m_DepthStencilState->m_IsStencilEnabled;
             depthStencilDescription.StencilReadMask = description->m_DepthStencilState->m_StencilReadMask;
             depthStencilDescription.StencilWriteMask = description->m_DepthStencilState->m_StencilWriteMask;
@@ -489,6 +496,7 @@ namespace Aurora
             depthStencilDescription.BackFace.StencilFailOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_BackFaceOperation.m_StencilFailOperation);
             depthStencilDescription.BackFace.StencilFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_BackFaceOperation.m_StencilComparisonFunction);
             depthStencilDescription.BackFace.StencilPassOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_BackFaceOperation.m_StencilPassOperation);
+            */
 
             if (BreakIfFailed(m_Device->CreateDepthStencilState(&depthStencilDescription, &internalState->m_DepthStencilState)))
             {
@@ -498,7 +506,8 @@ namespace Aurora
         
         if (description->m_RasterizerState != nullptr)
         {
-            D3D11_RASTERIZER_DESC rasterizerDescription;
+            D3D11_RASTERIZER_DESC rasterizerDescription = {};
+
             rasterizerDescription.FillMode = DX11_ConvertFillMode(description->m_RasterizerState->m_FillMode);
             rasterizerDescription.CullMode = DX11_ConvertCullMode(description->m_RasterizerState->m_CullMode);
             rasterizerDescription.FrontCounterClockwise = description->m_RasterizerState->m_IsFrontCounterClockwise;
@@ -506,7 +515,7 @@ namespace Aurora
             rasterizerDescription.DepthBiasClamp = description->m_RasterizerState->m_DepthBiasClamp;
             rasterizerDescription.SlopeScaledDepthBias = description->m_RasterizerState->m_DepthBiasSlopeScaled;
             rasterizerDescription.DepthClipEnable = description->m_RasterizerState->m_IsDepthClippingEnabled;
-            rasterizerDescription.ScissorEnable = true;
+            rasterizerDescription.ScissorEnable = false; /// No scissor for now.
             rasterizerDescription.MultisampleEnable = description->m_RasterizerState->m_IsMultisamplingEnabled;
             rasterizerDescription.AntialiasedLineEnable = description->m_RasterizerState->m_IsAntialiasedLiningEnabled;
 
@@ -520,26 +529,57 @@ namespace Aurora
         return true;
     }
     
-
-
-
-
-
-
-
-
-
-
     void DX11_GraphicsDevice::BindPipelineState(const RHI_PipelineState* pipelineStateObject, RHI_CommandList commandList)
     {
-        // If the pipeline state has already been bound, we will return.
-        if (m_PSO_Active[commandList] == pipelineStateObject)
+        const RHI_PipelineState_Description& pipelineDescription = pipelineStateObject != nullptr ? pipelineStateObject->GetDescription() : RHI_PipelineState_Description();
+        auto internalState = ToInternal(pipelineStateObject);
+
+        ID3D11VertexShader* vertexShader = pipelineDescription.m_VertexShader == nullptr ? nullptr : static_cast<DX11_VertexShaderPackage*>(pipelineDescription.m_VertexShader->m_InternalState.get())->m_Resource.Get();
+        m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
+
+        ID3D11PixelShader* pixelShader = pipelineDescription.m_PixelShader == nullptr ? nullptr : static_cast<DX11_PixelShaderPackage*>(pipelineDescription.m_PixelShader->m_InternalState.get())->m_Resource.Get();
+        m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
+
+        ID3D11BlendState* blendState = pipelineDescription.m_BlendState == nullptr ? nullptr : internalState->m_BlendState.Get();
+        const float newBlendFactor[4] = { m_BlendFactor[commandList].x, m_BlendFactor[commandList].y, m_BlendFactor[commandList].z, m_BlendFactor[commandList].w };
+        m_DeviceContextImmediate->OMSetBlendState(blendState, newBlendFactor, pipelineDescription.m_SampleMask);
+
+        ID3D11RasterizerState* rasterizerState = pipelineDescription.m_RasterizerState == nullptr ? nullptr : internalState->m_RasterizerState.Get();
+        m_DeviceContextImmediate->RSSetState(rasterizerState);
+
+        ID3D11DepthStencilState* depthStencilState = pipelineDescription.m_DepthStencilState == nullptr ? nullptr : internalState->m_DepthStencilState.Get();
+        m_DeviceContextImmediate->OMSetDepthStencilState(depthStencilState, 0); /// 0 for now.
+
+        ID3D11InputLayout* inputLayout = pipelineDescription.m_InputLayout == nullptr ? nullptr : internalState->m_InputLayout.Get();
+        m_DeviceContextImmediate->IASetInputLayout(inputLayout);
+
+        D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+        switch (pipelineDescription.m_PrimitiveTopology)
         {
-            return;
+        case Primitive_Topology::TriangleList:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+            break;
+        case Primitive_Topology::TriangleStrip:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+            break;
+        case Primitive_Topology::PointList:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+            break;
+        case Primitive_Topology::LineList:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+            break;
+        case Primitive_Topology::LineStrip:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+            break;
+        case Primitive_Topology::PatchList:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+            break;
+        default:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+            break;
         }
 
-        m_PSO_Active[commandList] = pipelineStateObject;
-        m_PSO_IsDirty[commandList] = true;
+        m_DeviceContextImmediate->IASetPrimitiveTopology(primitiveTopology);
     }
 
     bool DX11_GraphicsDevice::CreateRenderPass(const RHI_RenderPass_Description* renderPassDescription, RHI_RenderPass* renderPass) const
@@ -911,10 +951,10 @@ namespace Aurora
             switch (shaderStage)
             {
                  case Shader_Stage::Vertex_Shader:
-                     m_DeviceContexts[commandList]->VSSetSamplers(slot, 1, &sampler);
+                     m_DeviceContextImmediate->VSSetSamplers(slot, 1, &sampler);
                      break;
                  case Shader_Stage::Pixel_Shader:
-                     m_DeviceContexts[commandList]->PSSetSamplers(slot, 1, &sampler);
+                     m_DeviceContextImmediate->PSSetSamplers(slot, 1, &sampler);
                      break;
 
                  /// Bind for other shader stages as well.
@@ -934,7 +974,7 @@ namespace Aurora
             buffers[i] = vertexBuffers[i] != nullptr && vertexBuffers[i]->IsValid() ? (ID3D11Buffer*)ToInternal(vertexBuffers[i])->m_Resource.Get() : nullptr; // Remember that a resource can be a texture or a buffer.
         }
 
-        m_DeviceContexts[commandList]->IASetVertexBuffers(slot, count, buffers, strides, (offsets != nullptr ? offsets : reinterpret_cast<const uint32_t*>(__nullBlob)));
+        m_DeviceContextImmediate->IASetVertexBuffers(slot, count, buffers, strides, (offsets != nullptr ? offsets : reinterpret_cast<const uint32_t*>(__nullBlob)));
     }
 
     void DX11_GraphicsDevice::BindConstantBuffer(Shader_Stage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList)
@@ -945,11 +985,11 @@ namespace Aurora
         switch (stage)
         {
             case Shader_Stage::Vertex_Shader:
-                m_DeviceContexts[commandList]->VSSetConstantBuffers(slot, 1, &constantBuffer);
+                m_DeviceContextImmediate->VSSetConstantBuffers(slot, 1, &constantBuffer);
                 break;
                 
             case Shader_Stage::Pixel_Shader:
-                m_DeviceContexts[commandList]->PSSetConstantBuffers(slot, 1, &constantBuffer);
+                m_DeviceContextImmediate->PSSetConstantBuffers(slot, 1, &constantBuffer);
                 break;
 
             /// Bind for other shader stages as well.
@@ -960,112 +1000,58 @@ namespace Aurora
 
     void DX11_GraphicsDevice::ValidatePSO(RHI_CommandList commandList)
     {
-        if (!m_PSO_IsDirty[commandList])
-        {
-            return;
-        }
-
-        const RHI_PipelineState* pipelineStateObject = m_PSO_Active[commandList];
+        const RHI_PipelineState* pipelineStateObject = &m_PSO_Active;
         const RHI_PipelineState_Description& pipelineDescription = pipelineStateObject != nullptr ? pipelineStateObject->GetDescription() : RHI_PipelineState_Description();
 
         auto internalState = ToInternal(pipelineStateObject);
 
         ID3D11VertexShader* vertexShader = pipelineDescription.m_VertexShader == nullptr ? nullptr : static_cast<DX11_VertexShaderPackage*>(pipelineDescription.m_VertexShader->m_InternalState.get())->m_Resource.Get();
-        if (vertexShader != m_Previous_VertexShaders[commandList])
-        {
-            m_DeviceContexts[commandList]->VSSetShader(vertexShader, nullptr, 0);
-            m_Previous_VertexShaders[commandList] = vertexShader;
+        m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
 
-            if (pipelineDescription.m_VertexShader != nullptr)
-            {
-                for (auto& x : pipelineDescription.m_VertexShader->m_AutoSamplers)
-                {
-                    BindSampler(Shader_Stage::Vertex_Shader, &x.m_Sampler, x.m_Slot, commandList);
-                }
-            }
-        }
-
-        ID3D11PixelShader* pixelShader = pipelineDescription.m_PixelShader == nullptr ? nullptr : static_cast<DX11_PixelShaderPackage*>(pipelineDescription.m_PixelShader->m_InternalState.get())->m_Resource.Get();
-        if (pixelShader != m_Previous_PixelShaders[commandList])
-        {
-            m_DeviceContexts[commandList]->PSSetShader(pixelShader, nullptr, 0);
-            m_Previous_PixelShaders[commandList] = pixelShader;
-
-            if (pipelineDescription.m_PixelShader != nullptr)
-            {
-                for (auto& x : pipelineDescription.m_PixelShader->m_AutoSamplers)
-                {
-                    BindSampler(Shader_Stage::Pixel_Shader, &x.m_Sampler, x.m_Slot, commandList);
-                }
-            }
-        }
-
-        /// Hull Shader.
-        /// Domain shader.
-        /// Geometry Shader.
-        
+        ID3D11PixelShader* pixelShader = pipelineDescription.m_PixelShader == nullptr ? nullptr : static_cast<DX11_PixelShaderPackage*>(pipelineDescription.m_PixelShader->m_InternalState.get())->m_Resource.Get();    
+        m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
+           
         ID3D11BlendState* blendState = pipelineDescription.m_BlendState == nullptr ? nullptr : internalState->m_BlendState.Get();
-        if (pipelineDescription.m_BlendState != m_Previous_BlendState[commandList] || pipelineDescription.m_SampleMask != m_Previous_SampleMask[commandList] ||
-            m_BlendFactor[commandList].x != m_Previous_BlendFactor[commandList].x ||
-            m_BlendFactor[commandList].y != m_Previous_BlendFactor[commandList].y ||
-            m_BlendFactor[commandList].z != m_Previous_BlendFactor[commandList].z ||
-            m_BlendFactor[commandList].w != m_Previous_BlendFactor[commandList].w)
-        {
-            const float newBlendFactor[4] = { m_BlendFactor[commandList].x, m_BlendFactor[commandList].y, m_BlendFactor[commandList].z, m_BlendFactor[commandList].w };
-            m_DeviceContexts[commandList]->OMSetBlendState(blendState, newBlendFactor, pipelineDescription.m_SampleMask);
-            m_Previous_BlendState[commandList] = pipelineDescription.m_BlendState;
-            m_Previous_BlendFactor[commandList] = m_BlendFactor[commandList];
-            m_Previous_SampleMask[commandList] = pipelineDescription.m_SampleMask;
-        }
+        const float newBlendFactor[4] = { m_BlendFactor[commandList].x, m_BlendFactor[commandList].y, m_BlendFactor[commandList].z, m_BlendFactor[commandList].w };
+        m_DeviceContextImmediate->OMSetBlendState(blendState, newBlendFactor, pipelineDescription.m_SampleMask);
 
-        ID3D11RasterizerState* rasterizerState = pipelineDescription.m_RasterizerState == nullptr ? nullptr : internalState->m_RasterizerState.Get();
-        if (pipelineDescription.m_RasterizerState != m_Previous_RasterizerState[commandList])
-        {
-            m_DeviceContexts[commandList]->RSSetState(rasterizerState);
-            m_Previous_RasterizerState[commandList] = pipelineDescription.m_RasterizerState;
-        }
+        //ID3D11RasterizerState* rasterizerState = pipelineDescription.m_RasterizerState == nullptr ? nullptr : internalState->m_RasterizerState.Get();      
+        //m_DeviceContextImmediate->RSSetState(rasterizerState);
 
-        /// Check Depth Stencil & Stencil Buffer.
-
+       // ID3D11DepthStencilState* depthStencilState = pipelineDescription.m_DepthStencilState == nullptr ? nullptr : internalState->m_DepthStencilState.Get();     
+       // m_DeviceContextImmediate->OMSetDepthStencilState(depthStencilState, 0); /// 0 for now.
+        
         ID3D11InputLayout* inputLayout = pipelineDescription.m_InputLayout == nullptr ? nullptr : internalState->m_InputLayout.Get();
-        if (pipelineDescription.m_InputLayout != m_Previous_InputLayout[commandList])
+        m_DeviceContextImmediate->IASetInputLayout(inputLayout);
+
+   
+        D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+        switch (pipelineDescription.m_PrimitiveTopology)
         {
-            m_DeviceContexts[commandList]->IASetInputLayout(inputLayout);
-            m_Previous_InputLayout[commandList] = pipelineDescription.m_InputLayout;
+            case Primitive_Topology::TriangleList:
+                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+                break;
+            case Primitive_Topology::TriangleStrip:
+                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+                break;
+            case Primitive_Topology::PointList:
+                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+                break;
+            case Primitive_Topology::LineList:
+                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+                break;
+            case Primitive_Topology::LineStrip:
+                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+                break;
+            case Primitive_Topology::PatchList:
+                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+                break;
+            default:
+                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+                break;
         }
-
-        if (m_Previous_PrimitiveTopology[commandList] != pipelineDescription.m_PrimitiveTopology)
-        {
-            D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-            switch (pipelineDescription.m_PrimitiveTopology)
-            {
-                case Primitive_Topology::TriangleList:
-                    primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-                    break;
-                case Primitive_Topology::TriangleStrip:
-                    primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-                    break;
-                case Primitive_Topology::PointList:
-                    primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-                    break;
-                case Primitive_Topology::LineList:
-                    primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-                    break;
-                case Primitive_Topology::LineStrip:
-                    primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-                    break;
-                case Primitive_Topology::PatchList:
-                    primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-                    break;
-                default:
-                    primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-                    break;
-            }
-
-            m_DeviceContexts[commandList]->IASetPrimitiveTopology(primitiveTopology);
-
-            m_Previous_PrimitiveTopology[commandList] = pipelineDescription.m_PrimitiveTopology;
-        }
+        
+        m_DeviceContextImmediate->IASetPrimitiveTopology(primitiveTopology);
     }
 
     void DX11_GraphicsDevice::UpdateBuffer(const RHI_GPU_Buffer* buffer, const void* data, RHI_CommandList commandList, int dataSize)
@@ -1076,7 +1062,7 @@ namespace Aurora
             return;
         }
 
-        if ((int)buffer->m_Description.m_ByteWidth >= dataSize || dataSize < 0)
+        if (!((int)buffer->m_Description.m_ByteWidth >= dataSize) || !(dataSize < 0))
         {
             AURORA_ERROR("Data size is too big for the buffer.")
             return;
@@ -1094,18 +1080,18 @@ namespace Aurora
         if (buffer->m_Description.m_Usage == Usage::Dynamic)
         {
             D3D11_MAPPED_SUBRESOURCE mappedResource;
-            if (!BreakIfFailed(m_DeviceContexts[commandList]->Map(internalState->m_Resource.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))
+            if (!BreakIfFailed(m_DeviceContextImmediate->Map(internalState->m_Resource.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))
             {
                 AURORA_ERROR("Failed to map dynamic resource for access.");
                 return;
             }
             memcpy(mappedResource.pData, data, (dataSize >= 0 ? dataSize : buffer->m_Description.m_ByteWidth));
-            m_DeviceContexts[commandList]->Unmap(internalState->m_Resource.Get(), 0);
+            m_DeviceContextImmediate->Unmap(internalState->m_Resource.Get(), 0);
         }
 
         else if (buffer->m_Description.m_BindFlags & Bind_Flag::Bind_Constant_Buffer || dataSize < 0)
         {
-            m_DeviceContexts[commandList]->UpdateSubresource(internalState->m_Resource.Get(), 0, nullptr, data, 0, 0);
+            m_DeviceContextImmediate->UpdateSubresource(internalState->m_Resource.Get(), 0, nullptr, data, 0, 0);
         }
 
         else
@@ -1118,7 +1104,7 @@ namespace Aurora
             box.bottom = 1;
             box.front = 0;
             box.back = 1;
-            m_DeviceContexts[commandList]->UpdateSubresource(internalState->m_Resource.Get(), 0, &box, data, 0, 0);
+            m_DeviceContextImmediate->UpdateSubresource(internalState->m_Resource.Get(), 0, &box, data, 0, 0);
         }
     }
 
@@ -1126,19 +1112,15 @@ namespace Aurora
     {
         ValidatePSO(commandList);
 
-        m_DeviceContexts[commandList]->Draw(vertexCount, startVertexLocation);
+        m_DeviceContextImmediate->Draw(vertexCount, startVertexLocation);
     }
 
     void DX11_GraphicsDevice::DrawIndexed(uint32_t indexCount, uint32_t startIndexLocation, uint32_t baseVertexLocation, RHI_CommandList commandList)
     {
         ValidatePSO(commandList);
 
-        m_DeviceContexts[commandList]->DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
+        m_DeviceContextImmediate->DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
     }
 
-    void DX11_GraphicsDevice::CommitAllocations(RHI_CommandList commandList)
-    {
-        // DX11 needs to unmap allocations before it can execute safely.
-        /// ?
-    }
+
 }

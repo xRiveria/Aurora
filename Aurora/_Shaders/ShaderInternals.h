@@ -1,4 +1,3 @@
-#pragma once
 #include "ShaderUtilities.h"
 
 /* Personal Notes

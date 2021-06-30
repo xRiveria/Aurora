@@ -67,7 +67,7 @@ namespace Aurora::ShaderCompiler
                 {
                     std::string fileName = include + pFileName;
 
-                    if (FileSystem::Exists(fileName))
+                    if (!FileSystem::Exists(fileName))
                     {
                         continue;
                     }

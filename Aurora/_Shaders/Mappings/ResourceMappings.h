@@ -1,5 +1,3 @@
-#pragma once
-
 // Slot Matchings
 
 // Texture Slots

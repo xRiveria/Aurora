@@ -10,18 +10,46 @@ enum BlendMode_Types
 	BlendMode_Count
 };
 
+enum Shader_Types
+{
+	// Vertex Shaders
+	VS_Type_Object_Debug,
+	VS_Type_Object_Common,
+	VS_Type_Object_Simple,
+	
+	// Pixel Shaders
+	PS_Type_Object,
+	PS_Type_Object_Simple,
+	PS_Type_Object_Debug,
+
+	Shader_Type_Count
+};
+
+enum Object_VertexInput
+{
+	InputSlot_PositionNormalWind,
+	InputSlot_PreviousPosition,
+	InputSlot_UV0,
+	InputSlot_UV1,
+	InputSlot_Atlas,
+	InputSlot_Color,
+	InputSlot_Tangent,
+	InputSlot_InstanceData,
+	InputSlot_Count
+};
+
 enum InputLayout_Types
 {
 	OnDemandTriangle,
 	InputLayout_Position,
-	InputLayout_Position_Texture,
+	InputLayout_Position_TexCoord,
 	InputLayout_Position_PreviousPosition,
-	InputLayout_Position_PreviousPosition_Texture,
+	InputLayout_Position_PreviousPosition_TexCoord,
 	InputLayout_Common,
 	InputLayout_Debug,
 	InputLayout_RenderLightMap,
 	InputLayout_VertexColor,
-	InputLayout_Count
+	InputLayout_Count,
 };
 
 enum GBuffer_Types
@@ -44,16 +72,15 @@ enum CB_Types
 // Depth Stencil States
 enum DS_Types
 {
-	DS_Opaque,
-	DS_Transparent,
-	DS_Inverse,
-	DS_Additive,
-	DS_Premultiplied,
-	DS_ColorWriteDisabled,
-	DS_EnvironmentalLight,
-	DS_Decal,
-	DS_Multiply,
-	DS_TransparentShadow,
+	DS_Default,
+	DS_Shadow,
+	DS_XRay,
+	DS_DepthRead,
+	DS_DepthReadEqual,
+	DS_EnvironmentalMap,
+	DS_CaptureImposter,
+	DS_WriteOnly,
+	DS_Hologram,
 	DS_Count
 };
 
@@ -69,10 +96,23 @@ enum RS_Types
 	RS_Wire_DoubleSided_Smooth,
 	RS_Shadow,
 	RS_Shadow_DoubleSided,
-	RS_Occlude,
-	RS_Voxelize,
-	RS_Sky,
 	RS_Count
+};
+
+// Blend States
+enum BS_Types
+{
+	BS_Opaque,
+	BS_Transparent,
+	BS_Inverse,
+	BS_Additive,
+	BS_Premultiplied,
+	BS_ColorWriteDisable,
+	BS_EnvironmentalLight,
+	BS_Decal,
+	BS_Multiply,
+	BS_TransparentShadow,
+	BS_Count
 };
 
 // Render Passes

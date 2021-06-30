@@ -129,7 +129,7 @@ namespace Aurora
             graphicsDevice->BindViewports(1, &viewport, commandList);
 
             // We will draw everything as it is for now.
-            renderer->DrawScene(RenderPass_Type::RenderPass_Main, commandList, 0);
+            // renderer->DrawScene(RenderPass_Type::RenderPass_Main, commandList, 0);
 
             graphicsDevice->RenderPassEnd(commandList);
         }
