@@ -31,11 +31,9 @@ namespace Aurora
     template<typename T>
     inline constexpr void ValidateComponentType() { static_assert(std::is_base_of<IComponent, T>::value, "Provided type does not implement IComponent."); }
 
-    // Explict template instantiation. Returns the appropriate enum based on the type passed in. We ought to turn this into a proper template...
-    template<>
-    ComponentType IComponent::TypeToEnum<Camera>()
-    {
-        ValidateComponentType<Camera>();
-        return ComponentType::Camera;
-    }
+    // Explict template instantiation.
+    #define REGISTER_COMPONENT(T, enumT) template<> ComponentType IComponent::TypeToEnum<T>() { ValidateComponentType<T>(); return enumT; }
+
+    // Register components here.
+    REGISTER_COMPONENT(Camera, ComponentType::Camera);
 }

@@ -1102,7 +1102,7 @@ namespace Aurora
 
     void DX11_GraphicsDevice::Draw(uint32_t vertexCount, uint32_t startVertexLocation, RHI_CommandList commandList)
     {
-        ValidatePSO(commandList);
+        // ValidatePSO(commandList);
 
         m_DeviceContextImmediate->Draw(vertexCount, startVertexLocation);
     }

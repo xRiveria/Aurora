@@ -9,7 +9,7 @@ namespace Aurora
     class Camera : public IComponent
     {
     public:
-        Camera(EngineContext* engineContext);
+        Camera(EngineContext* engineContext, Entity* entity, uint32_t componentID = 0);
         ~Camera();
 
         // ================
@@ -58,7 +58,6 @@ namespace Aurora
         const XMVECTOR m_RightVector    = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 
         bool m_FPS_Control = false;
-        EngineContext* m_EngineContext = nullptr;
 
         XMVECTOR m_CurrentForwardVector;
         XMVECTOR m_CurrentLeftVector;

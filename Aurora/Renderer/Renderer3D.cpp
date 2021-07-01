@@ -16,7 +16,7 @@ namespace Aurora
         DX11_GraphicsDevice* graphicsDevice = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice.get();
         XMUINT2 internalResolution = GetInternalResolution();
 
-        m_Camera = std::make_shared<Camera>(m_EngineContext);
+        // m_Camera = std::make_shared<Camera>(m_EngineContext);
         m_Camera->ComputePerspectiveMatrix(90.0f, (float)internalResolution.x / (float)internalResolution.y, 0.1f, 1000.0f);
 
         // Render Targets - GBuffers
@@ -118,7 +118,7 @@ namespace Aurora
         // Update Main Camera for Opaque Render Pass
         commandList = graphicsDevice->BeginCommandList();
         {
-            renderer->UpdateCameraConstantBuffer(*m_Camera.get(), commandList);
+            //renderer->UpdateCameraConstantBuffer(*m_Camera.get(), commandList);
 
             // Opaque Objects
             graphicsDevice->RenderPassBegin(&m_RenderPass_Main, commandList);

@@ -4,19 +4,24 @@
 
 namespace Aurora
 {
-    Camera::Camera(EngineContext* engineContext) : m_EngineContext(engineContext)
+    Camera::Camera(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
+    {
+
+    }
+
+    Camera::~Camera()
+    {
+
+    }
+
+    void Camera::Initialize()
     {
         m_Position = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
         m_Rotation = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 
         ComputeViewMatrix();
 
-        AURORA_INFO("Created Camera.");
-    }
-
-    Camera::~Camera()
-    {
-
+        AURORA_INFO("Initialized Camera.");
     }
 
     void Camera::Tick(float deltaTime)

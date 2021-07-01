@@ -18,7 +18,7 @@ namespace Aurora
         const uint32_t GetObjectID() const { return m_ObjectID; }
 
         void SetObjectID(const uint32_t newID) { m_ObjectID = newID; }
-        static uint32_t GenerateObjectID() { ++g_ID_Count; }  // Generates and returns an object ID.
+        static uint32_t GenerateObjectID() { return ++g_ID_Count; }  // Generates and returns an object ID.
 
         /// Should we track GPU and CPU sizes?
 

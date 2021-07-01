@@ -39,16 +39,17 @@ namespace Aurora
         // void ReloadShaders();  // Fire shader reload event. Calls LoadShaders() again.
 
         // const RHI_GPU_Buffer* GetConstantBuffer(CB_Types bufferType) { return &RendererGlobals::g_ConstantBuffers[bufferType]; }
-        void UpdateCameraConstantBuffer(const Camera& camera, RHI_CommandList commandList);
+        void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
         void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
 
     private:
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;
         
     public:
-        bool m_DrawGridHelper = true;
-
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
+
+        XMMATRIX m_ObjectMatrix = XMMatrixIdentity(); // Will be the transform component of each Entity upon full completion of the entity.
+        XMMATRIX m_ObjectMatrix2 = XMMatrixTranslation(10.0f, 0.0f, 0.0f);
 
         RHI_SwapChain m_SwapChain;
         RHI_Shader m_VertexShader;
@@ -60,9 +61,6 @@ namespace Aurora
         RHI_Sampler m_Standard_Texture_Sampler;
         
         // Camera
-        std::shared_ptr<Camera> m_Camera;
-
-        /// Future Abstraction
-        //========================================================== 
+        std::shared_ptr<Entity> m_Camera;
     };
 }

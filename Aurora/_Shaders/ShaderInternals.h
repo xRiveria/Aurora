@@ -26,6 +26,7 @@ CBUFFER(ConstantBufferData_Frame, CBSLOT_RENDERER_FRAME)
 // 32 bit alignment.
 CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
 {
+    float4x4 g_ObjectMatrix; // Temporary
     float4x4 g_Camera_ViewProjection;
 
     float3 g_Camera_Position;
