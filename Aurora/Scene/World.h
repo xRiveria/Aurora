@@ -5,6 +5,7 @@
 #include "../Renderer/Renderer.h"
 #include "../Renderer/Material.h"
 #include <DirectXPackedVector.h>
+#include "Entity.h"
 
 using namespace DirectX::PackedVector;
 
@@ -74,14 +75,42 @@ namespace Aurora
         World(EngineContext* engineContext);
         ~World();
 
-        // Entity
-        void DrawScene();
+        bool Initialize() override;
+        void Tick(float deltaTime) override;
 
+        // Entity
+        void New();
+        void Clear();
+
+        bool IsLoading();
+        
+        // Entities
+        std::shared_ptr<Entity> EntityCreate(bool isActive = true);
+        bool EntityExists(const std::shared_ptr<Entity>& entity);
+        void EntityRemove(const std::shared_ptr<Entity>& entity);
+
+        const std::shared_ptr<Entity>& GetEntityByName(const std::string& entityName);
+        const std::shared_ptr<Entity>& GetEntityByID(uint32_t entityID);
+        const std::vector<std::shared_ptr<Entity>>& EntityGetAll() const { return m_Entities; }
+
+    private:
+        void _EntityRemove(const std::shared_ptr<Entity>& entity);
+
+        // Default Components
+        void CreateDirectionalLight();
+        void CreateCamera();
+        void CreateEnvironment();
+
+    private:
+        std::string m_WorldName;  // Or Scene Name.
+
+        std::vector<std::shared_ptr<Entity>> m_Entities;
+            
+    public:
+        // ==== Abstract Out === 
         /// Make this return an entity once our ECS is implemented.
         void LoadModel(const std::string& filePath);
         void ImportModel_OBJ(const std::string& filePath);
-
-
         void CreateRenderData();
         MeshComponent m_MeshComponent;
     };

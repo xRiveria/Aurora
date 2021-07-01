@@ -1,18 +1,22 @@
 #pragma once
+#include "IComponent.h"
 #include <DirectXMath.h>
-#include "EngineContext.h"
 
 using namespace DirectX;
 
 namespace Aurora
 {
-    class Camera
+    class Camera : public IComponent
     {
     public:
         Camera(EngineContext* engineContext);
         ~Camera();
 
-        void Tick(float deltaTime);
+        // ================
+        void Initialize() override;
+        void Tick(float deltaTime) override;
+        // ================
+
         void FPSControl(float deltaTime);
 
         void ComputePerspectiveMatrix(float fovInDegrees, float aspectRatio, float nearZ, float farZ);
