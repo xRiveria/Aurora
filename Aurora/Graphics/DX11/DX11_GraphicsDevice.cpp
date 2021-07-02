@@ -921,6 +921,39 @@ namespace Aurora
     {
     }
 
+    void DX11_GraphicsDevice::BindResource(Shader_Stage shaderStage, const RHI_GPU_Resource* resource, uint32_t slot, RHI_CommandList commandList, int subresource)
+    {
+        if (resource != nullptr && resource->IsValid())
+        {
+            DX11_ResourcePackage* internalState = ToInternal(resource);
+            ID3D11ShaderResourceView* shaderResourceView;
+
+            if (subresource < 0)
+            {
+                shaderResourceView = internalState->m_ShaderResourceView.Get();
+            }
+            else
+            {
+                AURORA_ASSERT(internalState->m_Subresources_ShaderResourceView.size() > static_cast<size_t>(subresource)); // Invalid size.
+                shaderResourceView = internalState->m_Subresources_ShaderResourceView[subresource].Get();
+            }
+
+            switch (shaderStage)
+            {
+                case Shader_Stage::Vertex_Shader:
+                    m_DeviceContextImmediate->VSSetShaderResources(slot, 1, &shaderResourceView);
+                    break;
+
+                case Shader_Stage::Pixel_Shader:
+                    m_DeviceContextImmediate->PSSetShaderResources(slot, 1, &shaderResourceView);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+
     void DX11_GraphicsDevice::RenderPassBegin(const RHI_RenderPass* renderPass, RHI_CommandList commandList)
     {
     }

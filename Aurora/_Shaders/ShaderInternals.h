@@ -11,7 +11,7 @@
 
 // On Demand Constant Buffers
 
-CBUFFER(Misc_ConstantBuffer, CBSLOT_RENDERER_MISC)
+CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
 {
     float4x4 g_Transform;
     float4   g_Color;
@@ -28,6 +28,7 @@ CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
 {
     float4x4 g_ObjectMatrix; // Temporary
     float4x4 g_Camera_ViewProjection;
+    float4x4 g_Camera_InverseViewProjection;
 
     float3 g_Camera_Position;
     float g_Padding;

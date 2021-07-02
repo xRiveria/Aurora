@@ -10,6 +10,8 @@
 #define TEXSLOT_GBUFFER_1           3
 #define TEXSLOT_GBUFFER_2           4
 
+#define TEXSLOT_GLOBAL_ENVIRONMENTAL_MAP 6
+
 // On Demand Textures - These are 2D textures and are declared in shader globals. They can be used independantly in any shader.
 #define TEXSLOT_ONDEMAND_0          30
 #define TEXSLOT_ONDEMAND_1          31

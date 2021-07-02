@@ -20,6 +20,10 @@ namespace Aurora
         bool Initialize() override;
         void Tick(float deltaTime) override;
         void DrawModel();
+        // Draws a skydome centered to our camera.
+        void DrawSky();
+        void DrawDebugWorld(Entity* entity);
+
         void Present();
 
         // Shenanigans
@@ -46,10 +50,11 @@ namespace Aurora
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;
         
     public:
+        std::shared_ptr<AuroraResource> m_SkyMap;
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
-        XMMATRIX m_ObjectMatrix = XMMatrixIdentity(); // Will be the transform component of each Entity upon full completion of the entity.
-        XMMATRIX m_ObjectMatrix2 = XMMatrixTranslation(10.0f, 0.0f, 0.0f);
+        XMMATRIX m_ObjectMatrix = XMMatrixTranslation(0.0f, 1.0f, 0.0f); // Will be the transform component of each Entity upon full completion of the entity.
+        XMMATRIX m_ObjectMatrix2 = XMMatrixTranslation(10.0f, 1.0f, 0.0f);
 
         RHI_SwapChain m_SwapChain;
         RHI_Shader m_VertexShader;

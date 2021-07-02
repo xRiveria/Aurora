@@ -16,7 +16,9 @@ namespace Aurora
         RHI_InputLayout       g_InputLayouts[InputLayout_Types::InputLayout_Count];
 
         // Pipeline States
-        RHI_PipelineState m_PSO_Object_Wire;
+        RHI_PipelineState m_PSO_Object_Wire; // Right now we're using this for everything.
+        RHI_PipelineState m_PSO_Object_Sky[SkyRender_Count];
+        RHI_PipelineState m_PSO_Object_Debug[DebugRenderer_Count];
 
         std::string g_ShaderPath = "_Shaders/";
         std::string g_ShaderSourcePath = "../Aurora/_Shaders/";
@@ -75,6 +77,8 @@ namespace Aurora
     {
         LoadShader(Shader_Stage::Vertex_Shader, m_VertexShader, "TriangleVS.hlsl");
         LoadShader(Shader_Stage::Pixel_Shader, m_PixelShader, "TrianglePS.hlsl");
+        LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_Sky], "SkyVS.hlsl");
+        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Static], "SkyPS_Static.hlsl");
 
         // These input layouts are created on pipeline state creation.
         RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements =
@@ -83,6 +87,16 @@ namespace Aurora
             { "TEXCOORD", 0, Format::FORMAT_R32G32_FLOAT,    0, 12, Input_Classification::Input_Per_Vertex_Data },
             { "NORMAL",   0, Format::FORMAT_R32G32B32_FLOAT, 0, 20, Input_Classification::Input_Per_Vertex_Data }
         };
+
+        RendererGlobals::g_InputLayouts[InputLayout_Types::InputLayout_VertexColor].m_Elements =
+        {
+            { "POSITION", 0, Format::FORMAT_R32G32B32A32_FLOAT, 0, RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Classification::Input_Per_Vertex_Data },
+            { "TEXCOORD", 0, Format::FORMAT_R32G32B32A32_FLOAT, 0, RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Classification::Input_Per_Vertex_Data },
+        };
+
+        LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_VertexColor], "VertexColorVS.hlsl");
+        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_PixelColor], "VertexColorPS.hlsl");
+        
     }
 
     void Renderer::LoadStates()
@@ -172,6 +186,19 @@ namespace Aurora
         rasterizerState.m_IsAntialiasedLiningEnabled = true;
         RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire_DoubleSided_Smooth] = rasterizerState;
 
+        rasterizerState.m_FillMode = Fill_Mode::Fill_Solid;
+        rasterizerState.m_CullMode = Cull_Mode::Cull_Front;
+        rasterizerState.m_IsFrontCounterClockwise = true;
+        rasterizerState.m_DepthBias = 0;
+        rasterizerState.m_DepthBiasClamp = 0;
+        rasterizerState.m_DepthBiasSlopeScaled = 0;
+        rasterizerState.m_IsDepthClippingEnabled = false;
+        rasterizerState.m_IsMultisamplingEnabled = false;
+        rasterizerState.m_IsAntialiasedLiningEnabled = false;
+        rasterizerState.m_IsConservativeRasterizationEnabled = false;
+
+        RendererGlobals::g_RasterizerStates[RS_Types::RS_Sky] = rasterizerState;
+
         /// Occludee, Sky, Voxelize.
 
         RHI_DepthStencilState depthStencilState;
@@ -192,6 +219,13 @@ namespace Aurora
 
         RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default] = depthStencilState;
 
+        depthStencilState.m_IsDepthEnabled = true;
+        depthStencilState.m_IsStencilEnabled = false;
+        depthStencilState.m_DepthWriteMask = Depth_Write_Mask::Depth_Write_Mask_Zero;
+        depthStencilState.m_DepthComparisonFunction = ComparisonFunction::Comparison_Less_Equal;
+        
+        RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead] = depthStencilState;
+
         RHI_BlendState blendState;
         blendState.m_RenderTarget[0].m_IsBlendingEnabled = false;
         blendState.m_RenderTarget[0].m_SourceBlendFactor = Blend_Factor::Blend_Source_Alpha;
@@ -205,6 +239,19 @@ namespace Aurora
         blendState.m_IsIndependentBlendingEnabled = false;
 
         RendererGlobals::g_BlendStates[BS_Types::BS_Opaque] = blendState;
+
+        blendState.m_RenderTarget[0].m_IsBlendingEnabled = true;
+        blendState.m_RenderTarget[0].m_SourceBlendFactor = Blend_Factor::Blend_Source_Alpha;
+        blendState.m_RenderTarget[0].m_DestinationBlendFactor = Blend_Factor::Blend_Inverse_Source_Alpha;
+        blendState.m_RenderTarget[0].m_BlendOperation = Blend_Operation::Blend_Operation_Add;
+        blendState.m_RenderTarget[0].m_SourceBlendAlpha = Blend_Factor::Blend_One;
+        blendState.m_RenderTarget[0].m_DestinationBlendAlpha = Blend_Factor::Blend_One;
+        blendState.m_RenderTarget[0].m_BlendOperationAlpha = Blend_Operation::Blend_Operation_Add;
+        blendState.m_RenderTarget[0].m_RenderTargetWriteMask = Color_Write_Mask::Color_Write_Enable_All;
+        blendState.m_IsAlphaToCoverageEnabled = false;
+        blendState.m_IsIndependentBlendingEnabled = false;
+
+        RendererGlobals::g_BlendStates[BS_Types::BS_Transparent] = blendState;
     }
 
     void Renderer::LoadBuffers()
@@ -220,6 +267,10 @@ namespace Aurora
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Camera);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera]);
         AURORA_INFO("Successfully created Camera Constant Buffer.");
+
+        bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Misc);
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc]);
+        AURORA_INFO("Successfully created Misc Constant Buffer.");
     }
 
     void Renderer::LoadPipelineStates()
@@ -235,5 +286,30 @@ namespace Aurora
         pipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
 
         m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_Wire);
+
+        //=========================================================
+
+        RHI_PipelineState_Description skyPipelineDescription;
+        skyPipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Sky];
+        skyPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead];
+        skyPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
+        skyPipelineDescription.m_VertexShader = &RendererGlobals::g_Shaders[Shader_Types::VS_Type_Sky];
+        skyPipelineDescription.m_PixelShader = &RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Static];
+
+        m_GraphicsDevice->CreatePipelineState(&skyPipelineDescription, &RendererGlobals::m_PSO_Object_Sky[SkyRender_Static]);
+
+        //=========================================================
+        
+        RHI_PipelineState_Description debugPipelineDescription;
+
+        debugPipelineDescription.m_VertexShader = &RendererGlobals::g_Shaders[Shader_Types::VS_Type_VertexColor];
+        debugPipelineDescription.m_PixelShader = &RendererGlobals::g_Shaders[Shader_Types::PS_Type_PixelColor];
+        debugPipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::InputLayout_VertexColor];
+        debugPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead];
+        debugPipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire_DoubleSided_Smooth];
+        debugPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Transparent];
+        debugPipelineDescription.m_PrimitiveTopology = Primitive_Topology::LineList;
+
+        m_GraphicsDevice->CreatePipelineState(&debugPipelineDescription, &RendererGlobals::m_PSO_Object_Debug[DebugRenderer_Type::DebugRenderer_Grid]);
     }
 }

@@ -47,8 +47,7 @@ namespace Aurora
         hammer->SetName("Weapon");
         hammer->LoadModel("../Resources/Models/Sword/weapon1.obj", "../Resources/Models/Sword/TextureWeapon1.png");
 
-        // m_EngineContext->GetSubsystem<World>()->LoadModel("../Resources/Models/Hollow_Knight/v3.obj");
-        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+        m_SkyMap = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Hollow_Knight_Albedo.png", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -71,6 +70,7 @@ namespace Aurora
         XMStoreFloat4x4(&constantBuffer.g_Camera_ViewProjection, camera->GetComponent<Camera>()->GetViewProjectionMatrix());
         XMStoreFloat4x4(&constantBuffer.g_Camera_View, camera->GetComponent<Camera>()->GetViewMatrix());
         XMStoreFloat4x4(&constantBuffer.g_Camera_Projection, camera->GetComponent<Camera>()->GetProjectionMatrix());
+        XMStoreFloat4x4(&constantBuffer.g_Camera_InverseViewProjection, XMMatrixInverse(nullptr, camera->GetComponent<Camera>()->GetViewProjectionMatrix()));
         XMStoreFloat3(&constantBuffer.g_Camera_Position, camera->GetComponent<Camera>()->GetPosition());
 
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, commandList);
@@ -106,12 +106,16 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
 
         DrawModel();
+        DrawDebugWorld(m_Camera.get());
 
         Present();
     }
 
     void Renderer::DrawModel()
     {
+        // m_EngineContext->GetSubsystem<World>()->LoadModel("../Resources/Models/Hollow_Knight/v3.obj");
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+
         World* world = m_EngineContext->GetSubsystem<World>();
         MeshComponent meshComponent = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Penguin")->m_MeshComponent;
 
@@ -144,6 +148,87 @@ namespace Aurora
         ID3D11Buffer* vertexBuffer2 = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent2.m_VertexBuffer_Position)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer2, &modelStride, &offset);
         m_GraphicsDevice->Draw((UINT)meshComponent2.m_VertexPositions.size(), 0, 0);
+    }
+
+    void Renderer::DrawSky()
+    {
+        if (m_SkyMap != nullptr)
+        {
+            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Sky[SkyRender_Type::SkyRender_Static], 0);
+            m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &m_SkyMap->m_Texture, TEXSLOT_GLOBAL_ENVIRONMENTAL_MAP, 0);
+        }
+        else
+        {
+            // It is empty.
+        }
+
+        BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
+        BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
+
+        m_GraphicsDevice->Draw(3, 0, 0);
+    }
+
+    void Renderer::DrawDebugWorld(Entity* entity)
+    {
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Debug[DebugRenderer_Type::DebugRenderer_Grid], 0);
+        // Bind Grid Pipeline
+        Camera* camera = entity->GetComponent<Camera>();
+
+        static float col = 0.7f;
+        static uint32_t gridVertexCount = 0;
+        static RHI_GPU_Buffer gridBuffer;
+
+        if (!gridBuffer.IsValid())
+        {
+            const float h = 0.01f; // avoid z-fight with zero plane
+            const int a = 30;
+            XMFLOAT4 verts[((a + 1) * 2 + (a + 1) * 2) * 2];
+
+            int count = 0;
+            for (int i = 0; i <= a; ++i)
+            {
+                verts[count++] = XMFLOAT4(i - a * 0.5f, h, -a * 0.5f, 1);
+                verts[count++] = (i == a / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
+
+                verts[count++] = XMFLOAT4(i - a * 0.5f, h, +a * 0.5f, 1);
+                verts[count++] = (i == a / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
+            }
+            for (int j = 0; j <= a; ++j)
+            {
+                verts[count++] = XMFLOAT4(-a * 0.5f, h, j - a * 0.5f, 1);
+                verts[count++] = (j == a / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
+
+                verts[count++] = XMFLOAT4(+a * 0.5f, h, j - a * 0.5f, 1);
+                verts[count++] = (j == a / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
+            }
+
+            gridVertexCount = ARRAYSIZE(verts) / 2;
+
+            RHI_GPU_Buffer_Description bufferDescription;
+            bufferDescription.m_Usage = Usage::Immutable;
+            bufferDescription.m_ByteWidth = sizeof(verts);
+            bufferDescription.m_BindFlags = Bind_Flag::Bind_Vertex_Buffer;
+            bufferDescription.m_CPUAccessFlags = 0;
+
+            RHI_Subresource_Data initializationData;
+            initializationData.m_SystemMemory = verts;
+
+            m_GraphicsDevice->CreateBuffer(&bufferDescription, &initializationData, &gridBuffer); 
+        }
+
+        ConstantBufferData_Misc miscBuffer;
+        XMStoreFloat4x4(&miscBuffer.g_Transform, camera->GetViewProjectionMatrix());
+        miscBuffer.g_Color = float4(1, 1, 1, 1);
+
+        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
+        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
+        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Pixel_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
+        
+        uint32_t offset = 0;
+        const uint32_t stride = sizeof(XMFLOAT4) + sizeof(XMFLOAT4);
+        ID3D11Buffer* vertexBufferDebug = (ID3D11Buffer*)DX11_Utility::ToInternal(&gridBuffer)->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBufferDebug, &stride, &offset);
+        m_GraphicsDevice->Draw(gridVertexCount, 0, 0);
     }
 
     void Renderer::Present()

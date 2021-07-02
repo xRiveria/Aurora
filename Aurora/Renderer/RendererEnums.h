@@ -16,11 +16,15 @@ enum Shader_Types
 	VS_Type_Object_Debug,
 	VS_Type_Object_Common,
 	VS_Type_Object_Simple,
+	VS_Type_Sky,
+	VS_Type_VertexColor,
 	
 	// Pixel Shaders
 	PS_Type_Object,
 	PS_Type_Object_Simple,
 	PS_Type_Object_Debug,
+	PS_Type_Sky_Static,
+	PS_Type_PixelColor,
 
 	Shader_Type_Count
 };
@@ -96,7 +100,8 @@ enum RS_Types
 	RS_Wire_DoubleSided_Smooth,
 	RS_Shadow,
 	RS_Shadow_DoubleSided,
-	RS_Count
+	RS_Sky,
+	RS_Count,
 };
 
 // Blend States
@@ -119,4 +124,18 @@ enum BS_Types
 enum RenderPass_Type
 {
 	RenderPass_Main
+};
+
+enum SkyRender_Type
+{
+	SkyRender_Static,
+	SkyRender_Dynamic,
+	SkyRender_Sun,
+	SkyRender_Count
+};
+
+enum DebugRenderer_Type
+{
+	DebugRenderer_Grid,
+	DebugRenderer_Count
 };

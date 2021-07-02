@@ -58,6 +58,7 @@ namespace Aurora
         // Submit all commands that were used with BeginCommandList. This will make every command list to be in "avaliable" state and restarts them.
         void SubmitCommandLists();
 
+        void BindResource(Shader_Stage shaderStage, const RHI_GPU_Resource* resource, uint32_t slot, RHI_CommandList commandList, int subresource = -1);
         void RenderPassBegin(const RHI_RenderPass* renderPass, RHI_CommandList commandList);
         void RenderPassEnd(RHI_CommandList commandList);
         void BindViewports(uint32_t numberOfViewports, const RHI_Viewport* viewports, RHI_CommandList commandList);
