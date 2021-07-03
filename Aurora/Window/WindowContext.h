@@ -32,9 +32,16 @@ namespace Aurora
         bool IsInitialized() const { return m_IsInitialized; }
 
         float GetWindowWidth(int windowID);
+        float GetWindowWidth(void* window);
+
         float GetWindowHeight(int windowID);
+        float GetWindowHeight(void* window);
+
+        float GetWindowDPI(int windowID);
+        float GetWindowDPI(void* window);
 
         HWND GetWindowHWND(int windowID);
+        HWND GetWindowHWND(void* window);
         void* GetRenderWindow();
 
     private:

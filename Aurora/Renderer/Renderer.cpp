@@ -181,7 +181,7 @@ namespace Aurora
         if (!gridBuffer.IsValid())
         {
             const float h = 0.01f; // avoid z-fight with zero plane
-            const int a = 30;
+            const int a = 20;
             XMFLOAT4 verts[((a + 1) * 2 + (a + 1) * 2) * 2];
 
             int count = 0;

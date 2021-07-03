@@ -99,6 +99,13 @@ namespace Aurora
         return 0.0f;
     }
 
+    float WindowContext::GetWindowWidth(void* window)
+    {
+        int width;
+        glfwGetWindowSize(static_cast<GLFWwindow*>(window), &width, nullptr);
+        return static_cast<float>(width);
+    }
+
     float WindowContext::GetWindowHeight(int windowID)
     {
         if (m_Windows.find(windowID) != m_Windows.end())
@@ -112,6 +119,31 @@ namespace Aurora
         return 0.0f;
     }
 
+    float WindowContext::GetWindowHeight(void* window)
+    {
+        int height;
+        glfwGetWindowSize(static_cast<GLFWwindow*>(window), nullptr, &height);
+        return static_cast<float>(height);
+    }
+
+    float WindowContext::GetWindowDPI(int windowID)
+    {
+        if (m_Windows.find(windowID) != m_Windows.end())
+        {
+            float dpi = (float)GetDpiForWindow(GetWindowHWND(windowID));
+            return dpi;
+        }
+
+        AURORA_ERROR("Requested window DPI could not be found. Does the window not exist in the mapping?");
+        return 0.0f;
+    }
+
+    float WindowContext::GetWindowDPI(void* window)
+    {
+        float dpi = (float)GetDpiForWindow(GetWindowHWND(window));
+        return dpi;
+    }
+
     HWND WindowContext::GetWindowHWND(int windowID)
     {
         if (m_Windows.find(windowID) != m_Windows.end())
@@ -121,6 +153,11 @@ namespace Aurora
 
         AURORA_ERROR("Requested window HWND could not be found. Does the window not exist in the mapping?");
         return nullptr;
+    }
+
+    HWND WindowContext::GetWindowHWND(void* window)
+    {
+        return glfwGetWin32Window(static_cast<GLFWwindow*>(window));
     }
 
     void* WindowContext::GetRenderWindow()
