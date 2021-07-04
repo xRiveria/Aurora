@@ -16,6 +16,7 @@ struct vs_out
     float4 outPosition : SV_POSITION; // The position is identified by the SV_POSITION semantic.
     float2 outTexCoord : TEXCOORD;
     float3 outNormal   : NORMAL;
+    float3 outWorldSpace : WORLD_POSITION;
 };
 
 vs_out main(vs_in input)  // Vertex shader entry point called vs_main(). Entry points and structs can be named whatever we like. 
@@ -24,5 +25,6 @@ vs_out main(vs_in input)  // Vertex shader entry point called vs_main(). Entry p
     output.outPosition = mul(float4(input.inPosition, 1.0), g_ObjectMatrix); // Vertex shader must output a float4 XYZW value to set the homogenous clip space (betwen -1 and 1 in XY axis and 0 and 1 in Z axis.
     output.outTexCoord = input.inTexCoord;
     output.outNormal = input.inNormal; // Length of 1 Normals
+    output.outWorldSpace = mul(float4(input.inPosition, 1.0), g_WorldMatrix);
     return output;
 }

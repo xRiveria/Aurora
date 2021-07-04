@@ -6,6 +6,7 @@ struct vs_out
     float4 outPosition : SV_POSITION; // The position is identified by the SV_POSITION semantic.
     float2 outTexCoord : TEXCOORD;
     float3 outNormal   : NORMAL;
+    float3 outWorldSpace : WORLD_POSITION;
 };
 
 Texture2D objectTexture : TEXTURE: register(t0);
@@ -14,8 +15,9 @@ SamplerState objectSamplerState : SAMPLER: register(s0);
 float4 main(vs_out input) : SV_TARGET // Pixel shader entry point which must return a float4 RGBA color value. 
 {
     float3 norm = normalize(input.outNormal);
-    float3 lightDirection = normalize(g_Light_Position - input.outPosition);
-    float3 diff = max(dot(norm, lightDirection), 0.0);
+    float3 lightDirection = normalize(g_Light_Position - input.outWorldSpace);
+
+    float3 diff = max(dot(norm, lightDirection), 0.0); // Ensure we are within 0 and 1. This is to ensure that we don't get a color darker than 0.0 if our light isn't near the object at all.
     float3 diffuse = diff * g_Light_Color;
 
     float3 sampleColor = objectTexture.Sample(objectSamplerState, input.outTexCoord);

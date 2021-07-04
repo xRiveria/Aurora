@@ -212,6 +212,7 @@ namespace Aurora
         // ==== Abstract ====
         ConstantBufferData_Camera constantBuffer;
         XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, m_ObjectMatrix * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, m_ObjectMatrix);
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
         // ==================
 
@@ -226,6 +227,8 @@ namespace Aurora
         // ==== Abstract ====
         ConstantBufferData_Camera constantBuffer2;
         XMStoreFloat4x4(&constantBuffer2.g_ObjectMatrix, m_ObjectMatrix2 * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, m_ObjectMatrix2);
+
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer2, 0);
         // ==================
 

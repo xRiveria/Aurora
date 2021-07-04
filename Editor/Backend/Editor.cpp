@@ -58,7 +58,7 @@ void Editor::Tick()
 		ImGui::SliderFloat3("Ambient Color", *color, 0.0, 1.0);
 
 		float* position[3] = { &component->m_Position.x, &component->m_Position.y, &component->m_Position.z };
-		ImGui::SliderFloat3("Position", *position, -1000, 1000);
+		ImGui::SliderFloat3("Position", *position, -30, 30);
 		ImGui::End();
 
 		ImGui::End(); // Ends docking context.
