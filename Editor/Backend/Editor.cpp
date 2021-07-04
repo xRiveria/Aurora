@@ -6,6 +6,7 @@
 #include "../Window/WindowContext.h"
 #include "Implementation/imgui_impl_glfw.h"
 #include "Implementation/imgui_impl_dx11.h"
+#include "../Scene/World.h"
  
 namespace EditorConfigurations
 {
@@ -27,6 +28,11 @@ Editor::~Editor()
 	ImGuiImplementation_Shutdown();
 }
 
+inline Aurora::DX11_Utility::DX11_TexturePackage* ToInternal(const Aurora::RHI_Texture* texture)
+{
+	return static_cast<Aurora::DX11_Utility::DX11_TexturePackage*>(texture->m_InternalState.get());
+}
+
 void Editor::Tick()
 {
 	while (true)
@@ -41,6 +47,8 @@ void Editor::Tick()
 		BeginDockingContext();  // The start of a docking context.
 
 		ImGui::Begin("Test");
+		auto internalState = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
+		ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
 		ImGui::End();
 
 		ImGui::End(); // Ends docking context.

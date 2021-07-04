@@ -8,7 +8,13 @@ namespace Aurora
 {
     Renderer3D::Renderer3D(EngineContext* engineContext) : ISubsystem(engineContext)
     {
+
+    }
+
+    bool Renderer3D::Initialize()
+    {
         ResizeResources();
+        return true;
     }
 
     void Renderer3D::ResizeResources()

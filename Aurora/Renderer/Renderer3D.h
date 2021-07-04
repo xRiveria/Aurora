@@ -17,6 +17,7 @@ namespace Aurora
     public:
         Renderer3D(EngineContext* engineContext);
 
+        bool Initialize() override;
         void Tick(float deltaTime) override;
         void Render() const;
 
@@ -41,6 +42,7 @@ namespace Aurora
         RHI_RenderPass m_RenderPass_Main;
 
     private:
+        std::shared_ptr<Renderer> m_Renderer;
         std::shared_ptr<Camera> m_Camera; // This will be part of our ECS in the future. For now, it is a standalone camera.
 
         // Returns the native resolution in pixels. Use this for texture allocations, scissors and viewports.

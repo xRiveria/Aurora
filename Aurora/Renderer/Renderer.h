@@ -34,6 +34,17 @@ namespace Aurora
 
     public:
         /// New Abstraction
+        void ResizeBuffers();
+        // Depth Buffer
+        RHI_Texture m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Count];
+
+        RHI_Texture m_DepthBuffer_Main; // Used for depth-testing. Can be used for MSAA.
+        RHI_RenderPass m_RenderPass_DepthPrePass;
+        RHI_RenderPass m_RenderPass_Main;
+        uint32_t m_MSAA_SampleCount = 1;
+        const uint32_t GetMSAASampleCount() const { return m_MSAA_SampleCount; }
+
+
         void LoadStates();
         void LoadBuffers();
         void LoadShaders();

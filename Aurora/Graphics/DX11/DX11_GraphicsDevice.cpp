@@ -295,7 +295,7 @@ namespace Aurora
 
         if (texture->m_Description.m_BindFlags & Bind_Flag::Bind_Render_Target)
         {
-            
+            CreateSubresource(texture, Subresource_Type::RenderTargetView, 0, -1, 0, -1);
         }
 
         if (texture->m_Description.m_BindFlags & Bind_Flag::Bind_Depth_Stencil)
@@ -676,6 +676,62 @@ namespace Aurora
             }
             break;
 
+            case Subresource_Type::RenderTargetView:
+            {
+                D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDescription = {};
+
+                // Try to resolve resource format.
+                switch (texture->m_Description.m_Format)
+                {
+                    case FORMAT_R16_TYPELESS:
+                        renderTargetViewDescription.Format = DXGI_FORMAT_R16_UNORM;
+
+                    case Format::FORMAT_R32_TYPELESS:
+                        renderTargetViewDescription.Format = DXGI_FORMAT_R32_FLOAT;
+                        break;
+
+                    case Format::FORMAT_R24G8_TYPELESS:
+                        renderTargetViewDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+                        break;
+
+                    case Format::FORMAT_R32G8X24_TYPELESS:
+                        renderTargetViewDescription.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+                        break;
+
+                    default:
+                        renderTargetViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
+                        break;
+                }
+
+                /// If 1D.
+                if (texture->m_Description.m_Type == Texture_Type::Texture2D)
+                {
+                    /// If array size is more than 1.
+                    /// If sample count is more than 1.
+                    renderTargetViewDescription.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+                    renderTargetViewDescription.Texture2D.MipSlice = firstMip;
+                }
+                /// If 3D.
+                
+                ComPtr<ID3D11RenderTargetView> renderTargetView;
+                if (BreakIfFailed(m_Device->CreateRenderTargetView(internalState->m_Resource.Get(), &renderTargetViewDescription, &renderTargetView)))
+                {
+                    if (!internalState->m_RenderTargetView)
+                    {
+                        internalState->m_RenderTargetView = renderTargetView;
+                        return -1; // Meaning we have only 1 render targer view.
+                    }
+
+                    internalState->m_Subresources_RenderTargetView.push_back(renderTargetView);
+                    return int(internalState->m_Subresources_RenderTargetView.size() - 1);                   
+                }
+                else
+                {
+                    AURORA_ERROR("Failed to create Render Target View.");
+                    AURORA_ASSERT(0);
+                }
+            }
+
             case Subresource_Type::UnorderedAccessView:
             {
                 D3D11_UNORDERED_ACCESS_VIEW_DESC unorderedAccessViewDescription = {};
@@ -956,10 +1012,71 @@ namespace Aurora
 
     void DX11_GraphicsDevice::RenderPassBegin(const RHI_RenderPass* renderPass, RHI_CommandList commandList)
     {
+        /// Set as active render pass.
+        const RHI_RenderPass_Description& renderPassDescription = renderPass->GetDescription();
+
+        uint32_t renderTargetCount = 0;
+        ID3D11RenderTargetView* renderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];  // The maximum number of active render targets a device can have active at any given time.
+        ID3D11DepthStencilView* depthStencilView = nullptr;
+
+        for (const RHI_RenderPass_Attachment& attachment : renderPassDescription.m_Attachments)
+        {
+            const RHI_Texture* texture = attachment.m_Texture;
+            int subresource = attachment.m_Subresource;
+            DX11_TexturePackage* internalState = ToInternal(texture);
+
+            if (attachment.m_Type == RHI_RenderPass_Attachment::AttachmentType_Render_Target)
+            {
+                if (subresource < 0 || internalState->m_Subresources_RenderTargetView.empty())  // Means that we only have 1 render target view as attachment.
+                {
+                    renderTargetViews[renderTargetCount] = internalState->m_RenderTargetView.Get();
+                }
+                else
+                {
+                    AURORA_ASSERT(internalState->m_Subresources_RenderTargetView.size() > size_t(subresource));
+                    renderTargetViews[renderTargetCount] = internalState->m_Subresources_RenderTargetView[subresource].Get();
+                }
+
+                if (attachment.m_LoadOperation == RHI_RenderPass_Attachment::LoadOperation_Clear)
+                {
+                    float colorClear[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+                    m_DeviceContextImmediate->ClearRenderTargetView(renderTargetViews[renderTargetCount], colorClear);
+                }
+
+                renderTargetCount++;
+            }
+            else if (attachment.m_Type == RHI_RenderPass_Attachment::AttachmentType_Depth_Stencil)
+            {
+                if (subresource < 0 || internalState->m_Subresources_DepthStencilView.empty())
+                {
+                    depthStencilView = internalState->m_DepthStencilView.Get();
+                }
+                else
+                {
+                    AURORA_ASSERT(internalState->m_Subresources_DepthStencilView.size() > size_t(subresource));
+                    depthStencilView = internalState->m_Subresources_DepthStencilView[subresource].Get();
+                }
+
+                if (attachment.m_LoadOperation == RHI_RenderPass_Attachment::LoadOperation_Clear)
+                {
+                    uint32_t clearFlags = D3D11_CLEAR_DEPTH;
+                    if (IsFormatStencilSupport(texture->m_Description.m_Format))
+                    {
+                        clearFlags |= D3D11_CLEAR_STENCIL;
+                    }
+
+                    m_DeviceContextImmediate->ClearDepthStencilView(depthStencilView, clearFlags, texture->m_Description.m_ClearValue.m_DepthStencil.m_DepthValue, texture->m_Description.m_ClearValue.m_DepthStencil.m_StencilValue);
+                }
+            }
+        }
+
+        /// If we have raster UAVs.
+        m_DeviceContextImmediate->OMSetRenderTargets(renderTargetCount, renderTargetViews, depthStencilView);
     }
 
     void DX11_GraphicsDevice::RenderPassEnd(RHI_CommandList commandList)
     {
+        m_DeviceContextImmediate->OMSetRenderTargets(0, nullptr, nullptr);
     }
 
     void DX11_GraphicsDevice::BindViewports(uint32_t numberOfViewports, const RHI_Viewport* viewports, RHI_CommandList commandList)
@@ -1147,5 +1264,17 @@ namespace Aurora
         m_DeviceContextImmediate->DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
     }
 
+    bool DX11_GraphicsDevice::IsFormatStencilSupport(Format format) const
+    {
+        switch (format)
+        {
+            case FORMAT_R32G8X24_TYPELESS:
+            case FORMAT_D32_FLOAT_S8X24_UINT:
+            case FORMAT_R24G8_TYPELESS:
+            case FORMAT_D24_UNORM_S8_UINT:
+                return true;
+        }
 
+        return false;
+    }
 }

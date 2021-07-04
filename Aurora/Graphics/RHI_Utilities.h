@@ -5,6 +5,8 @@
 
 namespace Aurora
 {
+
+
     enum Format
     {
         FORMAT_UNKNOWN,

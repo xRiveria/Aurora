@@ -25,6 +25,7 @@ namespace Aurora
         LoadStates();
         LoadBuffers();
         LoadPipelineStates();
+        ResizeBuffers();
 
         RHI_SwapChain_Description swapchainDescription;
         swapchainDescription.m_Width = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0));
@@ -81,34 +82,134 @@ namespace Aurora
         m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], CB_GETBINDSLOT(ConstantBufferData_Camera), commandList);
     }
 
+    inline void Renderer::ResizeBuffers()
+    {
+        float resolutionScale = 1.0f;
+        XMUINT2 internalResolution = XMUINT2(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0) * resolutionScale, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0) * resolutionScale);
+    
+        // Render Targets - GBuffers
+        {
+            // Color
+            RHI_Texture_Description gBufferDescription;
+            gBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
+            if (GetMSAASampleCount() == 1)
+            {
+                gBufferDescription.m_BindFlags |= Bind_Flag::Bind_Unordered_Access;
+            }
+            gBufferDescription.m_Width = internalResolution.x;
+            gBufferDescription.m_Height = internalResolution.y;
+            gBufferDescription.m_SampleCount = GetMSAASampleCount();
+            gBufferDescription.m_Format = Format::FORMAT_R11G11B10_FLOAT;
+
+            m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
+            AURORA_INFO("GBuffer_Color Texture Creation Success.");
+
+            /*
+            // Normal, Roughness
+            gBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
+            gBufferDescription.m_Format = Format::FORMAT_R8G8B8A8_UNORM;
+
+            m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Normal_Roughness]);
+            AURORA_INFO("GBuffer_Normal_Roughness Texture Creation Success.");
+
+            // Velocity
+            gBufferDescription.m_Format = Format::FORMAT_R16G16_FLOAT;
+
+            m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Velocity]);
+            AURORA_INFO("GBuffer_Velocity Texture Creation Success.")
+        }
+        */
+
+        // Depth Buffers
+        {
+            RHI_Texture_Description depthBufferDescription;
+            depthBufferDescription.m_Width = internalResolution.x;
+            depthBufferDescription.m_Height = internalResolution.y;
+            depthBufferDescription.m_SampleCount = GetMSAASampleCount();
+            depthBufferDescription.m_Layout = Image_Layout::Image_Layout_DepthStencil_ReadOnly;
+            depthBufferDescription.m_Format = Format::FORMAT_R32G8X24_TYPELESS;
+            depthBufferDescription.m_BindFlags = Bind_Flag::Bind_Depth_Stencil | Bind_Flag::Bind_Shader_Resource;
+
+            m_GraphicsDevice->CreateTexture(&depthBufferDescription, nullptr, &m_DepthBuffer_Main);
+            AURORA_INFO("DepthBuffer_Main Texture Creation Success.");
+        }
+        
+        /*
+        // Render Passes - GBuffer
+        {
+            // Depth PrePass (GBuffer Velocity)
+            RHI_RenderPass_Description renderPassDescription;
+            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::DepthStencil(&m_DepthBuffer_Main, RHI_RenderPass_Attachment::LoadOperation_Clear,
+                RHI_RenderPass_Attachment::StoreOperation_Store, Image_Layout::Image_Layout_DepthStencil_ReadOnly,
+                Image_Layout::Image_Layout_DepthStencil, Image_Layout::Image_Layout_Shader_Resource));
+
+            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::RenderTarget(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Velocity], RHI_RenderPass_Attachment::LoadOperation_DontCare));
+            m_GraphicsDevice->CreateRenderPass(&renderPassDescription, &m_RenderPass_DepthPrePass);
+            AURORA_INFO("DepthPrePass Render Pass Creation Success.");
+
+            // Main (GBuffer Color, Normal & Roughtness)
+            renderPassDescription.m_Attachments.clear();
+            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::RenderTarget(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color], RHI_RenderPass_Attachment::LoadOperation_DontCare));
+            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::RenderTarget(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Normal_Roughness], RHI_RenderPass_Attachment::LoadOperation_DontCare));
+            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::DepthStencil(&m_DepthBuffer_Main, RHI_RenderPass_Attachment::LoadOperation_Load, RHI_RenderPass_Attachment::StoreOperation_Store,
+                Image_Layout::Image_Layout_Shader_Resource, Image_Layout::Image_Layout_DepthStencil_ReadOnly, Image_Layout::Image_Layout_DepthStencil_ReadOnly));
+
+            m_GraphicsDevice->CreateRenderPass(&renderPassDescription, &m_RenderPass_Main);
+            AURORA_INFO("Main Render Pass Creation Success.");
+        }
+        */
+        }
+    }
+
     void Renderer::Tick(float deltaTime)
     {
+        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width != m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0))
+        {
+            ResizeBuffers();
+
+            RHI_SwapChain_Description swapchainDescription;
+            swapchainDescription.m_Width = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0));
+            swapchainDescription.m_Height = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0));
+
+            m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
+        }
+
         UpdateCameraConstantBuffer(m_Camera, 0);
         BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
         BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
 
         auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
-
-        // Clear the backbuffer to black for the new frame.
-        float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-        ID3D11RenderTargetView* RTV = internalState->m_RenderTargetView.Get();
-        ID3D11DepthStencilView* DSV = DX11_Utility::ToInternal(&m_DepthTexture)->m_DepthStencilView.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(RTV, backgroundColor); // We use the render target view pointer to access the back buffer and clear it to an RGBA color of our choice (values between 0 and 1). If we add a depth buffer later, we will need to clear it as well.
-        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-        // Viewport
-        D3D11_VIEWPORT viewportInfo = { 0, 0, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0), 0.0f, 1.0f };
-        m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
-        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, DSV); // Set depth as well here if it exists.
-
         ID3D11SamplerState* samplerState = DX11_Utility::ToInternal(&m_Standard_Texture_Sampler)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
+        /// Rendering to Texture
+        //==============================================================================================================
+        D3D11_VIEWPORT viewportInfo = { 0, 0, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0), 0.0f, 1.0f };
+        m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
+
+        auto ourTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
+        ID3D11RenderTargetView* renderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+        renderTargetViews[0] = ourTexture->m_RenderTargetView.Get();
+
+        ID3D11DepthStencilView* ourDepthStencilTexture = DX11_Utility::ToInternal(&m_DepthBuffer_Main)->m_DepthStencilView.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, renderTargetViews, ourDepthStencilTexture);
+
+        float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourTexture->m_RenderTargetView.Get(), color);
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        
+        ///==============================
 
         DrawModel();
         DrawDebugWorld(m_Camera.get());
 
-        Present();
+        /// ==================================
+
+         // Clear the backbuffer to black for the new frame.
+        float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+        ID3D11RenderTargetView* RTV = internalState->m_RenderTargetView.Get();   
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, 0); // Set depth as well here if it exists.    
+        // Present is called from our Editor.
     }
 
     void Renderer::DrawModel()

@@ -75,6 +75,10 @@ namespace Aurora
 
         Shader_Format GetShaderFormat() const { return Shader_Format::ShaderFormat_HLSL5; }
 
+
+        // Support
+        bool IsFormatStencilSupport(Format format) const;
+
     public: 
         /// Will be temporarily public.
         static const uint32_t BUFFER_COUNT = 2;     // Amount of backbuffers for our swapchain.
