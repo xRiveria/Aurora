@@ -29,7 +29,6 @@ namespace Aurora
         // Shenanigans
 
     private:
-        void CreateDepth();
         void CreateTexture();
 
     public:
@@ -71,8 +70,6 @@ namespace Aurora
         RHI_Shader m_VertexShader;
         RHI_Shader m_PixelShader;
         RHI_GPU_Buffer m_VertexBuffer;
-
-        RHI_Texture m_DepthTexture;
 
         RHI_Sampler m_Standard_Texture_Sampler;
         

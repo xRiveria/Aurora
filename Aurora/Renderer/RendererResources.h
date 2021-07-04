@@ -77,8 +77,6 @@ namespace Aurora
     {
         LoadShader(Shader_Stage::Vertex_Shader, m_VertexShader, "TriangleVS.hlsl");
         LoadShader(Shader_Stage::Pixel_Shader, m_PixelShader, "TrianglePS.hlsl");
-        LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_Sky], "SkyVS.hlsl");
-        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Static], "SkyPS_Static.hlsl");
 
         // These input layouts are created on pipeline state creation.
         RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements =

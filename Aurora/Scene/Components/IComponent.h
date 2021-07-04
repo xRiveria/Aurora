@@ -7,6 +7,7 @@ namespace Aurora
     {
         Camera,
         Renderable,
+        Light,
         Unknown
     };
 

@@ -4,6 +4,7 @@
 #include "../Graphics/DX11/DX11_Utilities.h" //Temporary
 #include "ShaderInternals.h"
 #include "RendererResources.h"
+#include "../Scene/Components/Light.h"
 
 namespace Aurora
 {
@@ -33,7 +34,6 @@ namespace Aurora
 
         m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
 
-        CreateDepth();
         CreateTexture();
 
         m_Camera = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Default_Camera");
@@ -104,21 +104,13 @@ namespace Aurora
             m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
             AURORA_INFO("GBuffer_Color Texture Creation Success.");
 
-            /*
             // Normal, Roughness
             gBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
             gBufferDescription.m_Format = Format::FORMAT_R8G8B8A8_UNORM;
 
             m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Normal_Roughness]);
             AURORA_INFO("GBuffer_Normal_Roughness Texture Creation Success.");
-
-            // Velocity
-            gBufferDescription.m_Format = Format::FORMAT_R16G16_FLOAT;
-
-            m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Velocity]);
-            AURORA_INFO("GBuffer_Velocity Texture Creation Success.")
         }
-        */
 
         // Depth Buffers
         {
@@ -134,30 +126,20 @@ namespace Aurora
             AURORA_INFO("DepthBuffer_Main Texture Creation Success.");
         }
         
-        /*
+
         // Render Passes - GBuffer
         {
-            // Depth PrePass (GBuffer Velocity)
-            RHI_RenderPass_Description renderPassDescription;
-            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::DepthStencil(&m_DepthBuffer_Main, RHI_RenderPass_Attachment::LoadOperation_Clear,
-                RHI_RenderPass_Attachment::StoreOperation_Store, Image_Layout::Image_Layout_DepthStencil_ReadOnly,
-                Image_Layout::Image_Layout_DepthStencil, Image_Layout::Image_Layout_Shader_Resource));
-
-            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::RenderTarget(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Velocity], RHI_RenderPass_Attachment::LoadOperation_DontCare));
-            m_GraphicsDevice->CreateRenderPass(&renderPassDescription, &m_RenderPass_DepthPrePass);
-            AURORA_INFO("DepthPrePass Render Pass Creation Success.");
-
             // Main (GBuffer Color, Normal & Roughtness)
+            RHI_RenderPass_Description renderPassDescription;
+
+            // Main (GBuffer Color, Normal & Roughness)
             renderPassDescription.m_Attachments.clear();
             renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::RenderTarget(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color], RHI_RenderPass_Attachment::LoadOperation_DontCare));
             renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::RenderTarget(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Normal_Roughness], RHI_RenderPass_Attachment::LoadOperation_DontCare));
-            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::DepthStencil(&m_DepthBuffer_Main, RHI_RenderPass_Attachment::LoadOperation_Load, RHI_RenderPass_Attachment::StoreOperation_Store,
-                Image_Layout::Image_Layout_Shader_Resource, Image_Layout::Image_Layout_DepthStencil_ReadOnly, Image_Layout::Image_Layout_DepthStencil_ReadOnly));
+            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::DepthStencil(&m_DepthBuffer_Main, RHI_RenderPass_Attachment::LoadOperation_Load, RHI_RenderPass_Attachment::StoreOperation_Store, Image_Layout::Image_Layout_Shader_Resource, Image_Layout::Image_Layout_DepthStencil_ReadOnly, Image_Layout::Image_Layout_DepthStencil_ReadOnly));
 
             m_GraphicsDevice->CreateRenderPass(&renderPassDescription, &m_RenderPass_Main);
-            AURORA_INFO("Main Render Pass Creation Success.");
-        }
-        */
+            AURORA_INFO("Main Render Pass Creation Success.");      
         }
     }
 
@@ -178,9 +160,9 @@ namespace Aurora
         BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
         BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
 
-        auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
         ID3D11SamplerState* samplerState = DX11_Utility::ToInternal(&m_Standard_Texture_Sampler)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
+
         /// Rendering to Texture
         //==============================================================================================================
         D3D11_VIEWPORT viewportInfo = { 0, 0, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0), 0.0f, 1.0f };
@@ -193,7 +175,7 @@ namespace Aurora
         ID3D11DepthStencilView* ourDepthStencilTexture = DX11_Utility::ToInternal(&m_DepthBuffer_Main)->m_DepthStencilView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, renderTargetViews, ourDepthStencilTexture);
 
-        float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
         m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourTexture->m_RenderTargetView.Get(), color);
         m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
         
@@ -203,6 +185,7 @@ namespace Aurora
         DrawDebugWorld(m_Camera.get());
 
         /// ==================================
+        auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
 
          // Clear the backbuffer to black for the new frame.
         float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -321,6 +304,10 @@ namespace Aurora
         XMStoreFloat4x4(&miscBuffer.g_Transform, camera->GetViewProjectionMatrix());
         miscBuffer.g_Color = float4(1, 1, 1, 1);
 
+        Aurora::Light* component = m_EngineContext->GetSubsystem<Aurora::World>()->GetEntityByName("Directional_Light")->GetComponent<Aurora::Light>();
+        miscBuffer.g_Light_Color = { component->m_Color.x, component->m_Color.y, component->m_Color.z, 0 };
+        miscBuffer.g_Light_Position = { component->m_Position.x, component->m_Position.y, component->m_Position.z, 0 };
+
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
         m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
         m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Pixel_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
@@ -336,24 +323,6 @@ namespace Aurora
     {
         auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
         internalState->m_SwapChain->Present(1, 0);
-    }
-
-    void Renderer::CreateDepth()
-    {
-        RHI_Texture_Description depthStencilDescription;
-        depthStencilDescription.m_Type = Texture_Type::Texture2D;
-        depthStencilDescription.m_Width = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0));
-        depthStencilDescription.m_Height = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0));
-        depthStencilDescription.m_MipLevels = 1;
-        depthStencilDescription.m_ArraySize = 1;
-        depthStencilDescription.m_Format = Format::FORMAT_D24_UNORM_S8_UINT;
-        depthStencilDescription.m_SampleCount = 1;
-        depthStencilDescription.m_Usage = Usage::Default;
-        depthStencilDescription.m_BindFlags = Bind_Flag::Bind_Depth_Stencil;
-        depthStencilDescription.m_CPUAccessFlags = 0;
-        depthStencilDescription.m_MiscFlags = 0;
-
-        m_GraphicsDevice->CreateTexture(&depthStencilDescription, nullptr, &m_DepthTexture);
     }
 
     void Renderer::CreateTexture()

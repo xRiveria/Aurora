@@ -1,5 +1,6 @@
 #include "Aurora.h"
 #include "World.h"
+#include "Components/Light.h"
 
 using namespace DirectX;
 
@@ -19,7 +20,7 @@ namespace Aurora
     {
         CreateCamera();
         // CreateEnvironment();
-        // CreateDirectionalLight();
+        CreateDirectionalLight();
 
         // Tick Entities.
         for (std::shared_ptr<Entity>& entity : m_Entities)
@@ -120,6 +121,9 @@ namespace Aurora
 
     void World::CreateDirectionalLight()
     {
+        std::shared_ptr<Entity> entity = EntityCreate();
+        entity->SetName("Directional_Light");
+        entity->AddComponent<Light>();
     }
 
     void World::CreateCamera()

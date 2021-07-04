@@ -23,6 +23,6 @@ vs_out main(vs_in input)  // Vertex shader entry point called vs_main(). Entry p
     vs_out output = (vs_out)0; // Zero the memory first.
     output.outPosition = mul(float4(input.inPosition, 1.0), g_ObjectMatrix); // Vertex shader must output a float4 XYZW value to set the homogenous clip space (betwen -1 and 1 in XY axis and 0 and 1 in Z axis.
     output.outTexCoord = input.inTexCoord;
-    //output.outNormal = normalize(mul(float4(input.inNormal, 0.0), worldMatrix)); // Length of 1 Normals
+    output.outNormal = input.inNormal; // Length of 1 Normals
     return output;
 }

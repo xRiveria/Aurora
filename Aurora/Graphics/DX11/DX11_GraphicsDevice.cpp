@@ -55,6 +55,7 @@ namespace Aurora
         BreakIfFailed(pDXGIAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&m_DXGIFactory));  // Retrieve our factory from the adapter. This factory is created implicitly on device creation.
 
         QueryFeatureSupport();
+        m_EmptyResource = std::make_shared<EmptyResourceHandle>();
     }
 
     void DX11_GraphicsDevice::QueryFeatureSupport()
@@ -576,7 +577,10 @@ namespace Aurora
 
     bool DX11_GraphicsDevice::CreateRenderPass(const RHI_RenderPass_Description* renderPassDescription, RHI_RenderPass* renderPass) const
     {
-        return false;
+        renderPass->m_InternalState = m_EmptyResource;
+        renderPass->m_Description = *renderPassDescription;
+
+        return true;
     }
 
     int DX11_GraphicsDevice::CreateSubresource(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const
@@ -1024,7 +1028,6 @@ namespace Aurora
             const RHI_Texture* texture = attachment.m_Texture;
             int subresource = attachment.m_Subresource;
             DX11_TexturePackage* internalState = ToInternal(texture);
-
             if (attachment.m_Type == RHI_RenderPass_Attachment::AttachmentType_Render_Target)
             {
                 if (subresource < 0 || internalState->m_Subresources_RenderTargetView.empty())  // Means that we only have 1 render target view as attachment.
@@ -1039,7 +1042,7 @@ namespace Aurora
 
                 if (attachment.m_LoadOperation == RHI_RenderPass_Attachment::LoadOperation_Clear)
                 {
-                    float colorClear[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+                    float colorClear[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
                     m_DeviceContextImmediate->ClearRenderTargetView(renderTargetViews[renderTargetCount], colorClear);
                 }
 

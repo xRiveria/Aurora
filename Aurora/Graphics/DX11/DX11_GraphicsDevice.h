@@ -116,6 +116,10 @@ namespace Aurora
 
         bool m_IsDebugDevicePresent = false; // Or known as debug layer in DX11.
 
+        // For DX11 objects not present in other graphics APIs.
+        struct EmptyResourceHandle {}; 
+        std::shared_ptr<EmptyResourceHandle> m_EmptyResource;
+
     private:
         EngineContext* m_EngineContext;
     };

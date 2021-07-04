@@ -9,12 +9,20 @@
     - 8  for BindUAV()
 */
 
+static const uint Entity_Type_DirectionalLight = 0;
+static const uint Entity_Type_PointLight = 1;
+static const uint Entity_Type_SpotLight = 2;
+
 // On Demand Constant Buffers
 
 CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
 {
     float4x4 g_Transform;
     float4   g_Color;
+
+    // Temporary
+    float4   g_Light_Position;
+    float4   g_Light_Color;
 };
 
 // Common Constant Buffers
@@ -31,7 +39,7 @@ CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
     float4x4 g_Camera_InverseViewProjection;
 
     float3 g_Camera_Position;
-    float g_Padding;
+    uint g_Padding;
 
     float4x4 g_Camera_View;
     float4x4 g_Camera_Projection;

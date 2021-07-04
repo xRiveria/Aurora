@@ -7,6 +7,7 @@
 #include "Implementation/imgui_impl_glfw.h"
 #include "Implementation/imgui_impl_dx11.h"
 #include "../Scene/World.h"
+#include "../Scene/Components/Light.h"
  
 namespace EditorConfigurations
 {
@@ -49,6 +50,15 @@ void Editor::Tick()
 		ImGui::Begin("Test");
 		auto internalState = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
 		ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
+		ImGui::End();
+
+		ImGui::Begin("Light Properties");
+		Aurora::Light* component = m_EngineContext->GetSubsystem<Aurora::World>()->GetEntityByName("Directional_Light")->GetComponent<Aurora::Light>();
+		float* color[3] = { &component->m_Color.x, &component->m_Color.y, &component->m_Color.z };
+		ImGui::SliderFloat3("Ambient Color", *color, 0.0, 1.0);
+
+		float* position[3] = { &component->m_Position.x, &component->m_Position.y, &component->m_Position.z };
+		ImGui::SliderFloat3("Position", *position, -1000, 1000);
 		ImGui::End();
 
 		ImGui::End(); // Ends docking context.

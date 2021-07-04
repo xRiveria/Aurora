@@ -68,7 +68,6 @@ namespace Aurora
         EngineContext* m_EngineContext;
     };
 
-
     class Entity : public AuroraObject, public std::enable_shared_from_this<Entity>
     {
     public:
