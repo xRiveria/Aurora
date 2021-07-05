@@ -58,9 +58,28 @@ void Editor::Tick()
 		ImGui::SliderFloat3("Ambient Color", *color, 0.0, 1.0);
 
 		float* position[3] = { &component->m_Position.x, &component->m_Position.y, &component->m_Position.z };
-		ImGui::SliderFloat3("Position", *position, -30, 30);
+		ImGui::SliderFloat3("Position", *position, -150, 150);
 		ImGui::End();
 
+		ImGui::Begin("Weather");
+		Aurora::Weather* weatherSystem = &m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_WeatherSystem;
+
+		ImGui::Text("Clouds");
+		ImGui::DragFloat("Cloudiness", &weatherSystem->m_Cloudiness, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Cloud Scale", &weatherSystem->m_CloudScale, 0.01f, -0.001f, 0.001f);
+		ImGui::DragFloat("Cloud Speed", &weatherSystem->m_CloudSpeed, 0.01f, 0.001f, 0.2f);
+
+		float* ambientColor[] = { &weatherSystem->m_AmbientColor.x, &weatherSystem->m_AmbientColor.y, &weatherSystem->m_AmbientColor.z };
+		ImGui::ColorEdit3("Ambient Color", *ambientColor);
+		ImGui::Spacing();
+		
+		if (ImGui::Button("Weather Preset - Cloudy"))
+		{
+			weatherSystem->SetPreset_Cloudy();
+		}
+
+		ImGui::End();
+	
 		ImGui::End(); // Ends docking context.
 
 		ImGui::Render();

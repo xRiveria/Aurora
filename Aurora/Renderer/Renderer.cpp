@@ -48,8 +48,6 @@ namespace Aurora
         hammer->SetName("Weapon");
         hammer->LoadModel("../Resources/Models/Sword/weapon1.obj", "../Resources/Models/Sword/TextureWeapon1.png");
 
-        m_SkyMap = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Hollow_Knight_Albedo.png", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
-
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
         for (uint32_t i = 0; i < 8; ++i)
@@ -235,24 +233,6 @@ namespace Aurora
         ID3D11Buffer* vertexBuffer2 = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent2.m_VertexBuffer_Position)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer2, &modelStride, &offset);
         m_GraphicsDevice->Draw((UINT)meshComponent2.m_VertexPositions.size(), 0, 0);
-    }
-
-    void Renderer::DrawSky()
-    {
-        if (m_SkyMap != nullptr)
-        {
-            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Sky[SkyRender_Type::SkyRender_Static], 0);
-            m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &m_SkyMap->m_Texture, TEXSLOT_GLOBAL_ENVIRONMENTAL_MAP, 0);
-        }
-        else
-        {
-            // It is empty.
-        }
-
-        BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
-        BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
-
-        m_GraphicsDevice->Draw(3, 0, 0);
     }
 
     void Renderer::DrawDebugWorld(Entity* entity)
