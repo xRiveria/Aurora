@@ -8,7 +8,7 @@
 
 namespace Aurora
 {
-    Renderer::Renderer(EngineContext* engineContext) : ISubsystem(engineContext)
+    Renderer::Renderer(EngineContext* engineContext) : ISubsystem(engineContext), m_WeatherSystem(engineContext)
     {
 
     }
@@ -178,7 +178,8 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
         
         ///==============================
-
+        
+        DrawSky();
         DrawModel();
         DrawDebugWorld(m_Camera.get());
 
@@ -300,6 +301,28 @@ namespace Aurora
         ID3D11Buffer* vertexBufferDebug = (ID3D11Buffer*)DX11_Utility::ToInternal(&gridBuffer)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBufferDebug, &stride, &offset);
         m_GraphicsDevice->Draw(gridVertexCount, 0, 0);
+    }
+
+    void Renderer::DrawSky()
+    {
+        if (m_WeatherSystem.m_SkyMapTexture != nullptr)  // Means we have a custom skymap avaliable.
+        {
+            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Sky[SkyRender_Type::SkyRender_Static], 0);
+            m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &m_WeatherSystem.m_SkyMapTexture->m_Texture, TEXSLOT_GLOBAL_ENVIRONMENTAL_MAP, 0);
+        }
+        else
+        {
+            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Sky[SkyRender_Type::SkyRender_Dynamic], 0);
+
+            // m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Sky_View_LUT], TEXSLOT_SKY_VIEW_LUT, 0);
+            // m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Transmittance_LUT], TEXSLOT_TRANSMITTANCE_LUT, 0);
+            // m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Multiscattered_Luminance_LUT], TEXSLOT_MULTISCATTERING_LUT, 0);
+        }
+
+        BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
+        BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
+
+        m_GraphicsDevice->Draw(3, 0, 0);
     }
 
     void Renderer::Present()

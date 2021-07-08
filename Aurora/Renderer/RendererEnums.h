@@ -24,6 +24,7 @@ enum Shader_Types
 	PS_Type_Object_Simple,
 	PS_Type_Object_Debug,
 	PS_Type_Sky_Static,
+	PS_Type_Sky_Dynamic,
 	PS_Type_PixelColor,
 
 	Shader_Type_Count
@@ -138,4 +139,14 @@ enum DebugRenderer_Type
 {
 	DebugRenderer_Grid,
 	DebugRenderer_Count
+};
+
+// Textures
+enum Texture_Types
+{
+	TextureType_2D_SkyAtmosphere_Transmittance_LUT,
+	TextureType_2D_SkyAtmosphere_Multiscattered_Luminance_LUT,
+	TextureType_2D_SkyAtmosphere_Sky_View_LUT,
+	TextureType_2D_SkyAtmosphere_Sky_Luminance_LUT,
+	TextureType_Count
 };

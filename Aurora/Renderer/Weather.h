@@ -13,10 +13,12 @@ namespace Aurora
         Weather_Flag_Volumetric_Clouds  = 1 << 2
     };
 
+    class Renderer;
+
     class Weather
     {
     public:
-        Weather() = default;
+        Weather(EngineContext* engineContext);
         ~Weather() = default;
 
         void SetPreset_Cloudy();
@@ -47,5 +49,9 @@ namespace Aurora
         std::shared_ptr<AuroraResource> m_SkyMapTexture = nullptr;
 
         uint32_t m_WeatherFlags = 0;
+
+    private:
+        Renderer* m_Renderer;
+        EngineContext* m_EngineContext;
     };
 }

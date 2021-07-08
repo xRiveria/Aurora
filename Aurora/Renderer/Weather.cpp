@@ -1,8 +1,15 @@
 #include "Aurora.h"
 #include "Weather.h"
+#include "../Renderer/Renderer.h"
 
 namespace Aurora
 {
+    Weather::Weather(EngineContext* engineContext)
+    {
+        m_EngineContext = engineContext;
+        m_Renderer = m_EngineContext->GetSubsystem<Renderer>();
+    }
+
     void Weather::SetPreset_Cloudy()
     {
         m_AmbientColor = XMFLOAT3(0.1f, 0.1f, 0.1f);

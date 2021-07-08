@@ -1,5 +1,6 @@
 #pragma once
 #include "../Graphics/RHI_Implementation.h"
+#include "../Resource/ResourceCache.h"
 
 using namespace DirectX;
 
@@ -58,6 +59,7 @@ namespace Aurora
         XMFLOAT4 m_BaseColor = XMFLOAT4(1, 1, 1, 1);
         XMFLOAT4 m_SpecularColor = XMFLOAT4(1, 1, 1, 1);
         XMFLOAT4 m_EmissiveColor = XMFLOAT4(1, 1, 1, 0);
+
         float m_Roughness = 0.2f;
         float m_Reflectance = 0.02f;
         float m_Metalness = 0.0f;

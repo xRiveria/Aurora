@@ -9,6 +9,17 @@
     - 8  for BindUAV()
 */
 
+struct ShaderMesh
+{
+    int m_Index_Buffer;
+    int m_Vertex_Buffer_Position;
+    int m_Vertex_Buffer_Tangent;
+    int m_Vertex_Buffer_Color;
+
+    int m_Vertex_Buffer_UV0;
+    int m_Vertex_Buffer_UV1;
+};
+
 static const uint Entity_Type_DirectionalLight = 0;
 static const uint Entity_Type_PointLight = 1;
 static const uint Entity_Type_SpotLight = 2;

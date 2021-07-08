@@ -47,6 +47,7 @@ namespace Aurora
         void LoadBuffers();
         void LoadShaders();
         bool LoadShader(Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel = Shader_Model::ShaderModel_5_0);
+        void DrawSky();
 
         void LoadPipelineStates();
         // void ReloadShaders();  // Fire shader reload event. Calls LoadShaders() again.

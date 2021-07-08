@@ -14,6 +14,7 @@ namespace Aurora
         RHI_RasterizerState   g_RasterizerStates[RS_Types::RS_Count];
         RHI_GPU_Buffer        g_ConstantBuffers[CB_Types::CB_Count];
         RHI_InputLayout       g_InputLayouts[InputLayout_Types::InputLayout_Count];
+        RHI_Texture           g_Textures[Texture_Types::TextureType_Count];
 
         // Pipeline States
         RHI_PipelineState m_PSO_Object_Wire; // Right now we're using this for everything.
@@ -94,7 +95,10 @@ namespace Aurora
 
         LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_VertexColor], "VertexColorVS.hlsl");
         LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_PixelColor], "VertexColorPS.hlsl");
-        
+
+        LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_Sky], "SkyVS.hlsl");
+        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Dynamic], "SkyPS_Dynamic.hlsl");
+        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Static], "SkyPS_Static.hlsl");
     }
 
     void Renderer::LoadStates()
@@ -269,6 +273,35 @@ namespace Aurora
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Misc);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc]);
         AURORA_INFO("Successfully created Misc Constant Buffer.");
+
+        RHI_Texture_Description textureDescription;
+        textureDescription.m_Type = Texture_Type::Texture2D;
+        textureDescription.m_Width = 256;
+        textureDescription.m_Height = 64;
+        textureDescription.m_Format = Format::FORMAT_R16G16B16A16_FLOAT;
+        textureDescription.m_BindFlags = Bind_Flag::Bind_Shader_Resource | Bind_Flag::Bind_Unordered_Access;
+        m_GraphicsDevice->CreateTexture(&textureDescription, nullptr, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Transmittance_LUT]);
+
+        textureDescription.m_Type = Texture_Type::Texture2D;
+        textureDescription.m_Width = 32;
+        textureDescription.m_Height = 32;
+        textureDescription.m_Format = Format::FORMAT_R16G16B16A16_FLOAT;
+        textureDescription.m_BindFlags = Bind_Flag::Bind_Shader_Resource | Bind_Flag::Bind_Unordered_Access;
+        m_GraphicsDevice->CreateTexture(&textureDescription, nullptr, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Multiscattered_Luminance_LUT]);
+
+        textureDescription.m_Type = Texture_Type::Texture2D;
+        textureDescription.m_Width = 192;
+        textureDescription.m_Height = 104;
+        textureDescription.m_Format = Format::FORMAT_R16G16B16A16_FLOAT;
+        textureDescription.m_BindFlags = Bind_Flag::Bind_Shader_Resource | Bind_Flag::Bind_Unordered_Access;
+        m_GraphicsDevice->CreateTexture(&textureDescription, nullptr, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Sky_View_LUT]);
+
+        textureDescription.m_Type = Texture_Type::Texture2D;
+        textureDescription.m_Width = 1;
+        textureDescription.m_Height = 1;
+        textureDescription.m_Format = Format::FORMAT_R16G16B16A16_FLOAT;
+        textureDescription.m_BindFlags = Bind_Flag::Bind_Shader_Resource | Bind_Flag::Bind_Unordered_Access;
+        m_GraphicsDevice->CreateTexture(&textureDescription, nullptr, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Sky_Luminance_LUT]);
     }
 
     void Renderer::LoadPipelineStates()
@@ -292,12 +325,23 @@ namespace Aurora
         skyPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead];
         skyPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
         skyPipelineDescription.m_VertexShader = &RendererGlobals::g_Shaders[Shader_Types::VS_Type_Sky];
-        skyPipelineDescription.m_PixelShader = &RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Static];
+        skyPipelineDescription.m_PixelShader = &RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Dynamic];
 
-        m_GraphicsDevice->CreatePipelineState(&skyPipelineDescription, &RendererGlobals::m_PSO_Object_Sky[SkyRender_Static]);
+        m_GraphicsDevice->CreatePipelineState(&skyPipelineDescription, &RendererGlobals::m_PSO_Object_Sky[SkyRender_Dynamic]);
 
         //=========================================================
-        
+
+        RHI_PipelineState_Description skyStaticPipelineDescription;
+        skyStaticPipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Sky];
+        skyStaticPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead];
+        skyStaticPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
+        skyStaticPipelineDescription.m_VertexShader = &RendererGlobals::g_Shaders[Shader_Types::VS_Type_Sky];
+        skyStaticPipelineDescription.m_PixelShader = &RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Static];
+
+        m_GraphicsDevice->CreatePipelineState(&skyStaticPipelineDescription, &RendererGlobals::m_PSO_Object_Sky[SkyRender_Static]);
+
+        //=========================================================
+
         RHI_PipelineState_Description debugPipelineDescription;
 
         debugPipelineDescription.m_VertexShader = &RendererGlobals::g_Shaders[Shader_Types::VS_Type_VertexColor];
@@ -310,4 +354,4 @@ namespace Aurora
 
         m_GraphicsDevice->CreatePipelineState(&debugPipelineDescription, &RendererGlobals::m_PSO_Object_Debug[DebugRenderer_Type::DebugRenderer_Grid]);
     }
-}
+}   

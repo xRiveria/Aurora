@@ -1,6 +1,7 @@
 #include "Aurora.h"
 #include "ResourceCache.h"
 #include "Importers/stb_image/stb_image.h"
+#include "Importers/tinyddsloader/tinyddsloader.h"
 #include "FileSystem.h"
 #include "../Renderer/Renderer.h"
 
