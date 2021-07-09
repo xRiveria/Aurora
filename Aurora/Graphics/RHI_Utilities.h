@@ -43,7 +43,8 @@ namespace Aurora
 
         FORMAT_R32_UINT,
 
-        FORMAT_R16_UINT
+        FORMAT_R16_UINT,
+        FORMAT_R8_UINT
     };
 
     enum IndexBuffer_Format

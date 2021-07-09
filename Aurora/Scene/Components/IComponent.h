@@ -8,6 +8,8 @@ namespace Aurora
         Camera,
         Renderable,
         Light,
+        Mesh,
+        Material,
         Unknown
     };
 

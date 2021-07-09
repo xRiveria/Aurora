@@ -21,6 +21,10 @@ namespace Aurora
     bool Renderer::Initialize()
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
+
+        // Importers
+        m_Importer_Model = std::make_shared<Importer_Model>(m_EngineContext);
+
         m_ShaderCompiler.Initialize();
         LoadShaders();
         LoadStates();
@@ -40,13 +44,11 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(3.0f, 3.0f, -10.0f);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
-        std::shared_ptr<Entity> penguin = m_EngineContext->GetSubsystem<World>()->EntityCreate(true);
-        penguin->SetName("Penguin");
-        penguin->LoadModel("../Resources/Models/Hollow_Knight/v3.obj", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
+        m_Importer_Model->LoadModel_OBJ("../Resources/Models/Hollow_Knight/v3.obj");  // New way of adding models.
 
         std::shared_ptr<Entity> hammer = m_EngineContext->GetSubsystem<World>()->EntityCreate(true);
         hammer->SetName("Weapon");
-        hammer->LoadModel("../Resources/Models/Sword/weapon1.obj", "../Resources/Models/Sword/TextureWeapon1.png");
+        m_Importer_Model->LoadModel_OBJ("../Resources/Models/Sword/weapon1.obj");
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];

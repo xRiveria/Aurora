@@ -1,9 +1,10 @@
 #pragma once
 #include <DirectXMath.h>
-#include <DirectXPackedVector.ini>
+#include <DirectXPackedVector.h>
 #include "../Graphics/RHI_Utilities.h"
+#include "ShaderUtilities.h"
 
-using namespace DirectX;
+using namespace DirectX::PackedVector;
 
 namespace Aurora
 {
@@ -21,6 +22,7 @@ namespace Aurora
         Compute_Normals_Type_Smooth_Fast     // Average noramals, vertex count will be unchanged - fast.
     };
 
+    // Position, Normal, Wind
     struct Vertex_Position
     {
         XMFLOAT3 m_Position = XMFLOAT3(0.0f, 0.0f, 0.0f);

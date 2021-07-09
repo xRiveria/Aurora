@@ -7,6 +7,7 @@
 #include "RendererEnums.h"
 #include "ShaderCompiler.h"
 #include "Weather.h"
+#include "../Resource/Importers/Importer_Model.h"
 
 using namespace DirectX;
 
@@ -77,5 +78,8 @@ namespace Aurora
 
         // Weather
         Weather m_WeatherSystem;
+
+        // Importers
+        std::shared_ptr<Importer_Model> m_Importer_Model;
     };
 }

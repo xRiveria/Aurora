@@ -150,3 +150,12 @@ enum Texture_Types
 	TextureType_2D_SkyAtmosphere_Sky_Luminance_LUT,
 	TextureType_Count
 };
+
+enum Render_Types
+{
+	Render_Type_Void		= 0,
+	Render_Type_Opaque		= 1 << 0,
+	Render_Type_Transparent = 1 << 1,
+	Render_Type_Water		= 1 << 2,
+	Render_Type_All			= Render_Type_Opaque | Render_Type_Transparent | Render_Type_Water
+};

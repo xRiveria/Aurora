@@ -1,8 +1,8 @@
 #pragma once
 #include "../Graphics/RHI_Implementation.h"
-#include "ShaderInternals.h"
 #include "MeshUtilities.h"
 #include "../Entity.h"
+#include "ShaderInternals.h"
 
 /*
     A mesh component will consist of vertex, bones, normals information amongst others. As long as a mesh component exists on an entity, there will be some form of rendering as long as there 
@@ -12,9 +12,11 @@
 */
 namespace Aurora
 {
-    class Mesh
+    class Mesh : public IComponent
     {
     public:
+        Mesh(EngineContext* engineContext, Entity* entity, uint32_t componentID = 0);
+
         void SetRenderable(bool value)  { if (value) { m_Flags |= Mesh_Flags::Mesh_Renderable;  } else { m_Flags &= ~Mesh_Flags::Mesh_Renderable;  } }
         void SetDoubleSided(bool value) { if (value) { m_Flags |= Mesh_Flags::Mesh_DoubleSided; } else { m_Flags &= ~Mesh_Flags::Mesh_DoubleSided; } }
 
@@ -35,9 +37,11 @@ namespace Aurora
     public:
         struct MeshSubset
         {
-            Entity m_Material; ///
+            Entity* m_Material_Entity = nullptr;
             uint32_t m_Index_Offset = 0;
             uint32_t m_Index_Count = 0;
+
+            uint32_t m_Material_Index = 0;
         };
 
         std::vector<MeshSubset> m_Mesh_Subsets;
@@ -49,9 +53,9 @@ namespace Aurora
         std::vector<XMFLOAT4> m_Vertex_Tangents;
         std::vector<XMFLOAT2> m_Vertex_UVSet_0;
         std::vector<XMFLOAT2> m_Vertex_UVSet_1;
-        std::vector<XMUINT4>  m_Vertex_BoneIndices;
-        std::vector<XMFLOAT4> m_Vertex_BoneWeights;
-        std::vector<XMFLOAT2> m_Vertex_Atlas;
+        // std::vector<XMUINT4>  m_Vertex_BoneIndices;
+        // std::vector<XMFLOAT4> m_Vertex_BoneWeights;
+        // std::vector<XMFLOAT2> m_Vertex_Atlas;
         std::vector<uint32_t> m_Vertex_Colors;
         std::vector<uint8_t>  m_Vertex_WindWeights;
         std::vector<uint32_t> m_Indices;
@@ -62,9 +66,16 @@ namespace Aurora
         RHI_GPU_Buffer m_Vertex_Buffer_Tangent;
         RHI_GPU_Buffer m_Vertex_Buffer_UV0;
         RHI_GPU_Buffer m_Vertex_Buffer_UV1;
+        RHI_GPU_Buffer m_Vertex_Buffer_Color;
+
+        std::vector<MeshSubset> m_Subsets;
+        RHI_GPU_Buffer m_Vertex_Buffer_Subsets;
+        std::vector<uint8_t> m_Vertex_Subsets;
         /// Bones.
 
     private:
         uint32_t m_Flags = Mesh_Flags::Mesh_Renderable;
+
+        EngineContext* m_EngineContext;
     };
 }
