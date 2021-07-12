@@ -81,6 +81,14 @@ namespace Aurora
             }
         }
 
+        void PostInitialize()
+        {
+            for (const _Subsystem& subsystem : m_Subsystems)
+            {
+                subsystem.m_Pointer->PostInitialize();
+            }
+        }
+
         void Tick(float deltaTime)
         {
             for (const _Subsystem& subsystem : m_Subsystems)

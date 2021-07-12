@@ -20,14 +20,13 @@ namespace Aurora
         ~Renderer();
         
         bool Initialize() override;
+        bool PostInitialize() override;
         void Tick(float deltaTime) override;
-        void DrawModel();
+        void RenderMeshes();
         // Draws a skydome centered to our camera.
         void DrawDebugWorld(Entity* entity);
 
         void Present();
-
-        // Shenanigans
 
     private:
         void CreateTexture();
@@ -54,7 +53,7 @@ namespace Aurora
         // void ReloadShaders();  // Fire shader reload event. Calls LoadShaders() again.
 
         // const RHI_GPU_Buffer* GetConstantBuffer(CB_Types bufferType) { return &RendererGlobals::g_ConstantBuffers[bufferType]; }
-        void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
+        void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, Entity* meshEntity, RHI_CommandList commandList);
         void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
 
     private:
@@ -67,9 +66,6 @@ namespace Aurora
         XMMATRIX m_ObjectMatrix2 = XMMatrixTranslation(10.0f, 1.0f, 0.0f);
 
         RHI_SwapChain m_SwapChain;
-        RHI_Shader m_VertexShader;
-        RHI_Shader m_PixelShader;
-        RHI_GPU_Buffer m_VertexBuffer;
 
         RHI_Sampler m_Standard_Texture_Sampler;
         

@@ -144,6 +144,10 @@ namespace Aurora
         // Direct access for performance critical usage, which is not safe.
         std::shared_ptr<Entity> GetPointerShared() { return shared_from_this(); }
 
+    public:
+        // Transform
+        XMMATRIX m_Transform = XMMatrixIdentity(); /// This will be refactored into its own component. For now, all entities will have an identity matrix to serve as the world matrix.
+
     private:
         constexpr uint32_t GetComponentMask(ComponentType componentType) { return static_cast<uint32_t>(1) << static_cast<uint32_t>(componentType); }
         

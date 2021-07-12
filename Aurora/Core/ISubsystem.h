@@ -11,6 +11,7 @@ namespace Aurora
         virtual ~ISubsystem() = default;
 
         virtual bool Initialize() { return true; }
+        virtual bool PostInitialize() { return true; }
         virtual void Tick(float deltaTime) {}
         virtual void Shutdown() {}
 

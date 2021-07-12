@@ -33,25 +33,21 @@ enum Shader_Types
 enum Object_VertexInput
 {
 	InputSlot_PositionNormalWind,
-	InputSlot_PreviousPosition,
 	InputSlot_UV0,
 	InputSlot_UV1,
-	InputSlot_Atlas,
 	InputSlot_Color,
 	InputSlot_Tangent,
-	InputSlot_InstanceData,
 	InputSlot_Count
 };
 
 enum InputLayout_Types
 {
-	OnDemandTriangle,
-	InputLayout_Position,
-	InputLayout_Position_TexCoord,
-	InputLayout_Position_PreviousPosition,
-	InputLayout_Position_PreviousPosition_TexCoord,
-	InputLayout_Common,
-	InputLayout_Debug,
+	InputLayout_Object_Position,
+	InputLayout_Object_Position_TexCoord,
+	InputLayout_Object_Position_PreviousPosition,
+	InputLayout_Object_Position_PreviousPosition_TexCoord,
+	InputLayout_Object_Common,
+	InputLayout_Object_Debug,
 	InputLayout_RenderLightMap,
 	InputLayout_VertexColor,
 	InputLayout_Count,
@@ -124,7 +120,8 @@ enum BS_Types
 // Render Passes
 enum RenderPass_Type
 {
-	RenderPass_Main
+	RenderPass_Main,
+	RenderPass_Count
 };
 
 enum SkyRender_Type
@@ -158,4 +155,12 @@ enum Render_Types
 	Render_Type_Transparent = 1 << 1,
 	Render_Type_Water		= 1 << 2,
 	Render_Type_All			= Render_Type_Opaque | Render_Type_Transparent | Render_Type_Water
+};
+
+enum ObjectRendering_DoubleSided
+{
+	ObjectRendering_DoubleSided_Disabled,
+	ObjectRendering_DoubleSided_Enabled,
+	ObjectRendering_DoubleSided_Backside,
+	ObjectRendering_DoubleSided_Count
 };

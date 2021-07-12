@@ -44,7 +44,7 @@ namespace Aurora
         uint32_t GetRenderTypes() const;  // Returns the bitwise OR of all the Render Type flags applicable to this material (opaque, transparent etc).
 
         void WriteShaderMaterial(ShaderMaterial* destination ) const; // Our Material Component will be written to ShaderMaterial, a struct that is optimized for GPU use.
-        void WriteTextures(const RHI_GPU_Resource** destination, int count) const; // Retrieve the array of textures from the material.
+        void WriteTextures(const RHI_GPU_Resource** destination, int count) const; // Retrieve the array of textures from our material.
         void CreateRenderData(); // Create constant buffer and texture resources for the GPU.
 
     public:

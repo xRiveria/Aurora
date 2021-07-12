@@ -75,7 +75,5 @@ namespace Aurora
 
     private:
         uint32_t m_Flags = Mesh_Flags::Mesh_Renderable;
-
-        EngineContext* m_EngineContext;
     };
 }

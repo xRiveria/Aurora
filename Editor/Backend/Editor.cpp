@@ -79,7 +79,17 @@ void Editor::Tick()
 		}
 
 		ImGui::End();
-	
+
+		ImGui::Begin("Hierarchy");
+
+		auto& entities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
+		for (auto& entity : entities)
+		{
+			ImGui::Text(entity->GetObjectName().c_str());
+		}
+
+		ImGui::End();
+
 		ImGui::End(); // Ends docking context.
 
 		ImGui::Render();

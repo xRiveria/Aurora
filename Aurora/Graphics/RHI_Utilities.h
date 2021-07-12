@@ -47,6 +47,60 @@ namespace Aurora
         FORMAT_R8_UINT
     };
 
+    inline uint32_t GetFormatStride(Format value)
+    {
+        switch (value)
+        {
+        case FORMAT_R32G32B32A32_FLOAT:
+        case FORMAT_R32G32B32A32_UINT:
+        case FORMAT_R32G32B32A32_SINT:
+            return 16;
+
+        case FORMAT_R32G32B32_FLOAT:
+        case FORMAT_R32G32B32_UINT:
+        case FORMAT_R32G32B32_SINT:
+            return 12;
+
+        case FORMAT_R16G16B16A16_FLOAT:
+        case FORMAT_R16G16B16A16_UNORM:
+        case FORMAT_R16G16B16A16_UINT:
+        case FORMAT_R16G16B16A16_SNORM:
+        case FORMAT_R16G16B16A16_SINT:
+            return 8;
+
+        case FORMAT_R32G32_FLOAT:
+        case FORMAT_R32G32_UINT:
+        case FORMAT_R32G32_SINT:
+        case FORMAT_R32G8X24_TYPELESS:
+        case FORMAT_D32_FLOAT_S8X24_UINT:
+            return 8;
+
+        case FORMAT_R10G10B10A2_UNORM:
+        case FORMAT_R10G10B10A2_UINT:
+        case FORMAT_R11G11B10_FLOAT:
+        case FORMAT_R8G8B8A8_UNORM:
+        case FORMAT_R16G16_FLOAT:
+        case FORMAT_R32_TYPELESS:
+        case FORMAT_R32_UINT:
+        case FORMAT_R24G8_TYPELESS:
+        case FORMAT_D24_UNORM_S8_UINT:
+            return 4;
+
+        case FORMAT_R16_TYPELESS:
+        case FORMAT_R16_UINT:
+            return 2;
+
+        case FORMAT_R8_UINT:
+            return 1;
+
+        default:
+            assert(0); // didn't catch format!
+            break;
+        }
+
+        return 16;
+    }
+
     enum IndexBuffer_Format
     {
         Format_16Bit,

@@ -219,6 +219,12 @@ namespace Aurora
         /// Raytracing, Bindless Descriptors.
     }
 
+    void Mesh::WriteToShaderMesh(ShaderMesh* destination) const
+    {
+        /// Only for DX12 and Vulkan.
+        return;
+    }
+
     void Mesh::ComputeNormals(Compute_Normals_Type computeType)
     {
         // We will be utilizing hard normals for now.

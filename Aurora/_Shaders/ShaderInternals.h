@@ -12,16 +12,10 @@
     - 8  for BindUAV()
 */
 
-struct ShaderMesh
-{
-    int m_Index_Buffer;
-    int m_Vertex_Buffer_Position;
-    int m_Vertex_Buffer_Tangent;
-    int m_Vertex_Buffer_Color;
+static const uint ShaderMaterial_Option_Bit_Use_Vertex_Colors = 1 << 0;
+static const uint ShaderMaterial_Option_Bit_Receive_Shadow    = 1 << 5;
+static const uint ShaderMaterial_Option_Bit_Cast_Shadow       = 1 << 6;
 
-    int m_Vertex_Buffer_UV0;
-    int m_Vertex_Buffer_UV1;
-};
 
 struct ShaderMaterial
 {
@@ -55,11 +49,31 @@ struct ShaderMaterial
     int texture_OcclusionMap_Index;
     int texture_TransmissionMap_Index;
     int texture_SpecularMap_Index;
+
+    int padding_01;
+    int padding_02;
+    int padding_03;
+    uint material_Options;
+
+    inline bool IsUsingVertexColors() { return material_Options & ShaderMaterial_Option_Bit_Use_Vertex_Colors; }
+    inline bool IsReceivingShadows() { return material_Options & ShaderMaterial_Option_Bit_Receive_Shadow; }
+    inline bool IsCastingShadows() { return material_Options & ShaderMaterial_Option_Bit_Cast_Shadow; }
 };
 
 static const uint Entity_Type_DirectionalLight = 0;
 static const uint Entity_Type_PointLight = 1;
 static const uint Entity_Type_SpotLight = 2;
+
+struct ShaderMesh
+{
+    int m_Index_Buffer;
+    int m_Vertex_Buffer_Position;
+    int m_Vertex_Buffer_Tangent;
+    int m_Vertex_Buffer_Color;
+
+    int m_Vertex_Buffer_UV0;
+    int m_Vertex_Buffer_UV1;
+};
 
 // On Demand Constant Buffers
 
@@ -75,7 +89,7 @@ CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
 
 CBUFFER(ConstantBufferData_Material, CBSLOT_RENDERER_MATERIAL)
 {
-
+    ShaderMaterial g_Material;
 };
 
 // Common Constant Buffers
@@ -88,7 +102,7 @@ CBUFFER(ConstantBufferData_Frame, CBSLOT_RENDERER_FRAME)
 CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
 {
     float4x4 g_ObjectMatrix; // Temporary
-    float4x4 g_WorldMatrix;
+    float4x4 g_ObjectWorldMatrix; // Temporary
 
     float4x4 g_Camera_ViewProjection;
     float4x4 g_Camera_InverseViewProjection;

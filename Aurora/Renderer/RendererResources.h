@@ -3,6 +3,7 @@
 #include "FileSystem.h"
 #include "../Graphics/DX11/DX11_Utilities.h"
 #include "../Scene/World.h"
+#include "../Scene/Components/MeshUtilities.h"
 
 namespace Aurora
 {
@@ -20,6 +21,7 @@ namespace Aurora
         RHI_PipelineState m_PSO_Object_Wire; // Right now we're using this for everything.
         RHI_PipelineState m_PSO_Object_Sky[SkyRender_Count];
         RHI_PipelineState m_PSO_Object_Debug[DebugRenderer_Count];
+        RHI_PipelineState m_PSO_Object; /// Standard 1 for now for all objects. Naturally, we will need more for different types of objects.
 
         std::string g_ShaderPath = "_Shaders/";
         std::string g_ShaderSourcePath = "../Aurora/_Shaders/";
@@ -76,25 +78,27 @@ namespace Aurora
 
     void Renderer::LoadShaders()
     {
-        LoadShader(Shader_Stage::Vertex_Shader, m_VertexShader, "TriangleVS.hlsl");
-        LoadShader(Shader_Stage::Pixel_Shader, m_PixelShader, "TrianglePS.hlsl");
+        // Each vertex layout is matched with the shader(s) that use them.
 
-        // These input layouts are created on pipeline state creation.
-        RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements =
+        RendererGlobals::g_InputLayouts[InputLayout_Types::InputLayout_Object_Common].m_Elements =
         {
-            { "POS",      0, Format::FORMAT_R32G32B32_FLOAT, 0, 0,  Input_Classification::Input_Per_Vertex_Data  },
-            { "TEXCOORD", 0, Format::FORMAT_R32G32_FLOAT,    0, 12, Input_Classification::Input_Per_Vertex_Data },
-            { "NORMAL",   0, Format::FORMAT_R32G32B32_FLOAT, 0, 20, Input_Classification::Input_Per_Vertex_Data }
+            { "POSITION_NORMAL_WIND", 0, Vertex_Position::m_Format, InputSlot_PositionNormalWind, RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Per_Vertex_Data },
+            { "UVSET",                0, Vertex_TexCoord::m_Format, InputSlot_UV0,                RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Per_Vertex_Data },
+            { "UVSET",                1, Vertex_TexCoord::m_Format, InputSlot_UV1,                RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Per_Vertex_Data },
+            { "COLOR",                0, Vertex_Color::m_Format,    InputSlot_Color,              RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Per_Vertex_Data },
+            { "TANGENT",              0, Vertex_Tangent::m_Format,  InputSlot_Tangent,            RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Per_Vertex_Data },
         };
+        LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_Object_Common], "ObjectVS_Common.hlsl");
+        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_Object], "ObjectPS.hlsl");
 
         RendererGlobals::g_InputLayouts[InputLayout_Types::InputLayout_VertexColor].m_Elements =
         {
-            { "POSITION", 0, Format::FORMAT_R32G32B32A32_FLOAT, 0, RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Classification::Input_Per_Vertex_Data },
-            { "TEXCOORD", 0, Format::FORMAT_R32G32B32A32_FLOAT, 0, RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Classification::Input_Per_Vertex_Data },
+            { "POSITION", 0, Format::FORMAT_R32G32B32A32_FLOAT, 0, RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Per_Vertex_Data },
+            { "TEXCOORD", 0, Format::FORMAT_R32G32B32A32_FLOAT, 0, RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Per_Vertex_Data },
         };
-
         LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_VertexColor], "VertexColorVS.hlsl");
         LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_PixelColor], "VertexColorPS.hlsl");
+
 
         LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_Sky], "SkyVS.hlsl");
         LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Dynamic], "SkyPS_Dynamic.hlsl");
@@ -306,17 +310,30 @@ namespace Aurora
 
     void Renderer::LoadPipelineStates()
     {
+        /*
         RHI_PipelineState_Description pipelineDescription;
 
-        pipelineDescription.m_VertexShader = &m_VertexShader;
-        pipelineDescription.m_PixelShader = &m_PixelShader;
-        pipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Front];
+        pipelineDescription.m_VertexShader = &RendererGlobals::g_Shaders[Shader_Types::VS_Type_Object_Simple];
+        pipelineDescription.m_PixelShader = &RendererGlobals::g_Shaders[Shader_Types::PS_Type_Object_Simple];
+        pipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire];
         pipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
         pipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
 
-        pipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
+        pipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::InputLayout_Object_Position_TexCoord];
 
         m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_Wire);
+        */
+        //=========================================================
+
+        RHI_PipelineState_Description objectPipelineDescription;
+        objectPipelineDescription.m_VertexShader = &RendererGlobals::g_Shaders[Shader_Types::VS_Type_Object_Common];
+        objectPipelineDescription.m_PixelShader = &RendererGlobals::g_Shaders[Shader_Types::PS_Type_Object];
+        objectPipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Front];
+        objectPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
+        objectPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
+        objectPipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::InputLayout_Object_Common];
+
+        m_GraphicsDevice->CreatePipelineState(&objectPipelineDescription, &RendererGlobals::m_PSO_Object);
 
         //=========================================================
 

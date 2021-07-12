@@ -24,6 +24,8 @@ namespace Aurora
 
         // Initialize Subsystem
         m_EngineContext->Initialize();
+
+        m_EngineContext->PostInitialize();
     }
 
     Engine::~Engine()

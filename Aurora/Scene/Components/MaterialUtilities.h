@@ -25,7 +25,7 @@ namespace Aurora
         Base_Color_Map,
         Normal_Map,
         Surface_Map,
-        Emissive_map,
+        Emissive_Map,
         Displacement_Map,
         Occlusion_Map,
         Transmission_Map,  // Thickness

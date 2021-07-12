@@ -29,5 +29,5 @@ typedef XMINT4     int4;
 #define CONSTANTBUFFER(name, type, slot) ConstantBuffer< type > name : register(b ## slot)
 
 #define TEXTURECUBE(name, type, slot) TextureCube< type > name : register(t ## slot)
-
+#define TEXTURE2D(name, type, slot) Texture2D< type > name : register(t ## slot)
 #endif
