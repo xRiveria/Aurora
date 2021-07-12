@@ -46,6 +46,19 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(3.0f, 3.0f, -10.0f);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
+<<<<<<< HEAD
+=======
+        std::shared_ptr<Entity> penguin = m_EngineContext->GetSubsystem<World>()->EntityCreate(true);
+        penguin->SetName("Penguin");
+        penguin->LoadModel("../Resources/Models/Hollow_Knight/v3.obj", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
+
+        std::shared_ptr<Entity> hammer = m_EngineContext->GetSubsystem<World>()->EntityCreate(true);
+        hammer->SetName("Weapon");
+        hammer->LoadModel("../Resources/Models/Sword/weapon1.obj", "../Resources/Models/Sword/TextureWeapon1.png");
+
+        m_SkyMap = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Hollow_Knight_Albedo.png", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
+
+>>>>>>> parent of 6266306... [Weather] Setup Base Weather Template & Editor Settings
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
         for (uint32_t i = 0; i < 8; ++i)
@@ -320,6 +333,24 @@ namespace Aurora
                 m_GraphicsDevice->DrawIndexed(subset.m_Index_Count, subset.m_Index_Offset, 0, 0);
             }           
         }
+    }
+
+    void Renderer::DrawSky()
+    {
+        if (m_SkyMap != nullptr)
+        {
+            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Sky[SkyRender_Type::SkyRender_Static], 0);
+            m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &m_SkyMap->m_Texture, TEXSLOT_GLOBAL_ENVIRONMENTAL_MAP, 0);
+        }
+        else
+        {
+            // It is empty.
+        }
+
+        BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
+        BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
+
+        m_GraphicsDevice->Draw(3, 0, 0);
     }
 
     void Renderer::DrawDebugWorld(Entity* entity)

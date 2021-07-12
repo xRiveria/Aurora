@@ -6,8 +6,11 @@
 #include "../Scene/Components/Camera.h"
 #include "RendererEnums.h"
 #include "ShaderCompiler.h"
+<<<<<<< HEAD
 #include "Weather.h"
 #include "../Resource/Importers/Importer_Model.h"
+=======
+>>>>>>> parent of 6266306... [Weather] Setup Base Weather Template & Editor Settings
 
 using namespace DirectX;
 
@@ -24,6 +27,7 @@ namespace Aurora
         void Tick(float deltaTime) override;
         void RenderMeshes();
         // Draws a skydome centered to our camera.
+        void DrawSky();
         void DrawDebugWorld(Entity* entity);
 
         void Present();
@@ -43,6 +47,7 @@ namespace Aurora
         uint32_t m_MSAA_SampleCount = 1;
         const uint32_t GetMSAASampleCount() const { return m_MSAA_SampleCount; }
 
+
         void LoadStates();
         void LoadBuffers();
         void LoadShaders();
@@ -60,6 +65,7 @@ namespace Aurora
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;
         
     public:
+        std::shared_ptr<AuroraResource> m_SkyMap;
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
         XMMATRIX m_ObjectMatrix = XMMatrixTranslation(0.0f, 1.0f, 0.0f); // Will be the transform component of each Entity upon full completion of the entity.
@@ -71,11 +77,14 @@ namespace Aurora
         
         // Camera
         std::shared_ptr<Entity> m_Camera;
+<<<<<<< HEAD
 
         // Weather
         Weather m_WeatherSystem;
 
         // Importers
         std::shared_ptr<Importer_Model> m_Importer_Model;
+=======
+>>>>>>> parent of 6266306... [Weather] Setup Base Weather Template & Editor Settings
     };
 }
