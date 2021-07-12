@@ -24,8 +24,6 @@ namespace Aurora
 
         // Initialize Subsystem
         m_EngineContext->Initialize();
-
-        m_EngineContext->PostInitialize();
     }
 
     Engine::~Engine()
@@ -33,7 +31,7 @@ namespace Aurora
         m_EngineContext->Shutdown();
     }
 
-    void Engine::Tick()
+    void Engine::Tick() const
     {
         float deltaTime = m_EngineContext->GetSubsystem<Timer>()->GetDeltaTimeInSeconds();
         // AURORA_INFO("Delta Time (Seconds): %f", deltaTime);
@@ -44,18 +42,6 @@ namespace Aurora
         if (m_EngineContext->GetSubsystem<Input>()->IsKeyPressed(AURORA_KEY_LEFT_CONTROL) && m_EngineContext->GetSubsystem<Input>()->IsKeyPressed(AURORA_KEY_C))
         {
             AURORA_INFO("Copied!");
-        }
-    }
-
-    void Engine::ComposeLoadingScreen()
-    {
-        if (m_FadeSystem.IsActive())  // We are loading something...
-        {
-            // Display fading rect.
-            // Image
-            // Width, Height
-            // Opacity
-            // Draw
         }
     }
 }

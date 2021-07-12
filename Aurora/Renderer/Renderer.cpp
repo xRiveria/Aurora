@@ -5,12 +5,10 @@
 #include "ShaderInternals.h"
 #include "RendererResources.h"
 #include "../Scene/Components/Light.h"
-#include "../Scene/Components/Mesh.h"
-#include "../Scene/Components/Material.h"
 
 namespace Aurora
 {
-    Renderer::Renderer(EngineContext* engineContext) : ISubsystem(engineContext), m_WeatherSystem(engineContext)
+    Renderer::Renderer(EngineContext* engineContext) : ISubsystem(engineContext)
     {
 
     }
@@ -23,10 +21,6 @@ namespace Aurora
     bool Renderer::Initialize()
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
-
-        // Importers
-        m_Importer_Model = std::make_shared<Importer_Model>(m_EngineContext);
-
         m_ShaderCompiler.Initialize();
         LoadShaders();
         LoadStates();
@@ -46,8 +40,6 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(3.0f, 3.0f, -10.0f);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
-<<<<<<< HEAD
-=======
         std::shared_ptr<Entity> penguin = m_EngineContext->GetSubsystem<World>()->EntityCreate(true);
         penguin->SetName("Penguin");
         penguin->LoadModel("../Resources/Models/Hollow_Knight/v3.obj", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
@@ -56,9 +48,6 @@ namespace Aurora
         hammer->SetName("Weapon");
         hammer->LoadModel("../Resources/Models/Sword/weapon1.obj", "../Resources/Models/Sword/TextureWeapon1.png");
 
-        m_SkyMap = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Hollow_Knight_Albedo.png", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
-
->>>>>>> parent of 6266306... [Weather] Setup Base Weather Template & Editor Settings
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
         for (uint32_t i = 0; i < 8; ++i)
@@ -73,22 +62,10 @@ namespace Aurora
         return true;
     }
 
-    bool Renderer::PostInitialize()
-    {
-        m_Importer_Model->LoadModel_OBJ("../Resources/Models/Hollow_Knight/v3.obj");  // New way of adding models.
-        m_Importer_Model->LoadModel_OBJ("../Resources/Models/Sword/weapon1.obj");
-
-        return true;
-    }
-
-    void Renderer::UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, Entity* meshEntity, RHI_CommandList commandList)
+    void Renderer::UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList)
     {
         ConstantBufferData_Camera constantBuffer;
 
-        if (meshEntity != nullptr)
-        {
-            XMStoreFloat4x4(&constantBuffer.g_ObjectWorldMatrix, meshEntity->m_Transform);
-        }
         XMStoreFloat4x4(&constantBuffer.g_Camera_ViewProjection, camera->GetComponent<Camera>()->GetViewProjectionMatrix());
         XMStoreFloat4x4(&constantBuffer.g_Camera_View, camera->GetComponent<Camera>()->GetViewMatrix());
         XMStoreFloat4x4(&constantBuffer.g_Camera_Projection, camera->GetComponent<Camera>()->GetProjectionMatrix());
@@ -166,8 +143,7 @@ namespace Aurora
 
     void Renderer::Tick(float deltaTime)
     {
-        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width != m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0) ||
-            m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Height != m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0))
+        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width != m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0))
         {
             ResizeBuffers();
 
@@ -178,7 +154,7 @@ namespace Aurora
             m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
         }
 
-        UpdateCameraConstantBuffer(m_Camera, 0, 0);
+        UpdateCameraConstantBuffer(m_Camera, 0);
         BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
         BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
 
@@ -202,9 +178,8 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
         
         ///==============================
-        
-        DrawSky();
-        RenderMeshes();
+
+        DrawModel();
         DrawDebugWorld(m_Camera.get());
 
         /// ==================================
@@ -218,139 +193,46 @@ namespace Aurora
         // Present is called from our Editor.
     }
 
-    void Renderer::RenderMeshes()
+    void Renderer::DrawModel()
     {
+        // m_EngineContext->GetSubsystem<World>()->LoadModel("../Resources/Models/Hollow_Knight/v3.obj");
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+
         World* world = m_EngineContext->GetSubsystem<World>();
+        MeshComponent meshComponent = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Penguin")->m_MeshComponent;
 
-        // All meshes that exist in the scene.
-        std::vector<Mesh*> meshComponents;
-        for (int i = 0; i < world->EntityGetAll().size(); i++)
-        {
-            Entity* entity = world->EntityGetAll()[i].get();
-            if (entity->HasComponent<Mesh>())
-            {
-                meshComponents.push_back(entity->GetComponent<Mesh>());
-            }
-        }
+        UINT offset = 0;
+        UINT modelStride = 8 * sizeof(float);
 
-        for (Mesh* mesh : meshComponents)
-        {;
-            UpdateCameraConstantBuffer(m_Camera, mesh->GetEntity(), 0);  /// We will be using this to update the entity's world matrix for now.
+        ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.m_BaseTexture->m_Texture)->m_ShaderResourceView.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
 
-            // Bind Index Buffer.
-            m_GraphicsDevice->BindIndexBuffer(&mesh->m_Index_Buffer, mesh->GetIndexFormat(), 0, 0);
-            
-            const RHI_GPU_Buffer* vertexBuffers[] =
-            {
-                &mesh->m_Vertex_Buffer_Position,
-                &mesh->m_Vertex_Buffer_UV0,
-                &mesh->m_Vertex_Buffer_UV1,
-                &mesh->m_Vertex_Buffer_Color,
-                &mesh->m_Vertex_Buffer_Tangent
-            };
+        // ==== Abstract ====
+        ConstantBufferData_Camera constantBuffer;
+        XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, m_ObjectMatrix * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, m_ObjectMatrix);
+        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
+        // ==================
 
-            uint32_t strides[] =
-            {
-                sizeof(Vertex_Position),
-                sizeof(Vertex_TexCoord),
-                sizeof(Vertex_TexCoord),
-                sizeof(Vertex_Color),
-                sizeof(Vertex_Tangent)
-            };
+        ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
+        m_GraphicsDevice->Draw((UINT)meshComponent.m_VertexPositions.size(), 0, 0);
 
-            uint32_t offsets[] =
-            {
-                0,
-                0,
-                0,
-                0,
-                0,
-            };
+        MeshComponent meshComponent2 = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Weapon")->m_MeshComponent;
+        ID3D11ShaderResourceView* shaderResourceView2 = DX11_Utility::ToInternal(&meshComponent2.m_BaseTexture->m_Texture)->m_ShaderResourceView.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView2);
 
-            static_assert(ARRAYSIZE(vertexBuffers) == Object_VertexInput::InputSlot_Count, "This layout must conform to Object_VertexInput enum.");
-            static_assert(ARRAYSIZE(vertexBuffers) == ARRAYSIZE(strides), "Mismatch between vertex buffers and strides.");
-            static_assert(ARRAYSIZE(vertexBuffers) == ARRAYSIZE(offsets), "Mismatch between vertex buffers and offsets.");
+        // ==== Abstract ====
+        ConstantBufferData_Camera constantBuffer2;
+        XMStoreFloat4x4(&constantBuffer2.g_ObjectMatrix, m_ObjectMatrix2 * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, m_ObjectMatrix2);
 
-            m_GraphicsDevice->BindVertexBuffers(vertexBuffers, 0, ARRAYSIZE(vertexBuffers), strides, offsets, 0);
-            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object, 0);
+        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer2, 0);
+        // ==================
 
-            m_GraphicsDevice->m_DeviceContextImmediate->Draw((UINT)mesh->m_Vertex_Positions.size(), 0);
-
-            for (const Mesh::MeshSubset& subset : mesh->m_Subsets)
-            {
-                if (subset.m_Index_Count == 0) // Empty Subset.
-                {
-                    AURORA_ERROR("empty!");
-                    continue;
-                }
-
-                const Material& material = *subset.m_Material_Entity->GetComponent<Material>();
-
-                /// Check material flags that we are indeed in the "right" rendering pass for the material's intended object. Ignore since we don't care about filtering at the moment.
-                
-                const RHI_PipelineState* pipelineStateObject = nullptr;
-                // const RHI_PipelineState* pipelineStateObject_Backside = nullptr;  // Only when seperate backside rendering is required (transparent double-sided).
-
-                /// If Is Wire Render.
-                /// If Is Terrain.
-                /// If is Custom Shader.
-                // const BlendMode_Types blendMode = material.GetBlendMode();
-                // ObjectRendering_DoubleSided isDoubleSided = (mesh->IsDoubleSided() || material.IsDoubleSided()) ? ObjectRendering_DoubleSided::ObjectRendering_DoubleSided_Enabled : ObjectRendering_DoubleSided::ObjectRendering_DoubleSided_Disabled;
-
-                // Actually bind pipeline state based on our object shaders. For now, we're using a standard object pipeline.
-                pipelineStateObject = &RendererGlobals::m_PSO_Object;
-                AURORA_ASSERT(pipelineStateObject->IsValid());
-
-                /// Rebind if double sided.
-
-                if (pipelineStateObject == nullptr || !pipelineStateObject->IsValid())
-                {
-                    continue;
-                }
-
-                /// Bind Stencil Reference.
-                /// Bind Shading Rate - DX12 Only.
-                /// If Bindless, Use Push Constants - Vulkan.
-
-                m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &material.m_ConstantBuffer, CB_GETBINDSLOT(ConstantBufferData_Material), 0);
-                m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Pixel_Shader, &material.m_ConstantBuffer, CB_GETBINDSLOT(ConstantBufferData_Material), 0);
-
-                // Bind all material textures.
-                const RHI_GPU_Resource* materialTextures[Texture_Slot::Texture_Slot_Count];
-                material.WriteTextures(materialTextures, ARRAYSIZE(materialTextures));
-                m_GraphicsDevice->BindResources(Shader_Stage::Pixel_Shader, materialTextures, TEXSLOT_RENDERER_BASECOLOR_MAP, ARRAYSIZE(materialTextures), 0);
-
-                /// If Tesselation.
-                /// If Terrain.
-
-                // if (pipelineStateObject_Backside != nullptr)
-                // {
-                //    m_GraphicsDevice->BindPipelineState(pipelineStateObject_Backside, 0);
-                //    m_GraphicsDevice->DrawIndexed(subset.m_Index_Count, subset.m_Index_Offset, 0, 0);
-                // }
-
-                m_GraphicsDevice->BindPipelineState(pipelineStateObject, 0);
-                m_GraphicsDevice->DrawIndexed(subset.m_Index_Count, subset.m_Index_Offset, 0, 0);
-            }           
-        }
-    }
-
-    void Renderer::DrawSky()
-    {
-        if (m_SkyMap != nullptr)
-        {
-            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Sky[SkyRender_Type::SkyRender_Static], 0);
-            m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &m_SkyMap->m_Texture, TEXSLOT_GLOBAL_ENVIRONMENTAL_MAP, 0);
-        }
-        else
-        {
-            // It is empty.
-        }
-
-        BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
-        BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
-
-        m_GraphicsDevice->Draw(3, 0, 0);
+        ID3D11Buffer* vertexBuffer2 = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent2.m_VertexBuffer_Position)->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer2, &modelStride, &offset);
+        m_GraphicsDevice->Draw((UINT)meshComponent2.m_VertexPositions.size(), 0, 0);
     }
 
     void Renderer::DrawDebugWorld(Entity* entity)
@@ -418,28 +300,6 @@ namespace Aurora
         ID3D11Buffer* vertexBufferDebug = (ID3D11Buffer*)DX11_Utility::ToInternal(&gridBuffer)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBufferDebug, &stride, &offset);
         m_GraphicsDevice->Draw(gridVertexCount, 0, 0);
-    }
-
-    void Renderer::DrawSky()
-    {
-        if (m_WeatherSystem.m_SkyMapTexture != nullptr)  // Means we have a custom skymap avaliable.
-        {
-            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Sky[SkyRender_Type::SkyRender_Static], 0);
-            m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &m_WeatherSystem.m_SkyMapTexture->m_Texture, TEXSLOT_GLOBAL_ENVIRONMENTAL_MAP, 0);
-        }
-        else
-        {
-            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Sky[SkyRender_Type::SkyRender_Dynamic], 0);
-
-            // m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Sky_View_LUT], TEXSLOT_SKY_VIEW_LUT, 0);
-            // m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Transmittance_LUT], TEXSLOT_TRANSMITTANCE_LUT, 0);
-            // m_GraphicsDevice->BindResource(Shader_Stage::Pixel_Shader, &RendererGlobals::g_Textures[Texture_Types::TextureType_2D_SkyAtmosphere_Multiscattered_Luminance_LUT], TEXSLOT_MULTISCATTERING_LUT, 0);
-        }
-
-        BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
-        BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
-
-        m_GraphicsDevice->Draw(3, 0, 0);
     }
 
     void Renderer::Present()

@@ -1,5 +1,6 @@
 #include "Globals.hlsli"
-#include "SkyHF.hlsli"
+
+SamplerState objectSamplerState : SAMPLER: register(s0);
 
 float4 main(float4 position : SV_POSITION, float2 clipSpace : TEXCOORD) : SV_TARGET
 {
@@ -8,7 +9,7 @@ float4 main(float4 position : SV_POSITION, float2 clipSpace : TEXCOORD) : SV_TAR
 
     const float3 view = normalize(unprojected.xyz - g_Camera_Position);
 
-    float4 color = float4(1, 1, 1, 1);
+    float4 color = float4(texture_global_environmental_map.SampleLevel(objectSamplerState, view, 0).rgb, 1);
 
     return color;
 }

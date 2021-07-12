@@ -10,11 +10,7 @@
 #define TEXSLOT_GBUFFER_1           3
 #define TEXSLOT_GBUFFER_2           4
 
-#define TEXSLOT_GLOBAL_ENVIRONMENTAL_MAP    6
-#define TEXSLOT_SKY_VIEW_LUT                10
-#define TEXSLOT_TRANSMITTANCE_LUT           11
-#define TEXSLOT_MULTISCATTERING_LUT         12
-#define TEXSLOT_SKY_LUMINANCE_LUT           13
+#define TEXSLOT_GLOBAL_ENVIRONMENTAL_MAP 6
 
 // On Demand Textures - These are 2D textures and are declared in shader globals. They can be used independantly in any shader.
 #define TEXSLOT_ONDEMAND_0          30
@@ -61,7 +57,7 @@
 #define TEXSLOT_RENDERER_BASECOLOR_MAP              TEXSLOT_ONDEMAND_0
 #define TEXSLOT_RENDERER_NORMAL_MAP                 TEXSLOT_ONDEMAND_1
 #define TEXSLOT_RENDERER_SURFACE_MAP                TEXSLOT_ONDEMAND_2
-#define TEXSLOT_RENDERER_EMISSIVE_MAP               TEXSLOT_ONDEMAND_3
+#define TEXSLOT_RENDERER_EMMISIVE_MAP               TEXSLOT_ONDEMAND_3
 #define TEXSLOT_RENDERER_DISPLACEMENT_MAP           TEXSLOT_ONDEMAND_4
 #define TEXSLOT_RENDERER_OCCLUSION_MAP              TEXSLOT_ONDEMAND_5
 #define TEXSLOT_RENDERER_TRANSMISSION_MAP           TEXSLOT_ONDEMAND_6

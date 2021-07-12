@@ -9,8 +9,8 @@ TEXTURECUBE(texture_global_environmental_map, float4, TEXSLOT_GLOBAL_ENVIRONMENT
 // Creates a full screen triangle from 3 vertices.
 inline void FullScreenTriangle(in uint vertexID, out float4 position)
 {
-    position.x = (float)(vertexID / 2) * 4.0 - 1.0;
-    position.y = (float)(vertexID % 2) * 4.0 - 1.0;
+    position.x = (float)(vertexID / 2) * 2.5 - 1.0;
+    position.y = (float)(vertexID % 2) * 2.5 - 1.0;
     position.z = 0;
     position.w = 1;
 }

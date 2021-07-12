@@ -2,17 +2,16 @@
 
 struct VSOut
 {
-	float4 pos : SV_POSITION;
-	float2 clipspace : TEXCOORD;
+    float4 position : SV_POSITION;
+    float2 clipSpace : TEXCOORD;
 };
 
 VSOut main(uint vI : SV_VERTEXID)
 {
-	VSOut Out;
+    VSOut output;
+    FullScreenTriangle(vI, output.position);
 
-	FullScreenTriangle(vI, Out.pos);
+    output.clipSpace = output.position.xy;
 
-	Out.clipspace = Out.pos.xy;
-
-	return Out;
+    return output;
 }

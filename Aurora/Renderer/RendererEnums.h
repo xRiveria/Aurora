@@ -24,7 +24,6 @@ enum Shader_Types
 	PS_Type_Object_Simple,
 	PS_Type_Object_Debug,
 	PS_Type_Sky_Static,
-	PS_Type_Sky_Dynamic,
 	PS_Type_PixelColor,
 
 	Shader_Type_Count
@@ -33,21 +32,25 @@ enum Shader_Types
 enum Object_VertexInput
 {
 	InputSlot_PositionNormalWind,
+	InputSlot_PreviousPosition,
 	InputSlot_UV0,
 	InputSlot_UV1,
+	InputSlot_Atlas,
 	InputSlot_Color,
 	InputSlot_Tangent,
+	InputSlot_InstanceData,
 	InputSlot_Count
 };
 
 enum InputLayout_Types
 {
-	InputLayout_Object_Position,
-	InputLayout_Object_Position_TexCoord,
-	InputLayout_Object_Position_PreviousPosition,
-	InputLayout_Object_Position_PreviousPosition_TexCoord,
-	InputLayout_Object_Common,
-	InputLayout_Object_Debug,
+	OnDemandTriangle,
+	InputLayout_Position,
+	InputLayout_Position_TexCoord,
+	InputLayout_Position_PreviousPosition,
+	InputLayout_Position_PreviousPosition_TexCoord,
+	InputLayout_Common,
+	InputLayout_Debug,
 	InputLayout_RenderLightMap,
 	InputLayout_VertexColor,
 	InputLayout_Count,
@@ -120,8 +123,7 @@ enum BS_Types
 // Render Passes
 enum RenderPass_Type
 {
-	RenderPass_Main,
-	RenderPass_Count
+	RenderPass_Main
 };
 
 enum SkyRender_Type
@@ -136,31 +138,4 @@ enum DebugRenderer_Type
 {
 	DebugRenderer_Grid,
 	DebugRenderer_Count
-};
-
-// Textures
-enum Texture_Types
-{
-	TextureType_2D_SkyAtmosphere_Transmittance_LUT,
-	TextureType_2D_SkyAtmosphere_Multiscattered_Luminance_LUT,
-	TextureType_2D_SkyAtmosphere_Sky_View_LUT,
-	TextureType_2D_SkyAtmosphere_Sky_Luminance_LUT,
-	TextureType_Count
-};
-
-enum Render_Types
-{
-	Render_Type_Void		= 0,
-	Render_Type_Opaque		= 1 << 0,
-	Render_Type_Transparent = 1 << 1,
-	Render_Type_Water		= 1 << 2,
-	Render_Type_All			= Render_Type_Opaque | Render_Type_Transparent | Render_Type_Water
-};
-
-enum ObjectRendering_DoubleSided
-{
-	ObjectRendering_DoubleSided_Disabled,
-	ObjectRendering_DoubleSided_Enabled,
-	ObjectRendering_DoubleSided_Backside,
-	ObjectRendering_DoubleSided_Count
 };

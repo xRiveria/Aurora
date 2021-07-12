@@ -38,7 +38,6 @@ namespace Aurora
         bool CreateRenderPass(const RHI_RenderPass_Description* renderPassDescription, RHI_RenderPass* renderPass) const;
         bool CreatePipelineState(const RHI_PipelineState_Description* description, RHI_PipelineState* pipelineStateObject) const;
 
-        int CreateSubresource(RHI_GPU_Buffer* gpuBuffer, Subresource_Type type, uint64_t offset, uint64_t size = ~0) const;
         int CreateSubresource(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const;
         void Map(const RHI_GPU_Resource* resource, RHI_Mapping* mappingDescription);
         void Unmap(const RHI_GPU_Resource* resource);
@@ -60,7 +59,6 @@ namespace Aurora
         void SubmitCommandLists();
 
         void BindResource(Shader_Stage shaderStage, const RHI_GPU_Resource* resource, uint32_t slot, RHI_CommandList commandList, int subresource = -1);
-        void BindResources(Shader_Stage shaderStage, const RHI_GPU_Resource* const* resources, uint32_t slot, uint32_t count, RHI_CommandList commandList);
         void RenderPassBegin(const RHI_RenderPass* renderPass, RHI_CommandList commandList);
         void RenderPassEnd(RHI_CommandList commandList);
         void BindViewports(uint32_t numberOfViewports, const RHI_Viewport* viewports, RHI_CommandList commandList);

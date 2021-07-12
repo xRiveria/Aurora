@@ -6,11 +6,7 @@
 #include "../Scene/Components/Camera.h"
 #include "RendererEnums.h"
 #include "ShaderCompiler.h"
-<<<<<<< HEAD
 #include "Weather.h"
-#include "../Resource/Importers/Importer_Model.h"
-=======
->>>>>>> parent of 6266306... [Weather] Setup Base Weather Template & Editor Settings
 
 using namespace DirectX;
 
@@ -23,14 +19,14 @@ namespace Aurora
         ~Renderer();
         
         bool Initialize() override;
-        bool PostInitialize() override;
         void Tick(float deltaTime) override;
-        void RenderMeshes();
+        void DrawModel();
         // Draws a skydome centered to our camera.
-        void DrawSky();
         void DrawDebugWorld(Entity* entity);
 
         void Present();
+
+        // Shenanigans
 
     private:
         void CreateTexture();
@@ -47,44 +43,38 @@ namespace Aurora
         uint32_t m_MSAA_SampleCount = 1;
         const uint32_t GetMSAASampleCount() const { return m_MSAA_SampleCount; }
 
-
         void LoadStates();
         void LoadBuffers();
         void LoadShaders();
         bool LoadShader(Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel = Shader_Model::ShaderModel_5_0);
-        void DrawSky();
 
         void LoadPipelineStates();
         // void ReloadShaders();  // Fire shader reload event. Calls LoadShaders() again.
 
         // const RHI_GPU_Buffer* GetConstantBuffer(CB_Types bufferType) { return &RendererGlobals::g_ConstantBuffers[bufferType]; }
-        void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, Entity* meshEntity, RHI_CommandList commandList);
+        void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
         void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
 
     private:
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;
         
     public:
-        std::shared_ptr<AuroraResource> m_SkyMap;
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
         XMMATRIX m_ObjectMatrix = XMMatrixTranslation(0.0f, 1.0f, 0.0f); // Will be the transform component of each Entity upon full completion of the entity.
         XMMATRIX m_ObjectMatrix2 = XMMatrixTranslation(10.0f, 1.0f, 0.0f);
 
         RHI_SwapChain m_SwapChain;
+        RHI_Shader m_VertexShader;
+        RHI_Shader m_PixelShader;
+        RHI_GPU_Buffer m_VertexBuffer;
 
         RHI_Sampler m_Standard_Texture_Sampler;
         
         // Camera
         std::shared_ptr<Entity> m_Camera;
-<<<<<<< HEAD
 
         // Weather
         Weather m_WeatherSystem;
-
-        // Importers
-        std::shared_ptr<Importer_Model> m_Importer_Model;
-=======
->>>>>>> parent of 6266306... [Weather] Setup Base Weather Template & Editor Settings
     };
 }

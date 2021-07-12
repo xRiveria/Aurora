@@ -58,10 +58,9 @@ void Editor::Tick()
 		ImGui::SliderFloat3("Ambient Color", *color, 0.0, 1.0);
 
 		float* position[3] = { &component->m_Position.x, &component->m_Position.y, &component->m_Position.z };
-		ImGui::SliderFloat3("Position", *position, -30, 30);
+		ImGui::SliderFloat3("Position", *position, -150, 150);
 		ImGui::End();
 
-<<<<<<< HEAD
 		ImGui::Begin("Weather");
 		Aurora::Weather* weatherSystem = &m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_WeatherSystem;
 
@@ -80,19 +79,7 @@ void Editor::Tick()
 		}
 
 		ImGui::End();
-
-		ImGui::Begin("Hierarchy");
-
-		auto& entities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
-		for (auto& entity : entities)
-		{
-			ImGui::Text(entity->GetObjectName().c_str());
-		}
-
-		ImGui::End();
-
-=======
->>>>>>> parent of 6266306... [Weather] Setup Base Weather Template & Editor Settings
+	
 		ImGui::End(); // Ends docking context.
 
 		ImGui::Render();

@@ -80,18 +80,6 @@ namespace Aurora
         return std::filesystem::path(filePath).filename().generic_string();
     }
 
-    std::string FileSystem::GetDirectoryFromFilePath(const std::string& filePath)
-    {
-        const size_t lastSlashIndex = filePath.find_last_of("\\/"); // Note that find_last_of searches for any of the characters in the arguments. Hence, we use forward and backward slash as both are valid path seperators on Windows.
-
-        if (lastSlashIndex != std::string::npos)
-        {
-            return filePath.substr(0, lastSlashIndex + 1);
-        }
-
-        return "";
-    }
-
     std::string FileSystem::ReplaceExtension(const std::string& filePath, const std::string& fileExtension)
     {
         std::string path = filePath;
@@ -118,9 +106,9 @@ namespace Aurora
         return 0;
     }
 
-    bool FileSystem::PushFileDataToBuffer(const std::string& filePath, std::vector<uint8_t>& data)
+    bool FileSystem::PushFileDataToBuffer(const std::string& fileName, std::vector<uint8_t>& data)
     {
-        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+        std::ifstream file(fileName, std::ios::binary | std::ios::ate);
         if (file.is_open())
         {
             size_t dataSize = (size_t)file.tellg();
@@ -131,7 +119,7 @@ namespace Aurora
             return true;
         }
 
-        AURORA_ERROR("File not found: %s.", filePath.c_str());
+        AURORA_ERROR("File not found: %s.", fileName.c_str());
         return false;
     }
 }
