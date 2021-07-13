@@ -7,6 +7,7 @@
 #include "RendererEnums.h"
 #include "ShaderCompiler.h"
 #include "Weather.h"
+#include "../Resource/Importers/Importer_Model.h"
 
 using namespace DirectX;
 
@@ -20,7 +21,7 @@ namespace Aurora
         
         bool Initialize() override;
         void Tick(float deltaTime) override;
-        void DrawModel();
+        void RenderScene();
         // Draws a skydome centered to our camera.
         void DrawDebugWorld(Entity* entity);
 
@@ -61,9 +62,6 @@ namespace Aurora
     public:
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
-        XMMATRIX m_ObjectMatrix = XMMatrixTranslation(0.0f, 1.0f, 0.0f); // Will be the transform component of each Entity upon full completion of the entity.
-        XMMATRIX m_ObjectMatrix2 = XMMatrixTranslation(10.0f, 1.0f, 0.0f);
-
         RHI_SwapChain m_SwapChain;
         RHI_Shader m_VertexShader;
         RHI_Shader m_PixelShader;
@@ -76,5 +74,7 @@ namespace Aurora
 
         // Weather
         Weather m_WeatherSystem;
+        
+        std::shared_ptr<Importer_Model> m_Importer_Model;
     };
 }

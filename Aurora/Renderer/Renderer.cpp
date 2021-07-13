@@ -5,6 +5,7 @@
 #include "ShaderInternals.h"
 #include "RendererResources.h"
 #include "../Scene/Components/Light.h"
+#include "../Scene/Components/Mesh.h"
 
 namespace Aurora
 {
@@ -21,6 +22,7 @@ namespace Aurora
     bool Renderer::Initialize()
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
+        m_Importer_Model = std::make_shared<Importer_Model>(m_EngineContext);
         m_ShaderCompiler.Initialize();
         LoadShaders();
         LoadStates();
@@ -40,13 +42,8 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(3.0f, 3.0f, -10.0f);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
-        std::shared_ptr<Entity> penguin = m_EngineContext->GetSubsystem<World>()->EntityCreate(true);
-        penguin->SetName("Penguin");
-        penguin->LoadModel("../Resources/Models/Hollow_Knight/v3.obj", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
-
-        std::shared_ptr<Entity> hammer = m_EngineContext->GetSubsystem<World>()->EntityCreate(true);
-        hammer->SetName("Weapon");
-        hammer->LoadModel("../Resources/Models/Sword/weapon1.obj", "../Resources/Models/Sword/TextureWeapon1.png");
+        m_Importer_Model->Load("../Resources/Models/Hollow_Knight/v3.obj", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
+        m_Importer_Model->Load("../Resources/Models/Sword/weapon1.obj", "../Resources/Models/Sword/TextureWeapon1.png");
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -143,7 +140,8 @@ namespace Aurora
 
     void Renderer::Tick(float deltaTime)
     {
-        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width != m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0))
+        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width != m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0) ||
+            m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Height != m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0))
         {
             ResizeBuffers();
 
@@ -179,7 +177,7 @@ namespace Aurora
         
         ///==============================
 
-        DrawModel();
+        RenderScene();
         DrawDebugWorld(m_Camera.get());
 
         /// ==================================
@@ -193,46 +191,36 @@ namespace Aurora
         // Present is called from our Editor.
     }
 
-    void Renderer::DrawModel()
+    void Renderer::RenderScene()
     {
-        // m_EngineContext->GetSubsystem<World>()->LoadModel("../Resources/Models/Hollow_Knight/v3.obj");
+        std::vector<std::shared_ptr<Entity>> sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
+        std::vector<Mesh> meshComponents;
+        for (auto& entity : sceneEntities)
+        {
+            if (entity->HasComponent<Mesh>())
+            {
+                meshComponents.push_back(*entity->GetComponent<Mesh>());
+            }
+        }
+
         m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
 
-        World* world = m_EngineContext->GetSubsystem<World>();
-        MeshComponent meshComponent = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Penguin")->m_MeshComponent;
+        for (auto& meshComponent : meshComponents)
+        {
+            UINT offset = 0;
+            UINT modelStride = 8 * sizeof(float);
+            ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.m_BaseTexture->m_Texture)->m_ShaderResourceView.Get();
+            m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
 
-        UINT offset = 0;
-        UINT modelStride = 8 * sizeof(float);
+            ConstantBufferData_Camera constantBuffer;
+            XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_ObjectMatrix * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+            XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, meshComponent.GetEntity()->m_ObjectMatrix);
+            m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
 
-        ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.m_BaseTexture->m_Texture)->m_ShaderResourceView.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
-
-        // ==== Abstract ====
-        ConstantBufferData_Camera constantBuffer;
-        XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, m_ObjectMatrix * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, m_ObjectMatrix);
-        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
-        // ==================
-
-        ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
-        m_GraphicsDevice->Draw((UINT)meshComponent.m_VertexPositions.size(), 0, 0);
-
-        MeshComponent meshComponent2 = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Weapon")->m_MeshComponent;
-        ID3D11ShaderResourceView* shaderResourceView2 = DX11_Utility::ToInternal(&meshComponent2.m_BaseTexture->m_Texture)->m_ShaderResourceView.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView2);
-
-        // ==== Abstract ====
-        ConstantBufferData_Camera constantBuffer2;
-        XMStoreFloat4x4(&constantBuffer2.g_ObjectMatrix, m_ObjectMatrix2 * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, m_ObjectMatrix2);
-
-        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer2, 0);
-        // ==================
-
-        ID3D11Buffer* vertexBuffer2 = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent2.m_VertexBuffer_Position)->m_Resource.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer2, &modelStride, &offset);
-        m_GraphicsDevice->Draw((UINT)meshComponent2.m_VertexPositions.size(), 0, 0);
+            ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
+            m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
+            m_GraphicsDevice->Draw((UINT)meshComponent.m_VertexPositions.size(), 0, 0);
+        }
     }
 
     void Renderer::DrawDebugWorld(Entity* entity)

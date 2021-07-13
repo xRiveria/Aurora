@@ -3,6 +3,7 @@
 #include "../Entity.h"
 #include "Camera.h"
 #include "Light.h"
+#include "Mesh.h"
 
 namespace Aurora
 {
@@ -38,4 +39,5 @@ namespace Aurora
     // Register components here.
     REGISTER_COMPONENT(Camera, ComponentType::Camera);
     REGISTER_COMPONENT(Light, ComponentType::Light);
+    REGISTER_COMPONENT(Mesh, ComponentType::Mesh);
 }

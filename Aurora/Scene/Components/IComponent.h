@@ -1,5 +1,6 @@
 #pragma once
 #include "AuroraObject.h"
+#include "EngineContext.h"
 
 namespace Aurora
 {
@@ -8,6 +9,7 @@ namespace Aurora
         Camera,
         Renderable,
         Light,
+        Mesh,
         Unknown
     };
 

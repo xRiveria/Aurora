@@ -11,6 +11,7 @@
 #include "EngineContext.h"
 #include "../Log/Log.h"
 #include "../Input/InputUtilities.h"
+#include "FileSystem.h"
 
 // Math
 #include "../Math/MathUtilities.h"
