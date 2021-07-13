@@ -43,7 +43,7 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
         m_Importer_Model->Load("../Resources/Models/Hollow_Knight/v3.obj", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
-        m_Importer_Model->Load("../Resources/Models/Sword/weapon1.obj", "../Resources/Models/Sword/TextureWeapon1.png");
+        m_Importer_Model->Load("../Resources/Models/BrokenHelmet/DamagedHelmet.gltf", "../Resources/Models/BrokenHelmet/Default_albedo.jpg");
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -220,8 +220,11 @@ namespace Aurora
             m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
 
             ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
+
             m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
-            m_GraphicsDevice->Draw((UINT)meshComponent.m_VertexPositions.size(), 0, 0);
+            m_GraphicsDevice->BindIndexBuffer(&meshComponent.m_IndexBuffer, meshComponent.GetIndexFormat(), 0, 0);
+
+            m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(meshComponent.m_Indices.size(), 0, 0);
         }
     }
 

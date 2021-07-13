@@ -224,7 +224,7 @@ namespace Aurora
             // Create resource views if needed.
             if (bufferDescription->m_BindFlags & Bind_Flag::Bind_Shader_Resource)
             {
-                /// Create subresource.
+                CreateSubresource(buffer, Subresource_Type::ShaderResourceView, 0);
             }
 
             if (bufferDescription->m_BindFlags & Bind_Flag::Bind_Unordered_Access)
@@ -236,6 +236,72 @@ namespace Aurora
         }
 
         return false;      
+    }
+
+    int DX11_GraphicsDevice::CreateSubresource(RHI_GPU_Buffer* gpuBuffer, Subresource_Type type, uint64_t offset, uint64_t size) const
+    {
+        DX11_ResourcePackage* internalState = ToInternal(gpuBuffer);
+        const RHI_GPU_Buffer_Description& description = gpuBuffer->GetDescription();
+        HRESULT result = E_FAIL;
+
+        switch (type)
+        {
+        case Subresource_Type::ShaderResourceView:
+        {
+            D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDescription;
+
+            if (description.m_MiscFlags & Resource_Misc_Flag::Resource_Misc_Buffer_Allow_Raw_Views)
+            {
+                // This is a raw buffer.
+                shaderResourceViewDescription.Format = DXGI_FORMAT_R32_TYPELESS;
+                shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+                shaderResourceViewDescription.BufferEx.Flags = D3D11_BUFFEREX_SRV_FLAG_RAW;
+                shaderResourceViewDescription.BufferEx.FirstElement = (UINT)offset / sizeof(uint32_t);
+                shaderResourceViewDescription.BufferEx.NumElements = std::min((UINT)size, description.m_ByteWidth - (UINT)offset) / sizeof(uint32_t);
+            }
+            else if (description.m_MiscFlags & Resource_Misc_Flag::Resource_Misc_Buffer_Structured)
+            {
+                // This is a structured buffer.
+                shaderResourceViewDescription.Format = DXGI_FORMAT_UNKNOWN;
+                shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+                shaderResourceViewDescription.BufferEx.FirstElement = (UINT)offset / description.m_StructureByteStride;
+                shaderResourceViewDescription.BufferEx.NumElements = std::min((UINT)size, description.m_ByteWidth - (UINT)offset) / description.m_StructureByteStride;
+            }
+            else
+            {
+                // This is a typed buffer.
+                uint32_t stride = GetFormatStride(description.m_Format);
+                shaderResourceViewDescription.Format = DX11_ConvertFormat(description.m_Format);
+                shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+                shaderResourceViewDescription.Buffer.FirstElement = (UINT)offset / stride;
+                shaderResourceViewDescription.Buffer.NumElements = std::min((UINT)size, description.m_ByteWidth - (UINT)offset) / stride;
+            }
+
+            ComPtr<ID3D11ShaderResourceView> shaderResourceView;
+            result = m_Device->CreateShaderResourceView(internalState->m_Resource.Get(), &shaderResourceViewDescription, &shaderResourceView);
+
+            if (SUCCEEDED(result))
+            {
+                if (internalState->m_ShaderResourceView == nullptr)
+                {
+                    internalState->m_ShaderResourceView = shaderResourceView;
+                    return -1;
+                }
+                else
+                {
+                    internalState->m_Subresources_ShaderResourceView.push_back(shaderResourceView);
+                    return int(internalState->m_Subresources_ShaderResourceView.size() - 1);
+                }
+            }
+            else
+            {
+                AURORA_ASSERT(0);
+            }
+        }
+        break;
+        }
+
+        return -1;
     }
 
     bool DX11_GraphicsDevice::CreateTexture(const RHI_Texture_Description* textureDescription, const RHI_Subresource_Data* initialData, RHI_Texture* texture) const
@@ -1120,6 +1186,12 @@ namespace Aurora
         }
 
         m_DeviceContextImmediate->IASetVertexBuffers(slot, count, buffers, strides, (offsets != nullptr ? offsets : reinterpret_cast<const uint32_t*>(__nullBlob)));
+    }
+
+    void DX11_GraphicsDevice::BindIndexBuffer(const RHI_GPU_Buffer* indexBuffer, const IndexBuffer_Format format, uint32_t offset, RHI_CommandList commandList)
+    {
+        ID3D11Buffer* result = indexBuffer != nullptr && indexBuffer->IsValid() ? (ID3D11Buffer*)ToInternal(indexBuffer)->m_Resource.Get() : nullptr;
+        m_DeviceContextImmediate->IASetIndexBuffer(result, (format == IndexBuffer_Format::Format_16Bit ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT), offset);
     }
 
     void DX11_GraphicsDevice::BindConstantBuffer(Shader_Stage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList)

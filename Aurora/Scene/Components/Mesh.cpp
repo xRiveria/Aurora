@@ -33,7 +33,7 @@ namespace Aurora
             static_assert(std::is_same<decltype(m_Indices)::value_type, uint32_t>::value, "Indices not in Index_Format::32_Bit.");
             indexInitializationData.m_SystemMemory = m_Indices.data();
 
-            //graphicsDevice->CreateBuffer(&indexBufferDescription, &indexInitializationData, &m_MeshComponent.m_IndexBuffer);
+            graphicsDevice->CreateBuffer(&indexBufferDescription, &indexInitializationData, &m_IndexBuffer);
             /// Set name.
         }
         // 16 Bit
@@ -47,7 +47,7 @@ namespace Aurora
             std::copy(m_Indices.begin(), m_Indices.end(), gpuIndexBuffer.begin());
             indexInitializationData.m_SystemMemory = gpuIndexBuffer.data();
 
-            //graphicsDevice->CreateBuffer(&indexBufferDescription, &indexInitializationData, &m_MeshComponent.m_IndexBuffer);
+            graphicsDevice->CreateBuffer(&indexBufferDescription, &indexInitializationData, &m_IndexBuffer);
             /// Set name.
         }
 

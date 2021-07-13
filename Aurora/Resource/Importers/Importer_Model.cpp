@@ -20,6 +20,8 @@
 
 using namespace Assimp;
 
+std::string g_TemporaryPath = "Derp";
+
 namespace Aurora
 {
     Importer_Model::Importer_Model(EngineContext* engineContext) : m_EngineContext(engineContext)
@@ -31,23 +33,11 @@ namespace Aurora
 
     void Importer_Model::Load(const std::string& filePath, const std::string& albedoPath)
     {
-        std::string extension = FileSystem::ConvertToUppercase(FileSystem::GetExtensionFromFilePath(filePath));
 
-        if (!extension.compare(".OBJ"))
-        {
-            ImportModel_OBJ(filePath, albedoPath);
-        }
-        else if (!extension.compare(".GLTF"))
-        {
-            ImporterModel_General(filePath);
-        }
-        else if (!extension.compare(".GLB"))
-        {
-
-        }
+        ImporterModel_General(filePath, albedoPath);
     }
 
-    bool Importer_Model::ImporterModel_General(const std::string& filePath)
+    bool Importer_Model::ImporterModel_General(const std::string& filePath, const std::string& albedoPath)
     {
         if (!FileSystem::Exists(filePath))
         {
@@ -65,22 +55,31 @@ namespace Aurora
 
         // Setup an Assimp Importer.
         Importer importer;
+        // Maximum number of triangles in a mesh (before splitting)    
+        importer.SetPropertyInteger(AI_CONFIG_PP_SLM_TRIANGLE_LIMIT, modelParameters.m_TriangleLimit);
+        // Maximum number of vertices in a mesh (before splitting)    
+        importer.SetPropertyInteger(AI_CONFIG_PP_SLM_VERTEX_LIMIT, modelParameters.m_VertexLimit);
+        // Remove points and lines.
+        importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
+        // Remove cameras and lights
+        importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_CAMERAS | aiComponent_LIGHTS);
         
         const uint32_t importerFlags =
+            aiProcess_Triangulate               |
             aiProcess_MakeLeftHanded            |
             aiProcess_FlipUVs                   |
-            aiProcess_FlipWindingOrder          |
+            aiProcess_JoinIdenticalVertices     |
+            aiProcess_FindDegenerates           |
+            aiProcess_SortByPType               |
+            // aiProcess_FlipWindingOrder          |
             aiProcess_CalcTangentSpace          |
             aiProcess_GenSmoothNormals          |
-            aiProcess_JoinIdenticalVertices     |
             aiProcess_OptimizeMeshes            |
             aiProcess_ImproveCacheLocality      |
             aiProcess_RemoveRedundantMaterials  |
             aiProcess_LimitBoneWeights          |
             aiProcess_SplitLargeMeshes          |
-            aiProcess_Triangulate               |
             aiProcess_GenUVCoords               |
-            aiProcess_SortByPType               |
             aiProcess_FindDegenerates           |
             aiProcess_FindInvalidData           |
             aiProcess_FindInstances             |
@@ -101,6 +100,7 @@ namespace Aurora
             /// Set root entity for model.
 
             // Parse all nodes, starting from the root node and continuing recursively.
+            g_TemporaryPath = albedoPath;
             ParseNode(scene->mRootNode, modelParameters, nullptr, newEntity.get());
             /// Parse Animations.
 
@@ -117,29 +117,127 @@ namespace Aurora
         return modelParameters.m_AssimpScene != nullptr;
     }
 
+
     void Importer_Model::ParseNode(const aiNode* assimpNode, const ModelParameters& modelParameters, Entity* parentEntity, Entity* newEntity)
     {
+        if (parentEntity) // Parent node has already been set.
+        {
+            newEntity->SetName(assimpNode->mName.C_Str());
+        }
+
+        /// Progress Tracking.
+
+        /// Transform Stuff.
+
+        // Process all of the node's meshes.
+        ParseNodeMeshes(assimpNode, newEntity, modelParameters);
+
+        // Process children.
+        for (uint32_t i = 0; i < assimpNode->mNumChildren; i++)
+        {
+            std::shared_ptr<Entity> child = m_WorldContext->EntityCreate();
+            ParseNode(assimpNode->mChildren[i], modelParameters, newEntity, child.get()); // Our new entity becomes the parent.
+        }
+
+        /// Progress Tracking.
     }
-    void Importer_Model::ParseNodeMeshes(const aiNode* assimpNode, Entity& newEntity, const ModelParameters& modelParameters)
+
+
+    void Importer_Model::ParseNodeMeshes(const aiNode* assimpNode, Entity* newEntity, const ModelParameters& modelParameters)
     {
+        for (uint32_t i = 0; i < assimpNode->mNumMeshes; i++)
+        {
+            Entity* entity = newEntity; // Set the current entity.
+            const auto assimpMesh = modelParameters.m_AssimpScene->mMeshes[assimpNode->mMeshes[i]]; // Retrieve mesh.
+            std::string meshName = assimpNode->mName.C_Str(); // Retrieve name of the mesh.
+
+            // If this node has multiple meshes, we will create and assign a new entity for each of them.
+            if (assimpNode->mNumMeshes > 1)
+            {
+                const bool isActive = false;
+                entity = m_WorldContext->EntityCreate(isActive).get(); // Create entity.
+                /// Set parent transform.
+                meshName += "_" + std::to_string(i + 1); // Set name.
+            }
+
+            // Set entity name.
+            entity->SetName(meshName);
+
+            // Process Mesh.
+            LoadMesh(assimpMesh, entity, modelParameters);
+
+            entity->SetActive(true);
+        }
     }
-    void Importer_Model::ParseAnimations(const ModelParameters& modelParameters)
-    {
-    }
+
     void Importer_Model::LoadMesh(aiMesh* assimpMesh, Entity* parentEntity, const ModelParameters& modelParameters)
     {
+        if (!assimpMesh || !parentEntity)
+        {
+            AURORA_ERROR_INVALID_PARAMETER();
+            return;
+        }
+
+        const uint32_t vertexCount = assimpMesh->mNumVertices;
+        const uint32_t indexCount = assimpMesh->mNumFaces * 3;
+
+        Mesh* meshComponent = parentEntity->AddComponent<Mesh>();
+
+        // Load objects, meshes. Each of our shapes (meshes) is created as a seperate entity in our architecture.  
+        for (uint32_t i = 0; i < vertexCount; i++)
+        {
+            XMFLOAT3 storedPosition;
+            XMFLOAT3 storedNormal;
+            XMFLOAT2 storedTextureCoordinates;
+
+            // Position
+            const auto& position = assimpMesh->mVertices[i];
+            storedPosition.x = position.x;
+            storedPosition.y = position.y;
+            storedPosition.z = position.z;
+
+            meshComponent->m_VertexPositions.push_back(storedPosition);
+
+            // Normal
+            if (assimpMesh->mNormals)
+            {
+                const auto& normal = assimpMesh->mNormals[i];
+                storedNormal.x = normal.x;
+                storedNormal.y = normal.y;
+                storedNormal.z = normal.z;
+
+                meshComponent->m_VertexNormals.push_back(storedNormal);
+            }
+
+            // Texture Coordinates
+            const uint32_t uvChannel = 0;
+            if (assimpMesh->HasTextureCoords(uvChannel))
+            {
+                const auto& texCoords = assimpMesh->mTextureCoords[uvChannel][i];
+                storedTextureCoordinates.x = texCoords.x;
+                storedTextureCoordinates.y = texCoords.y;
+
+                meshComponent->m_UVSet_0.push_back(storedTextureCoordinates);
+            }
+        }
+
+        // Indices
+        std::vector<uint32_t> indices = std::vector<uint32_t>(indexCount);
+        // Get indices by iterating through each face of the mesh.
+        for (uint32_t faceIndex = 0; faceIndex < assimpMesh->mNumFaces; faceIndex++)
+        {
+            aiFace& face = assimpMesh->mFaces[faceIndex];
+            const unsigned int indicesIndex = (faceIndex * 3);
+            indices[indicesIndex + 0] = face.mIndices[0];
+            indices[indicesIndex + 1] = face.mIndices[1];
+            indices[indicesIndex + 2] = face.mIndices[2];
+        }
+        
+        meshComponent->m_Indices = indices;
+        meshComponent->m_BaseTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Hollow_Knight_Albedo.png", g_TemporaryPath);
+
+        meshComponent->CreateRenderData();
     }
-
-
-
-
-
-
-
-
-
-
-
 
     void Importer_Model::ImportModel_OBJ(const std::string& filePath, const std::string& albedoPath)
     {

@@ -35,12 +35,12 @@ namespace Aurora
         void Load(const std::string& filePath, const std::string& albedoPath);
 
     private:
-        bool ImporterModel_General(const std::string& filePath);
+        bool ImporterModel_General(const std::string& filePath, const std::string& albedoPath);
         void ImportModel_OBJ(const std::string& filePath, const std::string& albedoPath);
 
         // Parsing
         void ParseNode(const aiNode* assimpNode, const ModelParameters& modelParameters, Entity* parentEntity = nullptr, Entity* newEntity = nullptr);
-        void ParseNodeMeshes(const aiNode* assimpNode, Entity& newEntity, const ModelParameters& modelParameters);
+        void ParseNodeMeshes(const aiNode* assimpNode, Entity* newEntity, const ModelParameters& modelParameters);
         void ParseAnimations(const ModelParameters& modelParameters);
 
         // Loading

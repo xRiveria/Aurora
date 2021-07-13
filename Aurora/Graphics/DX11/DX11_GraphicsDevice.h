@@ -39,6 +39,8 @@ namespace Aurora
         bool CreatePipelineState(const RHI_PipelineState_Description* description, RHI_PipelineState* pipelineStateObject) const;
 
         int CreateSubresource(RHI_Texture* texture, Subresource_Type type, uint32_t firstSlice, uint32_t sliceCount, uint32_t firstMip, uint32_t mipCount) const;
+        int CreateSubresource(RHI_GPU_Buffer* gpuBuffer, Subresource_Type type, uint64_t offset, uint64_t size = ~0) const;
+
         void Map(const RHI_GPU_Resource* resource, RHI_Mapping* mappingDescription);
         void Unmap(const RHI_GPU_Resource* resource);
 
