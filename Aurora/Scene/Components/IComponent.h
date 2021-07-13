@@ -10,6 +10,7 @@ namespace Aurora
         Renderable,
         Light,
         Mesh,
+        Transform,
         Unknown
     };
 

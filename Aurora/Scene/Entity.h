@@ -5,6 +5,7 @@
 #include "../Graphics/RHI_Implementation.h"
 #include "../Renderer/Renderer.h"
 #include <DirectXPackedVector.h>
+#include "Components/Transform.h"
 
 using namespace DirectX::PackedVector;
 
@@ -145,7 +146,7 @@ namespace Aurora
         std::shared_ptr<Entity> GetPointerShared() { return shared_from_this(); }
 
     public:
-        XMMATRIX m_ObjectMatrix = XMMatrixTranslation(0.0f, 1.0f, 0.0f);
+        Transform* m_Transform; // All entities will have a transform component, regardless of whether it is empty or not.
 
     private:
         constexpr uint32_t GetComponentMask(ComponentType componentType) { return static_cast<uint32_t>(1) << static_cast<uint32_t>(componentType); }
@@ -154,7 +155,6 @@ namespace Aurora
         std::string m_ObjectName = "Entity";
         bool m_IsActive = true;
         bool m_IsDestructionPending = false;
-
 
         // Components
         std::vector<std::shared_ptr<IComponent>> m_Components;

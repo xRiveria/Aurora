@@ -8,6 +8,7 @@
 #include "Implementation/imgui_impl_dx11.h"
 #include "../Scene/World.h"
 #include "../Scene/Components/Light.h"
+#include "../Scene/Components/Mesh.h"
  
 namespace EditorConfigurations
 {
@@ -33,6 +34,13 @@ inline Aurora::DX11_Utility::DX11_TexturePackage* ToInternal(const Aurora::RHI_T
 {
 	return static_cast<Aurora::DX11_Utility::DX11_TexturePackage*>(texture->m_InternalState.get());
 }
+
+enum class VectorType
+{
+	Scale,
+	Rotation,
+	Translation
+};
 
 void Editor::Tick()
 {
@@ -61,25 +69,56 @@ void Editor::Tick()
 		ImGui::SliderFloat3("Position", *position, -150, 150);
 		ImGui::End();
 
-		ImGui::Begin("Weather");
-		Aurora::Weather* weatherSystem = &m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_WeatherSystem;
-
-		ImGui::Text("Clouds");
-		ImGui::DragFloat("Cloudiness", &weatherSystem->m_Cloudiness, 0.01f, 0.0f, 1.0f);
-		ImGui::DragFloat("Cloud Scale", &weatherSystem->m_CloudScale, 0.01f, -0.001f, 0.001f);
-		ImGui::DragFloat("Cloud Speed", &weatherSystem->m_CloudSpeed, 0.01f, 0.001f, 0.2f);
-
-		float* ambientColor[] = { &weatherSystem->m_AmbientColor.x, &weatherSystem->m_AmbientColor.y, &weatherSystem->m_AmbientColor.z };
-		ImGui::ColorEdit3("Ambient Color", *ambientColor);
-		ImGui::Spacing();
-		
-		if (ImGui::Button("Weather Preset - Cloudy"))
+		std::vector<std::shared_ptr<Aurora::Entity>> sceneEntities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
+		std::vector<Aurora::Mesh> meshComponents;
+		for (auto& entity : sceneEntities)
 		{
-			weatherSystem->SetPreset_Cloudy();
+			if (entity->HasComponent<Aurora::Mesh>())
+			{
+				meshComponents.push_back(*entity->GetComponent<Aurora::Mesh>());
+			}
+		}
+
+		ImGui::Begin("Properties");
+		for (Aurora::Mesh& meshComponent : meshComponents)
+		{		
+			// Reflect
+			XMFLOAT3 position = meshComponent.GetEntity()->m_Transform->GetPosition(); // Retrieve.
+			XMFLOAT3 scale = meshComponent.GetEntity()->m_Transform->GetScale();
+			XMFLOAT3 rotation = { meshComponent.GetEntity()->m_Transform->GetRotation().x, meshComponent.GetEntity()->m_Transform->GetRotation().y, meshComponent.GetEntity()->m_Transform->GetRotation().z };
+
+			const auto ShowFloat = [](VectorType vectorType, const char* label, Aurora::Mesh* meshComponent, float* axis, XMFLOAT3* value)
+			{
+				char dragLabel[256];
+				strcpy_s(dragLabel, label);
+				strcat_s(dragLabel, std::to_string(meshComponent->GetEntity()->GetObjectID()).c_str());
+
+				if (ImGui::SliderFloat(dragLabel, axis, -100, 100))
+				{
+					switch (vectorType)
+					{
+						case VectorType::Translation:
+							meshComponent->GetEntity()->m_Transform->Translate(*value); // Update, which gets pushed into the retrieval above. 
+							break;
+
+						case VectorType::Scale:
+							meshComponent->GetEntity()->m_Transform->Scale(*value); // Update, which gets pushed into the retrieval above. 
+							break;
+					}
+				}
+			};
+
+			ShowFloat(VectorType::Translation, "X", &meshComponent, &position.x, &position);
+			ShowFloat(VectorType::Translation, "Y", &meshComponent, &position.y, &position);
+			ShowFloat(VectorType::Translation, "Z", &meshComponent, &position.z, &position);
+
+			ShowFloat(VectorType::Scale, "SX", &meshComponent, &scale.x, &scale);
+			ShowFloat(VectorType::Scale, "SY", &meshComponent, &scale.y, &scale);
+			ShowFloat(VectorType::Scale, "SZ", &meshComponent, &scale.z, &scale);
 		}
 
 		ImGui::End();
-
+		
 		ImGui::Begin("Hierarchy");
 		auto& entities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
 		for (auto& entity : entities)

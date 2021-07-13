@@ -64,9 +64,9 @@ namespace Aurora
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_DOWN))
-        {       
+        {
             m_Position = m_Position + m_DownVector * m_Speed * deltaTime;
-            
+
             ComputeViewMatrix();
         }
 
@@ -85,7 +85,7 @@ namespace Aurora
         {
             m_FPS_Control = false;
         }
-        
+
         if (m_FPS_Control)
         {
             AdjustRotation((float)inputSystem->GetMousePositionDelta().second * 0.1f * deltaTime, (float)inputSystem->GetMousePositionDelta().first * 0.1f * deltaTime, 0.0f);
@@ -102,12 +102,12 @@ namespace Aurora
     {
         XMFLOAT3 rotation;
         XMStoreFloat3(&rotation, m_Rotation);
-        
+
         // Calculate Rotation Matrix.
         XMMATRIX cameraRotationMatrix = XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
 
         // Calculate unit vector of camera target based on our camera's forward value transformed by the rotation. Direction.
-        XMVECTOR cameraTarget = XMVector3TransformCoord(m_ForwardVector, cameraRotationMatrix); 
+        XMVECTOR cameraTarget = XMVector3TransformCoord(m_ForwardVector, cameraRotationMatrix);
 
         // Adjust camera target to be offset by the camera's current position.
         cameraTarget += m_Position;
@@ -148,7 +148,7 @@ namespace Aurora
         }
 
         float yaw = 0.0f;
-        if (lookAtPosition.x != 0.0f) 
+        if (lookAtPosition.x != 0.0f)
         {
             yaw = atan(lookAtPosition.x / lookAtPosition.z);
         }

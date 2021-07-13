@@ -150,6 +150,7 @@ namespace Aurora
             swapchainDescription.m_Height = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0));
 
             m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
+            m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
         }
 
         UpdateCameraConstantBuffer(m_Camera, 0);
@@ -205,6 +206,7 @@ namespace Aurora
 
         m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
 
+        // We can play around with the below flow by binding the right pipeline depending on the material extracted from the mesh's information.
         for (auto& meshComponent : meshComponents)
         {
             UINT offset = 0;
@@ -213,8 +215,8 @@ namespace Aurora
             m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
 
             ConstantBufferData_Camera constantBuffer;
-            XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_ObjectMatrix * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
-            XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, meshComponent.GetEntity()->m_ObjectMatrix);
+            XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix() * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+            XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix());
             m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
 
             ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();

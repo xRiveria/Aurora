@@ -40,4 +40,5 @@ namespace Aurora
     REGISTER_COMPONENT(Camera, ComponentType::Camera);
     REGISTER_COMPONENT(Light, ComponentType::Light);
     REGISTER_COMPONENT(Mesh, ComponentType::Mesh);
+    REGISTER_COMPONENT(Transform, ComponentType::Transform)
 }

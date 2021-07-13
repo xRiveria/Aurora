@@ -9,16 +9,24 @@
 #include "../Resource/Importers/tiny_obj_loader/tiny_obj_loader.h"
 #pragma warning(pop)
 
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
+
 /*
     The importer will create our the mesh entity and add its components respectively. Hence, the interface frees up massively, allowing us to simply call Importer.Load("filePath"). In addition, 
     Load will inherently determine the type of model file we're loading in.
 */
 
+using namespace Assimp;
+
 namespace Aurora
 {
     Importer_Model::Importer_Model(EngineContext* engineContext) : m_EngineContext(engineContext)
     {
+        m_WorldContext = m_EngineContext->GetSubsystem<World>();
 
+        /// Get Version Information.
     }
 
     void Importer_Model::Load(const std::string& filePath, const std::string& albedoPath)
@@ -31,13 +39,107 @@ namespace Aurora
         }
         else if (!extension.compare(".GLTF"))
         {
-
+            ImporterModel_General(filePath);
         }
         else if (!extension.compare(".GLB"))
         {
 
         }
     }
+
+    bool Importer_Model::ImporterModel_General(const std::string& filePath)
+    {
+        if (!FileSystem::Exists(filePath))
+        {
+            return false;
+        }
+
+        // Model Parameters
+        ModelParameters modelParameters;
+        modelParameters.m_TriangleLimit = 1000000;
+        modelParameters.m_VertexLimit = 1000000;
+        modelParameters.m_MaxNormalSmoothingAngle = 80.0f;    // Normals exceeding this limit are not smoothed.
+        modelParameters.m_MaxTangentSmoothingAngle = 80.0f;   // Tangents exceeding this limit are not smoothed. Default is 45, max is 175.
+        modelParameters.m_FilePath = filePath;
+        modelParameters.m_Name = FileSystem::GetNameFromFilePath(filePath);
+
+        // Setup an Assimp Importer.
+        Importer importer;
+        
+        const uint32_t importerFlags =
+            aiProcess_MakeLeftHanded            |
+            aiProcess_FlipUVs                   |
+            aiProcess_FlipWindingOrder          |
+            aiProcess_CalcTangentSpace          |
+            aiProcess_GenSmoothNormals          |
+            aiProcess_JoinIdenticalVertices     |
+            aiProcess_OptimizeMeshes            |
+            aiProcess_ImproveCacheLocality      |
+            aiProcess_RemoveRedundantMaterials  |
+            aiProcess_LimitBoneWeights          |
+            aiProcess_SplitLargeMeshes          |
+            aiProcess_Triangulate               |
+            aiProcess_GenUVCoords               |
+            aiProcess_SortByPType               |
+            aiProcess_FindDegenerates           |
+            aiProcess_FindInvalidData           |
+            aiProcess_FindInstances             |
+            aiProcess_ValidateDataStructure     |
+            aiProcess_Debone;
+
+        // Read the 3D model file from disk.
+        if (const aiScene* scene = importer.ReadFile(filePath, importerFlags))
+        {
+            /// Progress Tracking.
+            modelParameters.m_AssimpScene = scene;
+            modelParameters.m_HasAnimations = scene->mNumAnimations != 0;
+
+            // Create root entity to match Assimp's root node.
+            const bool isActive = false;
+            std::shared_ptr<Entity> newEntity = m_WorldContext->EntityCreate(isActive);
+            newEntity->SetName(modelParameters.m_Name); // Set custom name, which is more descriptive than "RootNode".
+            /// Set root entity for model.
+
+            // Parse all nodes, starting from the root node and continuing recursively.
+            ParseNode(scene->mRootNode, modelParameters, nullptr, newEntity.get());
+            /// Parse Animations.
+
+            // Update model geometry.
+            /// Create Render Data.
+        }
+        else
+        {
+            AURORA_ERROR("Failed to load model at %s", filePath.c_str());
+        }
+
+        importer.FreeScene();
+
+        return modelParameters.m_AssimpScene != nullptr;
+    }
+
+    void Importer_Model::ParseNode(const aiNode* assimpNode, const ModelParameters& modelParameters, Entity* parentEntity, Entity* newEntity)
+    {
+    }
+    void Importer_Model::ParseNodeMeshes(const aiNode* assimpNode, Entity& newEntity, const ModelParameters& modelParameters)
+    {
+    }
+    void Importer_Model::ParseAnimations(const ModelParameters& modelParameters)
+    {
+    }
+    void Importer_Model::LoadMesh(aiMesh* assimpMesh, Entity* parentEntity, const ModelParameters& modelParameters)
+    {
+    }
+
+
+
+
+
+
+
+
+
+
+
 
     void Importer_Model::ImportModel_OBJ(const std::string& filePath, const std::string& albedoPath)
     {

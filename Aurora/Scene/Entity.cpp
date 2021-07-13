@@ -11,6 +11,8 @@ namespace Aurora
         m_EngineContext = engineContext;
         m_ObjectName = "Entity";
         m_IsActive = true;
+
+        m_Transform = AddComponent<Transform>();
     }
 
     Entity::~Entity()
