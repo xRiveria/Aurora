@@ -6,7 +6,6 @@
 #include "../Scene/Components/Camera.h"
 #include "RendererEnums.h"
 #include "ShaderCompiler.h"
-#include "Weather.h"
 #include "../Resource/Importers/Importer_Model.h"
 
 using namespace DirectX;
@@ -48,6 +47,7 @@ namespace Aurora
         void LoadBuffers();
         void LoadShaders();
         bool LoadShader(Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel = Shader_Model::ShaderModel_5_0);
+        void LoadDefaultTextures();
 
         void LoadPipelineStates();
         // void ReloadShaders();  // Fire shader reload event. Calls LoadShaders() again.
@@ -71,10 +71,10 @@ namespace Aurora
         
         // Camera
         std::shared_ptr<Entity> m_Camera;
-
-        // Weather
-        Weather m_WeatherSystem;
         
         std::shared_ptr<Importer_Model> m_Importer_Model;
+
+        // Default Textures
+        std::shared_ptr<AuroraResource> m_DefaultWhiteTexture;
     };
 }

@@ -122,6 +122,10 @@ namespace Aurora
         struct EmptyResourceHandle {}; 
         std::shared_ptr<EmptyResourceHandle> m_EmptyResource;
 
+        // Device Information
+        std::string m_AdapterName;
+        float m_GraphicsMemory;
+
     private:
         EngineContext* m_EngineContext;
     };

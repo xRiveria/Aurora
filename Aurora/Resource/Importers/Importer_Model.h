@@ -42,7 +42,7 @@ namespace Aurora
         // Parsing
         void ParseNode(const aiNode* assimpNode, const ModelParameters& modelParameters, Entity* parentEntity = nullptr, Entity* newEntity = nullptr);
         void ParseNodeMeshes(const aiNode* assimpNode, Entity* newEntity, const ModelParameters& modelParameters);
-        void ParseAnimations(const ModelParameters& modelParameters);
+        // void ParseAnimations(const ModelParameters& modelParameters);
 
         // Loading
         void LoadMesh(aiMesh* assimpMesh, Entity* parentEntity, const ModelParameters& modelParameters);

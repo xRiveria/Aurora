@@ -1,5 +1,6 @@
 #include "Aurora.h"
 #include "ResourceCache.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include "Importers/stb_image/stb_image.h"
 #include "FileSystem.h"
 #include "../Renderer/Renderer.h"

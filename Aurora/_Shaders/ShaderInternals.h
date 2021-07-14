@@ -23,6 +23,7 @@ CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
     // Temporary
     float4   g_Light_Position;
     float4   g_Light_Color;
+    float3   g_Light_Direction;  
 };
 
 // Common Constant Buffers

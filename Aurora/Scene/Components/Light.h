@@ -37,7 +37,7 @@ namespace Aurora
 
         XMFLOAT3 m_Position = { 0.0, 0.0, 0.0 };
         float m_RangeGlobal;
-        XMFLOAT3 m_Direction;
+        XMFLOAT3 m_Direction = { -2.0f, -1.0f, -0.3f };
         XMFLOAT3 m_Rotation;
         XMFLOAT3 m_Scale;
         XMFLOAT3 m_Front;

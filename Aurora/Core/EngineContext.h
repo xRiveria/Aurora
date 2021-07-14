@@ -3,6 +3,7 @@
 #include <memory>
 #include "../Log/Log.h"
 #include "ISubsystem.h"
+#include "Engine.h"
 
 namespace Aurora
 {

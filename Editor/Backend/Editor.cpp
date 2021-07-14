@@ -10,6 +10,8 @@
 #include "../Scene/Components/Light.h"
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Material.h" 
+
+#include "../Widgets/QuickDiagnostics.h"
 #include <optional>
 
 namespace EditorConfigurations
@@ -79,6 +81,12 @@ void Editor::Tick()
 		// Render ImGui Stuff
 		BeginDockingContext();  // The start of a docking context.
 
+		// Editor Tick
+		for (std::shared_ptr<Widget>& widget : m_Widgets) // Tick each individual widget. Each widget contains its own ImGui::Begin and ImGui::End behavior (based on visibility/constantness).
+		{
+			widget->Tick();
+		}
+
 		ImGui::Begin("Test");
 		auto internalState = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
 		ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
@@ -87,10 +95,10 @@ void Editor::Tick()
 		ImGui::Begin("Light Properties");
 		Aurora::Light* component = m_EngineContext->GetSubsystem<Aurora::World>()->GetEntityByName("Directional_Light")->GetComponent<Aurora::Light>();
 		float* color[3] = { &component->m_Color.x, &component->m_Color.y, &component->m_Color.z };
-		ImGui::SliderFloat3("Ambient Color", *color, 0.0, 1.0);
+		ImGui::DragFloat3("Ambient Color", *color, 0.0, 1.0);
 
 		float* position[3] = { &component->m_Position.x, &component->m_Position.y, &component->m_Position.z };
-		ImGui::SliderFloat3("Position", *position, -150, 150);
+		ImGui::DragFloat3("Position", *position, 0.1, std::numeric_limits<float>::lowest(), (std::numeric_limits<float>::max)());
 		ImGui::End();
 
 		std::vector<std::shared_ptr<Aurora::Entity>> sceneEntities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
@@ -189,6 +197,9 @@ void Editor::InitializeEditor()
 {
 	ImGuiImplementation_Initialize(m_EngineContext);
 	ImGuiImplementation_ApplyStyling();
+
+	// Create all ImGui widgets.
+	m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
 }
 
 void Editor::BeginDockingContext()

@@ -294,8 +294,8 @@ namespace Aurora
                 }
             }
 
-            AURORA_WARNING("Could not find texture of appropriate type! Binding default texture...");
-            material->m_Textures[engineSlotType].m_Resource = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Default", "../Resources/Textures/Default/White.jpg");            
+            AURORA_WARNING("Could not find texture of appropriate type. Binding default texture...");
+            material->m_Textures[engineSlotType].m_Resource = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
         };
         
         // Engine Texture, Assimp PBR Texture, Assimp Legacy Texture (Fallback)

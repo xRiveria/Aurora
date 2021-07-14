@@ -25,11 +25,13 @@ namespace Aurora
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
         m_Importer_Model = std::make_shared<Importer_Model>(m_EngineContext);
         m_ShaderCompiler.Initialize();
+
         LoadShaders();
         LoadStates();
         LoadBuffers();
         LoadPipelineStates();
         ResizeBuffers();
+        LoadDefaultTextures();
 
         RHI_SwapChain_Description swapchainDescription;
         swapchainDescription.m_Width = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0));
@@ -44,7 +46,7 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
         m_Importer_Model->Load("../Resources/Models/Hollow_Knight/source/v3.obj");
-        m_Importer_Model->Load("../Resources/Models/BrokenHelmet/DamagedHelmet.gltf");
+        // m_Importer_Model->Load("../Resources/Models/Lamp/light.fbx");
         // m_Importer_Model->Load("../Resources/Models/Hammer/source/stormbreakerfull.fbx");
 
         // For scissor rects in our rasterizer set.
@@ -285,9 +287,13 @@ namespace Aurora
         XMStoreFloat4x4(&miscBuffer.g_Transform, camera->GetViewProjectionMatrix());
         miscBuffer.g_Color = float4(1, 1, 1, 1);
 
+        //=========================================================================
+
         Aurora::Light* component = m_EngineContext->GetSubsystem<Aurora::World>()->GetEntityByName("Directional_Light")->GetComponent<Aurora::Light>();
         miscBuffer.g_Light_Color = { component->m_Color.x, component->m_Color.y, component->m_Color.z, 0 };
         miscBuffer.g_Light_Position = { component->m_Position.x, component->m_Position.y, component->m_Position.z, 0 };
+
+        //=========================================================================
 
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
         m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);

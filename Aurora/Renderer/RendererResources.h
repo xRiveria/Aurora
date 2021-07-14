@@ -73,6 +73,11 @@ namespace Aurora
         return false;
     }
 
+    void Renderer::LoadDefaultTextures()
+    {
+        m_DefaultWhiteTexture = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load("Default White", "../Resources/Textures/Default/White.png");
+    }
+
     void Renderer::LoadShaders()
     {
         LoadShader(Shader_Stage::Vertex_Shader, m_VertexShader, "TriangleVS.hlsl");

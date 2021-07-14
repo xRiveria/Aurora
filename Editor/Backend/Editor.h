@@ -2,7 +2,7 @@
 #include <memory>
 #include "Engine.h"
 #include "EngineContext.h"
-#include "../Graphics/RHI_Implementation.h"
+#include "Widget.h"
 #include <optional>
 
 class Editor
@@ -31,5 +31,5 @@ private:
 
 	// Editor Contexts
 	bool m_EditorBegun = false;
-	/// std::vector<std::shared_ptr<Widget>> m_Widgets;
+	std::vector<std::shared_ptr<Widget>> m_Widgets;
 };

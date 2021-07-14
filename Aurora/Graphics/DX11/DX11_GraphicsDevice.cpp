@@ -54,6 +54,12 @@ namespace Aurora
         BreakIfFailed(pDXGIDevice2->GetAdapter(&pDXGIAdapter));                                   // Retrieve our adapter from the device.
         BreakIfFailed(pDXGIAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&m_DXGIFactory));  // Retrieve our factory from the adapter. This factory is created implicitly on device creation.
 
+        DXGI_ADAPTER_DESC adapterDescription;
+        pDXGIAdapter->GetDesc(&adapterDescription);
+
+        m_AdapterName = FileSystem::WStringToString(adapterDescription.Description); // We are saving this as a const char* for our editor display.
+        m_GraphicsMemory = adapterDescription.DedicatedVideoMemory / (1024.f * 1024.f);
+
         QueryFeatureSupport();
         m_EmptyResource = std::make_shared<EmptyResourceHandle>();
     }
