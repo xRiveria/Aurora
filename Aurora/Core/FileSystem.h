@@ -15,8 +15,11 @@ namespace Aurora
 
         // Paths
         static bool Exists(const std::string& filePath);
+        static std::string GetDirectoryFromFilePath(const std::string& filePath);
         static std::string GetExtensionFromFilePath(const std::string& filePath);
-        static std::string GetNameFromFilePath(const std::string& filePath);
+        static std::string GetFileNameFromFilePath(const std::string& filePath);
+        static std::string GetFileNameWithoutExtensionFromFilePath(const std::string& filePath);
+        static std::string GetFilePathWithoutExtension(const std::string& filePath);
         static std::string ReplaceExtension(const std::string& filePath, const std::string& fileExtension);
         
         // Path Absolute
@@ -26,10 +29,44 @@ namespace Aurora
         static bool PushFileDataToBuffer(const std::string& fileName, std::vector<uint8_t>& data);
 
         // Supported Files in Directory
+        static bool IsSupportedImageFile(const std::string& filePath);
     };
+
+    static const char* EXTENSION_TEXTURE = ".texture";
 
     static const std::vector<std::string> g_Supported_Image_Formats
     {
-
+        ".jpg",
+        ".png",
+        ".bmp",
+        ".tga",
+        ".dds",
+        ".exr",
+        ".raw",
+        ".gif",
+        ".hdr",
+        ".ico",
+        ".iff",
+        ".jng",
+        ".jpeg",
+        ".koala",
+        ".kodak",
+        ".mng",
+        ".pcx",
+        ".pbm",
+        ".pgm",
+        ".ppm",
+        ".pfm",
+        ".pict",
+        ".psd",
+        ".raw",
+        ".sgi",
+        ".targa",
+        ".tiff",
+        ".tif", 
+        ".wbmp",
+        ".webp",
+        ".xbm",
+        ".xpm"
     };
 }

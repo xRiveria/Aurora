@@ -6,6 +6,7 @@
 #include "RendererResources.h"
 #include "../Scene/Components/Light.h"
 #include "../Scene/Components/Mesh.h"
+#include "../Scene/Components/Material.h"
 
 namespace Aurora
 {
@@ -42,8 +43,9 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(3.0f, 3.0f, -10.0f);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
-        m_Importer_Model->Load("../Resources/Models/Hollow_Knight/v3.obj", "../Resources/Models/Hollow_Knight/textures/None_2_Base_Color.png");
-        m_Importer_Model->Load("../Resources/Models/BrokenHelmet/DamagedHelmet.gltf", "../Resources/Models/BrokenHelmet/Default_albedo.jpg");
+        m_Importer_Model->Load("../Resources/Models/Hollow_Knight/source/v3.obj");
+        m_Importer_Model->Load("../Resources/Models/BrokenHelmet/DamagedHelmet.gltf");
+        // m_Importer_Model->Load("../Resources/Models/Hammer/source/stormbreakerfull.fbx");
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -211,8 +213,11 @@ namespace Aurora
         {
             UINT offset = 0;
             UINT modelStride = 8 * sizeof(float);
-            ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.m_BaseTexture->m_Texture)->m_ShaderResourceView.Get();
-            m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
+            if (meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture.IsValid())
+            {
+                ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture)->m_ShaderResourceView.Get();
+                m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
+            }
 
             ConstantBufferData_Camera constantBuffer;
             XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix() * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());

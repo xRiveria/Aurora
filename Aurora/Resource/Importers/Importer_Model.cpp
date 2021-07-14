@@ -3,11 +3,7 @@
 #include "../Scene/World.h"
 #include "../Scene/Entity.h"
 #include "../Scene/Components/Mesh.h"
-
-#pragma warning(push, 0)
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "../Resource/Importers/tiny_obj_loader/tiny_obj_loader.h"
-#pragma warning(pop)
+#include "../Scene/Components/Material.h"
 
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
@@ -20,8 +16,6 @@
 
 using namespace Assimp;
 
-std::string g_TemporaryPath = "Derp";
-
 namespace Aurora
 {
     Importer_Model::Importer_Model(EngineContext* engineContext) : m_EngineContext(engineContext)
@@ -31,13 +25,12 @@ namespace Aurora
         /// Get Version Information.
     }
 
-    void Importer_Model::Load(const std::string& filePath, const std::string& albedoPath)
+    void Importer_Model::Load(const std::string& filePath)
     {
-
-        ImporterModel_General(filePath, albedoPath);
+        ImporterModel_General(filePath);
     }
 
-    bool Importer_Model::ImporterModel_General(const std::string& filePath, const std::string& albedoPath)
+    bool Importer_Model::ImporterModel_General(const std::string& filePath)
     {
         if (!FileSystem::Exists(filePath))
         {
@@ -51,7 +44,7 @@ namespace Aurora
         modelParameters.m_MaxNormalSmoothingAngle = 80.0f;    // Normals exceeding this limit are not smoothed.
         modelParameters.m_MaxTangentSmoothingAngle = 80.0f;   // Tangents exceeding this limit are not smoothed. Default is 45, max is 175.
         modelParameters.m_FilePath = filePath;
-        modelParameters.m_Name = FileSystem::GetNameFromFilePath(filePath);
+        modelParameters.m_Name = FileSystem::GetFileNameFromFilePath(filePath);
 
         // Setup an Assimp Importer.
         Importer importer;
@@ -100,7 +93,6 @@ namespace Aurora
             /// Set root entity for model.
 
             // Parse all nodes, starting from the root node and continuing recursively.
-            g_TemporaryPath = albedoPath;
             ParseNode(scene->mRootNode, modelParameters, nullptr, newEntity.get());
             /// Parse Animations.
 
@@ -128,7 +120,9 @@ namespace Aurora
         /// Progress Tracking.
 
         /// Transform Stuff.
-
+        newEntity->m_Transform->Scale({ 0.4f, 0.4f, 0.4f });
+        // newEntity->m_Transform->RotateRollPitchYaw ({ 90, 0, 0 });
+            
         // Process all of the node's meshes.
         ParseNodeMeshes(assimpNode, newEntity, modelParameters);
 
@@ -234,11 +228,153 @@ namespace Aurora
         }
         
         meshComponent->m_Indices = indices;
-        meshComponent->m_BaseTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Hollow_Knight_Albedo.png", g_TemporaryPath);
 
         meshComponent->CreateRenderData();
+
+        // Material
+        if (modelParameters.m_AssimpScene->HasMaterials())
+        {
+            const auto assimpMaterial = modelParameters.m_AssimpScene->mMaterials[assimpMesh->mMaterialIndex];   // Get aiMaterial for this specific mesh.
+            LoadMaterial(assimpMaterial, modelParameters, parentEntity);                                         // Convert it and add it to the model.
+        }
+
+        /// Bones.
     }
 
+    void Importer_Model::LoadMaterial(aiMaterial* assimpMaterial, const ModelParameters& modelParameters, Entity* materialEntity)
+    {
+        if (!assimpMaterial)
+        {
+            AURORA_WARNING("One of the provided materials is null. LoadMaterial cannot be executed.");
+            return;
+        }
+
+        Material* material = materialEntity->AddComponent<Material>();
+
+        // Name
+        aiString materialName;
+        aiGetMaterialString(assimpMaterial, AI_MATKEY_NAME, &materialName);
+        /// Set a resource file path so it can be used by the resource cache.
+
+        // Diffuse Color
+        aiColor4D diffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+        aiGetMaterialColor(assimpMaterial, AI_MATKEY_COLOR_DIFFUSE, &diffuseColor);
+
+        // Opacity
+        aiColor4D opacity(1.0f, 1.0f, 1.0f, 1.0f);
+        aiGetMaterialColor(assimpMaterial, AI_MATKEY_OPACITY, &opacity);
+
+        material->SetBaseColor( { diffuseColor.r, diffuseColor.g, diffuseColor.b, opacity.r } );
+
+        const auto LoadMaterialTexture = [this, &modelParameters, &assimpMaterial, &material](TextureSlot engineSlotType, const aiTextureType assimpTextureTypePBR, const aiTextureType assimpTextureTypeLegacy)
+        {
+            aiTextureType typeAssimp = assimpMaterial->GetTextureCount(assimpTextureTypePBR) > 0 ? assimpTextureTypePBR : aiTextureType_NONE;
+            typeAssimp = assimpMaterial->GetTextureCount(assimpTextureTypeLegacy) > 0 ? assimpTextureTypeLegacy : typeAssimp;
+
+            aiString texturePath;
+            if (assimpMaterial->GetTextureCount(typeAssimp) > 0)
+            {
+                if (AI_SUCCESS == assimpMaterial->GetTexture(typeAssimp, 0, &texturePath))
+                {
+                    const std::string deducedPath = ValidateTexturePath(texturePath.data, modelParameters.m_FilePath);
+                    if (FileSystem::IsSupportedImageFile(deducedPath))
+                    {
+                        material->m_Textures[engineSlotType].m_FilePath = deducedPath;
+                        material->m_Textures[engineSlotType].m_Resource = m_EngineContext->GetSubsystem<ResourceCache>()->Load(FileSystem::GetFileNameFromFilePath(deducedPath), deducedPath);
+
+                        if (typeAssimp == aiTextureType_BASE_COLOR || typeAssimp == aiTextureType_DIFFUSE)
+                        {
+                            material->SetBaseColor({ 0.0f, 0.0f, 0.0f, 0.0f });
+                        }
+
+                        /// Normal/Height Map Stuff.
+
+                        return; // Crucial, else we will revert to binding a default texture.
+                    }
+                }
+            }
+
+            AURORA_WARNING("Could not find texture of appropriate type! Binding default texture...");
+            material->m_Textures[engineSlotType].m_Resource = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Default", "../Resources/Textures/Default/White.jpg");            
+        };
+        
+        // Engine Texture, Assimp PBR Texture, Assimp Legacy Texture (Fallback)
+        LoadMaterialTexture(TextureSlot::BaseColorMap, aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE);
+    }
+
+    std::string Importer_Model::TextureTryMultipleExtensions(const std::string& filePath)
+    {
+        // Remove extension.
+        const std::string filePathNoExtension = FileSystem::GetFilePathWithoutExtension(filePath);
+
+        // Check if the file exists using all engine supported extensions.
+        for (const std::string& supportedFormat : g_Supported_Image_Formats)
+        {
+            std::string newFilePath = filePathNoExtension + supportedFormat;
+            std::string newFilePathUpper = filePathNoExtension + FileSystem::ConvertToUppercase(supportedFormat);
+
+            if (FileSystem::Exists(newFilePath))
+            {
+                return newFilePath;
+            }
+
+            if (FileSystem::Exists(newFilePathUpper))
+            {
+                return newFilePathUpper;
+            }
+        }
+
+        return filePath;
+    }
+
+    std::string Importer_Model::ValidateTexturePath(std::string originalTexturePath, const std::string& modelPath)
+    {
+        std::replace(originalTexturePath.begin(), originalTexturePath.end(), '\\', '/');
+
+        // Models usually return a texture path that is relative to the model's directory. However, to load anything, we will need an absolute path. We will thus construct it here.
+        const std::string modelDirectory = FileSystem::GetDirectoryFromFilePath(modelPath);
+        std::string fullTexturePath = modelDirectory + originalTexturePath;
+
+        // 1) Check if the texture path is valid.
+        if (FileSystem::Exists(fullTexturePath))
+        {
+            AURORA_INFO("Model Texture Found: %s.", fullTexturePath.c_str());
+            return fullTexturePath;
+        }
+
+        // 2) Check the same texture path as previously but this time with different file extensions (jpg, png and so on).
+        fullTexturePath = TextureTryMultipleExtensions(fullTexturePath);
+        if (FileSystem::Exists(fullTexturePath))
+        {
+            AURORA_INFO("Model Texture Found: %s.", fullTexturePath.c_str());
+            return fullTexturePath;
+        }
+
+        // At this point, we know that the provided path is wrong, but we can make a few guesses. The most common mistake is that the arist provided a path relative to his/her computer.
+        // 3) Check if the texture is in the same folder as the model.
+        fullTexturePath = modelDirectory + FileSystem::GetFileNameFromFilePath(fullTexturePath);
+        if (FileSystem::Exists(fullTexturePath))
+        {
+            AURORA_INFO("Model Texture Found: %s.", fullTexturePath.c_str());
+            return fullTexturePath;
+        }
+
+        // 4) Check the same texture path as previously but with different file extensions (jpg, png and so on).
+        fullTexturePath = TextureTryMultipleExtensions(fullTexturePath);
+        if (FileSystem::Exists(fullTexturePath))
+        {
+            AURORA_INFO("Model Texture Found: %s.", fullTexturePath.c_str());
+            return fullTexturePath;
+        }
+
+        // Give up, no valid texture path was found.
+        AURORA_WARNING("Model Texture could not be found: %s.", fullTexturePath.c_str());
+        return "";
+    }
+
+
+ /* Old Model Loading with TinyOBJ
+ 
     void Importer_Model::ImportModel_OBJ(const std::string& filePath, const std::string& albedoPath)
     {
         World* worldContext = m_EngineContext->GetSubsystem<World>();
@@ -364,4 +500,5 @@ namespace Aurora
             meshComponent->CreateRenderData();
         }
     }
+ */
 }

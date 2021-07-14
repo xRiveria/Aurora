@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "EngineContext.h"
 #include "../Graphics/RHI_Implementation.h"
+#include <optional>
 
 class Editor
 {
@@ -19,6 +20,9 @@ private:
 	void ImGuiImplementation_Initialize(Aurora::EngineContext* engineContext);
 	void ImGuiImplementation_Shutdown();
 	void ImGuiImplementation_ApplyStyling();
+
+private:
+	std::optional<std::string> OpenFilePath(const char* filter); // Temporary
 
 private:
 	// Engine Contexts

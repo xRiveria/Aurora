@@ -24,7 +24,5 @@ namespace Aurora
 
         RHI_GPU_Buffer m_IndexBuffer;
         RHI_GPU_Buffer m_VertexBuffer_Position;
-
-        std::shared_ptr<AuroraResource> m_BaseTexture = nullptr;
     };
 }

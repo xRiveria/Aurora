@@ -11,6 +11,7 @@ namespace Aurora
         Light,
         Mesh,
         Transform,
+        Material,
         Unknown
     };
 

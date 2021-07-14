@@ -59,6 +59,18 @@ namespace Aurora
         return false;
     }
 
+    std::string FileSystem::GetDirectoryFromFilePath(const std::string& filePath)
+    {
+        const size_t lastIndex = filePath.find_last_of("\\/");
+
+        if (lastIndex != std::string::npos)
+        {
+            return filePath.substr(0, lastIndex + 1); // To keep our /.
+        }
+
+        return "";
+    }
+
     std::string FileSystem::GetExtensionFromFilePath(const std::string& filePath)
     {
         std::string extension;
@@ -75,9 +87,27 @@ namespace Aurora
         return extension;
     }
 
-    std::string FileSystem::GetNameFromFilePath(const std::string& filePath)
+    std::string FileSystem::GetFileNameFromFilePath(const std::string& filePath)
     {
         return std::filesystem::path(filePath).filename().generic_string();
+    }
+
+    std::string FileSystem::GetFileNameWithoutExtensionFromFilePath(const std::string& filePath)
+    {
+        const std::string fileName = GetFileNameFromFilePath(filePath);
+        const size_t lastIndex = fileName.find_last_of('.');
+
+        if (lastIndex != std::string::npos)
+        {
+            return fileName.substr(0, lastIndex);
+        }
+
+        return "";
+    }
+
+    std::string FileSystem::GetFilePathWithoutExtension(const std::string& filePath)
+    {
+        return GetDirectoryFromFilePath(filePath) + GetFileNameWithoutExtensionFromFilePath(filePath);
     }
 
     std::string FileSystem::ReplaceExtension(const std::string& filePath, const std::string& fileExtension)
@@ -120,6 +150,26 @@ namespace Aurora
         }
 
         AURORA_ERROR("File not found: %s.", fileName.c_str());
+        return false;
+    }
+
+    bool FileSystem::IsSupportedImageFile(const std::string& filePath)
+    {
+        const std::string extension = GetExtensionFromFilePath(filePath);
+
+        for (const std::string& format : g_Supported_Image_Formats)
+        {
+            if (extension == format || extension == ConvertToUppercase(format))
+            {
+                return true;
+            }
+        }
+
+        if (GetExtensionFromFilePath(filePath) == EXTENSION_TEXTURE)
+        {
+            return true;
+        }
+
         return false;
     }
 }
