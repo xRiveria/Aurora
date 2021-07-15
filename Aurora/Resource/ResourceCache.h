@@ -1,9 +1,14 @@
 #pragma once
 #include <memory>
-#include <mutex>
 #include <unordered_map>
 #include "ISubsystem.h"
 #include "ResourceUtilities.h"
+
+/*
+    - Integrate Image/Model Importers Here.
+    - Resource Registry.
+    - Total Vertice/Indices
+*/
 
 namespace Aurora
 {

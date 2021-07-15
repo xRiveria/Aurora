@@ -8,6 +8,8 @@
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Material.h"
 
+using namespace DirectX;
+
 namespace Aurora
 {
     Renderer::Renderer(EngineContext* engineContext) : ISubsystem(engineContext)
@@ -46,8 +48,8 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
         m_Importer_Model->Load("../Resources/Models/Hollow_Knight/source/v3.obj");
-        // m_Importer_Model->Load("../Resources/Models/Lamp/light.fbx");
-        // m_Importer_Model->Load("../Resources/Models/Hammer/source/stormbreakerfull.fbx");
+        m_Importer_Model->Load("../Resources/Models/Skybox/skybox.obj", "Skybox");
+        m_EngineContext->GetSubsystem<World>()->GetEntityByName("defaultobject")->GetComponent<Transform>()->Scale({ 35, 35, 35 });
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -215,6 +217,7 @@ namespace Aurora
         {
             UINT offset = 0;
             UINT modelStride = 8 * sizeof(float);
+
             if (meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture.IsValid())
             {
                 ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture)->m_ShaderResourceView.Get();
@@ -225,10 +228,11 @@ namespace Aurora
             XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix() * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
             XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix());
             m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
-
             ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
 
+            
             m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
+            
             m_GraphicsDevice->BindIndexBuffer(&meshComponent.m_IndexBuffer, meshComponent.GetIndexFormat(), 0, 0);
 
             m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(meshComponent.m_Indices.size(), 0, 0);

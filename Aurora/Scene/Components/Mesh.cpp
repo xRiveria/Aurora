@@ -57,12 +57,37 @@ namespace Aurora
 
         // Grab vertex positions and store them in our own data structure.
         std::vector<Vertex_Position> vertices(m_VertexPositions.size());
+
+        bool isVertexNormalsEmpty = false;
+        bool isTexCoordsEmpty = false;
+        if (m_VertexNormals.empty())
+        {
+            isVertexNormalsEmpty = true;
+        }
+        if (m_UVSet_0.empty())
+        {
+            isTexCoordsEmpty = true;
+        }
+
         for (size_t i = 0; i < vertices.size(); ++i)
         {
-            const XMFLOAT3& position = m_VertexPositions[i];
             /// Normals.
             /// Wind Weights.
-            vertices[i].Populate(position, m_UVSet_0[i], m_VertexNormals[i]);
+            const XMFLOAT3& position = m_VertexPositions[i];
+            XMFLOAT3 texNormals = { 0, 0, 0 };
+            XMFLOAT2 texCoords = { 0, 0 };
+
+            if (!isVertexNormalsEmpty)
+            {
+                texNormals = m_VertexNormals[i];
+            }
+
+            if (!isTexCoordsEmpty)
+            {
+                texCoords = m_UVSet_0[i];
+            }
+
+            vertices[i].Populate(position, texCoords, texNormals);
 
             minimumVector = Aurora::Math::Minimum(minimumVector, position);
             maximumVector = Aurora::Math::Maximum(maximumVector, position);

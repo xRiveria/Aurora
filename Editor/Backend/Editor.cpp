@@ -11,7 +11,9 @@
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Material.h" 
 
+#include "../Widgets/MenuBar.h"
 #include "../Widgets/QuickDiagnostics.h"
+#include "../Widgets/Toolbar.h"
 #include <optional>
 
 namespace EditorConfigurations
@@ -200,6 +202,8 @@ void Editor::InitializeEditor()
 
 	// Create all ImGui widgets.
 	m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<MenuBar>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));
 }
 
 void Editor::BeginDockingContext()
@@ -211,7 +215,7 @@ void Editor::BeginDockingContext()
 
 	// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
 	// because it would be confusing to have two docking targets within each others.
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
 	if (opt_fullscreen)
 	{
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -302,9 +306,18 @@ void Editor::ImGuiImplementation_ApplyStyling()
 {
 	// Apply Dark Style
 	ImGui::StyleColorsDark();
+	ImGuiIO& io = ImGui::GetIO();
+
+	// When viewports are enabled, we tweak WindowRounding/WindowBg so Window platforms can look identifical to regular ones.
+	ImGuiStyle& style = ImGui::GetStyle();
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		style.WindowRounding = 0.0f;
+		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+	}
+
 	ImVec4* colors = ImGui::GetStyle().Colors;
 
-	// Window Background
 	colors[ImGuiCol_WindowBg] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
 
 	// Headers

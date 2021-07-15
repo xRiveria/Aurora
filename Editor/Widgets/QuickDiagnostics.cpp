@@ -15,10 +15,9 @@ QuickDiagnostics::QuickDiagnostics(Editor* editorContext, Aurora::EngineContext*
     m_Renderer = engineContext->GetSubsystem<Aurora::Renderer>();
 
 	// CPU & RAM Retrieval
-	MEMORYSTATUSEX memoryStatus;
-	memoryStatus.dwLength = sizeof(MEMORYSTATUSEX);
-	GlobalMemoryStatusEx(&memoryStatus);
-	m_PhysicalMemoryTotal = (float)memoryStatus.ullTotalPhys / 1048576;
+	m_MemoryStatus.dwLength = sizeof(MEMORYSTATUSEX);
+	GlobalMemoryStatusEx(&m_MemoryStatus);
+	m_PhysicalMemoryTotal = (float)m_MemoryStatus.ullTotalPhys / 1048576;
 
 	RetrieveProcessorInformation();
 }
@@ -27,7 +26,7 @@ void QuickDiagnostics::OnTickVisible()
 {
 	ImGui::Text("CPU: %s", m_CPU_BrandString);
     ImGui::Text("GPU: %s", m_Renderer->m_GraphicsDevice->m_AdapterName.c_str());  // Vendor Name
-	ImGui::Text("Physical Memory: %.0f MB", m_PhysicalMemoryTotal);
+	ImGui::Text("Physical Memory: %.0f MB / %.0f MB", GetCurrentPhysicalMemoryUsage(), m_PhysicalMemoryTotal);
     ImGui::Text("Graphics Memory: %.0f MB", m_Renderer->m_GraphicsDevice->m_GraphicsMemory);
 
     ImGui::Separator();
@@ -56,4 +55,10 @@ void QuickDiagnostics::RetrieveProcessorInformation()
 		else if (i == 0x80000004)
 			memcpy(m_CPU_BrandString + 32, CPUInfo, sizeof(CPUInfo));
 	}
+}
+
+float QuickDiagnostics::GetCurrentPhysicalMemoryUsage()
+{
+	GlobalMemoryStatusEx(&m_MemoryStatus);
+	return (m_MemoryStatus.ullTotalPhys - m_MemoryStatus.ullAvailPhys) / 1048576;
 }

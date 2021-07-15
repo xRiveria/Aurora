@@ -25,12 +25,12 @@ namespace Aurora
         /// Get Version Information.
     }
 
-    void Importer_Model::Load(const std::string& filePath)
+    void Importer_Model::Load(const std::string& filePath, const std::string& fileName)
     {
-        ImporterModel_General(filePath);
+        ImporterModel_General(filePath, fileName);
     }
 
-    bool Importer_Model::ImporterModel_General(const std::string& filePath)
+    bool Importer_Model::ImporterModel_General(const std::string& filePath, const std::string& fileName)
     {
         if (!FileSystem::Exists(filePath))
         {
@@ -89,7 +89,9 @@ namespace Aurora
             // Create root entity to match Assimp's root node.
             const bool isActive = false;
             std::shared_ptr<Entity> newEntity = m_WorldContext->EntityCreate(isActive);
-            newEntity->SetName(modelParameters.m_Name); // Set custom name, which is more descriptive than "RootNode".
+
+            if (fileName == "") { newEntity->SetName(modelParameters.m_Name); } else { newEntity->SetName(fileName); }
+
             /// Set root entity for model.
 
             // Parse all nodes, starting from the root node and continuing recursively.

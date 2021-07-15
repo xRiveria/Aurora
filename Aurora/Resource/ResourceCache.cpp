@@ -4,6 +4,8 @@
 #include "Importers/stb_image/stb_image.h"
 #include "FileSystem.h"
 #include "../Renderer/Renderer.h"
+#include "ResourceUtilities.h"
+
 
 namespace Aurora
 {

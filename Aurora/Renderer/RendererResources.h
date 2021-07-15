@@ -97,9 +97,17 @@ namespace Aurora
             { "TEXCOORD", 0, Format::FORMAT_R32G32B32A32_FLOAT, 0, RHI_InputLayout::APPEND_ALIGNED_ELEMENT, Input_Classification::Input_Per_Vertex_Data },
         };
 
+        // Skybox
+        RendererGlobals::g_InputLayouts[InputLayout_Types::InputLayout_Position].m_Elements =
+        {
+            { "POSITION", 0, Format::FORMAT_R32G32B32_FLOAT, 0, 0, Input_Classification::Input_Per_Vertex_Data }
+        };
+
+        LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_Sky], "SkyboxVS.hlsl");
+        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Static], "SkyboxPS.hlsl");
+
         LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_VertexColor], "VertexColorVS.hlsl");
-        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_PixelColor], "VertexColorPS.hlsl");
-        
+        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_PixelColor], "VertexColorPS.hlsl");   
     }
 
     void Renderer::LoadStates()
@@ -222,10 +230,9 @@ namespace Aurora
 
         RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default] = depthStencilState;
 
-        depthStencilState.m_IsDepthEnabled = true;
         depthStencilState.m_IsStencilEnabled = false;
         depthStencilState.m_DepthWriteMask = Depth_Write_Mask::Depth_Write_Mask_Zero;
-        depthStencilState.m_DepthComparisonFunction = ComparisonFunction::Comparison_Less_Equal;
+        // depthStencilState.m_DepthComparisonFunction = ComparisonFunction::Comparison_Less_Equal;
         
         RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead] = depthStencilState;
 
@@ -282,22 +289,22 @@ namespace Aurora
 
         pipelineDescription.m_VertexShader = &m_VertexShader;
         pipelineDescription.m_PixelShader = &m_PixelShader;
+        pipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
         pipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Front];
         pipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
         pipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
-
-        pipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
 
         m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_Wire);
 
         //=========================================================
 
         RHI_PipelineState_Description skyPipelineDescription;
-        skyPipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Sky];
-        skyPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead];
-        skyPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
         skyPipelineDescription.m_VertexShader = &RendererGlobals::g_Shaders[Shader_Types::VS_Type_Sky];
         skyPipelineDescription.m_PixelShader = &RendererGlobals::g_Shaders[Shader_Types::PS_Type_Sky_Static];
+        skyPipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::InputLayout_Position];
+        skyPipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Front];
+        skyPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
+        skyPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead];
 
         m_GraphicsDevice->CreatePipelineState(&skyPipelineDescription, &RendererGlobals::m_PSO_Object_Sky[SkyRender_Static]);
 
