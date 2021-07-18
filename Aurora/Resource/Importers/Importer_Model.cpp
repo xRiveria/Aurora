@@ -25,16 +25,11 @@ namespace Aurora
         /// Get Version Information.
     }
 
-    void Importer_Model::Load(const std::string& filePath, const std::string& fileName)
-    {
-        ImporterModel_General(filePath, fileName);
-    }
-
-    bool Importer_Model::ImporterModel_General(const std::string& filePath, const std::string& fileName)
+    std::shared_ptr<Entity> Importer_Model::Load(const std::string& filePath, const std::string& fileName)
     {
         if (!FileSystem::Exists(filePath))
         {
-            return false;
+            return nullptr;
         }
 
         // Model Parameters
@@ -79,6 +74,8 @@ namespace Aurora
             aiProcess_ValidateDataStructure     |
             aiProcess_Debone;
 
+        std::shared_ptr<Entity> newEntity;
+
         // Read the 3D model file from disk.
         if (const aiScene* scene = importer.ReadFile(filePath, importerFlags))
         {
@@ -88,7 +85,7 @@ namespace Aurora
 
             // Create root entity to match Assimp's root node.
             const bool isActive = false;
-            std::shared_ptr<Entity> newEntity = m_WorldContext->EntityCreate(isActive);
+            newEntity = m_WorldContext->EntityCreate(isActive);
 
             if (fileName == "") { newEntity->SetName(modelParameters.m_Name); } else { newEntity->SetName(fileName); }
 
@@ -108,9 +105,8 @@ namespace Aurora
 
         importer.FreeScene();
 
-        return modelParameters.m_AssimpScene != nullptr;
+        if (newEntity) { return newEntity; }
     }
-
 
     void Importer_Model::ParseNode(const aiNode* assimpNode, const ModelParameters& modelParameters, Entity* parentEntity, Entity* newEntity)
     {
@@ -122,7 +118,7 @@ namespace Aurora
         /// Progress Tracking.
 
         /// Transform Stuff.
-        newEntity->m_Transform->Scale({ 0.4f, 0.4f, 0.4f });
+        // newEntity->m_Transform->Scale({ 0.4f, 0.4f, 0.4f });
         // newEntity->m_Transform->RotateRollPitchYaw ({ 90, 0, 0 });
             
         // Process all of the node's meshes.
@@ -282,7 +278,7 @@ namespace Aurora
                     if (FileSystem::IsSupportedImageFile(deducedPath))
                     {
                         material->m_Textures[engineSlotType].m_FilePath = deducedPath;
-                        material->m_Textures[engineSlotType].m_Resource = m_EngineContext->GetSubsystem<ResourceCache>()->Load(FileSystem::GetFileNameFromFilePath(deducedPath), deducedPath);
+                        material->m_Textures[engineSlotType].m_Resource = m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(deducedPath, FileSystem::GetFileNameFromFilePath(deducedPath));
 
                         if (typeAssimp == aiTextureType_BASE_COLOR || typeAssimp == aiTextureType_DIFFUSE)
                         {

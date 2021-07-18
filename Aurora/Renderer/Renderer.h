@@ -12,6 +12,22 @@ using namespace DirectX;
 
 namespace Aurora
 {
+    /// Makeshift
+    class CubeImage
+    {
+    public:
+        CubeImage() {};
+        ~CubeImage() {};
+
+        int BytesPerPixel() const { return m_Channels * sizeof(unsigned char); }
+        int Pitch() const { return m_Width * BytesPerPixel(); }
+       
+        int m_Width;
+        int m_Height;
+        int m_Channels = 4; // Default
+        std::unique_ptr<unsigned char> m_Pixels;
+    };
+
     class Renderer : public ISubsystem
     {
     public:
@@ -21,14 +37,22 @@ namespace Aurora
         bool Initialize() override;
         void Tick(float deltaTime) override;
         void RenderScene();
-        // Draws a skydome centered to our camera.
+        void DrawSkybox();
         void DrawDebugWorld(Entity* entity);
+
+        // Texture Cube
+        void PrepareSkyboxResources();
+        ComPtr<ID3D11ShaderResourceView> m_CubeSRV;
+        std::vector<std::shared_ptr<CubeImage>> m_CubemapTextures;
+
+        RHI_Shader m_SkyboxVS;
+        RHI_Shader m_SkyboxPS;
 
         void Present();
 
         // Shenanigans
 
-    private:
+    public:
         void CreateTexture();
 
     public:
@@ -71,10 +95,12 @@ namespace Aurora
         
         // Camera
         std::shared_ptr<Entity> m_Camera;
-        
-        std::shared_ptr<Importer_Model> m_Importer_Model;
 
         // Default Textures
+        ResourceCache* m_ResourceCache;
         std::shared_ptr<AuroraResource> m_DefaultWhiteTexture;
+
+        // Lock
+        std::vector<std::pair<std::shared_ptr<AuroraResource>, bool>> m_DeferredMipGenerations;
     };
 }

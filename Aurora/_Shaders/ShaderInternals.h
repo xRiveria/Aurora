@@ -23,7 +23,9 @@ CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
     // Temporary
     float4   g_Light_Position;
     float4   g_Light_Color;
+
     float3   g_Light_Direction;  
+    float roughness;
 };
 
 // Common Constant Buffers
@@ -46,4 +48,7 @@ CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
 
     float4x4 g_Camera_View;
     float4x4 g_Camera_Projection;
+
+    float g_RenderItem; // 0 skybox.
+    float padding[3];
 };

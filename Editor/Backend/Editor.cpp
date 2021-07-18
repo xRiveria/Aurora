@@ -10,11 +10,11 @@
 #include "../Scene/Components/Light.h"
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Material.h" 
-
 #include "../Widgets/MenuBar.h"
 #include "../Widgets/QuickDiagnostics.h"
 #include "../Widgets/Toolbar.h"
 #include <optional>
+#include "../Widgets/Properties.h"
 
 namespace EditorConfigurations
 {
@@ -47,28 +47,6 @@ enum class VectorType
 	Rotation,
 	Translation
 };
-
-inline std::optional<std::string> Editor::OpenFilePath(const char* filter)
-{
-	OPENFILENAMEA fileDialog; //Passes data to and from GetOpenFileName & GetSaveFileName. It stores settings used to create the dialog box and the results of the user's selection. 
-	CHAR szFile[260] = { 0 }; //Our selected file path's buffer.
-	ZeroMemory(&fileDialog, sizeof(OPENFILENAME)); //Initialize openedFile's memory to 0.
-
-	fileDialog.lStructSize = sizeof(OPENFILENAME); //Sets the struct size. We do this for every Win32 struct.
-	fileDialog.hwndOwner = m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHWND(0); //Gets our currently open window and retrieves it HWND which we set as the struct's owner.
-	fileDialog.lpstrFile = szFile; //Buffer for our file.
-	fileDialog.nMaxFile = sizeof(szFile); //Size of our file buffer.
-	fileDialog.lpstrFilter = filter; //File filter.
-	fileDialog.nFilterIndex = 1; //Which filter is set by default. 
-	fileDialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR; //The last flag is very important. If you don't do this and call OpenFileName, it will change the working directory for your application to the folder you open the window from.  
-
-	if (GetOpenFileNameA(&fileDialog) == true)
-	{
-		return fileDialog.lpstrFile; //We return the file path of the file we open and create a string out of the char* path.
-	}
-
-	return std::nullopt; //Return empty string if no file is selected. It means the dialog has been cancelled.
-}
 
 void Editor::Tick()
 {
@@ -112,70 +90,19 @@ void Editor::Tick()
 				meshComponents.push_back(*entity->GetComponent<Aurora::Mesh>());
 			}
 		}
-
-		ImGui::Begin("Properties");
-		for (Aurora::Mesh& meshComponent : meshComponents)
-		{		
-			// Reflect
-			XMFLOAT3 position = meshComponent.GetEntity()->m_Transform->GetPosition(); // Retrieve.
-			XMFLOAT3 scale = meshComponent.GetEntity()->m_Transform->GetScale();
-			XMFLOAT4 rotation = meshComponent.GetEntity()->m_Transform->GetRotation();
-
-			const auto ShowFloat = [](VectorType vectorType, const char* label, Aurora::Mesh* meshComponent, float* axis, XMFLOAT3* value)
-			{
-				char dragLabel[256];
-				strcpy_s(dragLabel, label);
-				strcat_s(dragLabel, std::to_string(meshComponent->GetEntity()->GetObjectID()).c_str());
-
-				if (ImGui::SliderFloat(dragLabel, axis, -100, 100))
-				{
-					switch (vectorType)
-					{
-						case VectorType::Translation:
-							meshComponent->GetEntity()->m_Transform->Translate(*value); // Update, which gets pushed into the retrieval above. 
-							break;
-
-						case VectorType::Scale:
-							meshComponent->GetEntity()->m_Transform->Scale(*value); // Update, which gets pushed into the retrieval above. 
-							break;
-
-						case VectorType::Rotation:
-							meshComponent->GetEntity()->m_Transform->RotateRollPitchYaw(*value);
-					}
-				}
-			};
-
-			ShowFloat(VectorType::Translation, "X", &meshComponent, &position.x, &position);
-			ShowFloat(VectorType::Translation, "Y", &meshComponent, &position.y, &position);
-			ShowFloat(VectorType::Translation, "Z", &meshComponent, &position.z, &position);
-
-			ShowFloat(VectorType::Scale, "SX", &meshComponent, &scale.x, &scale);
-			ShowFloat(VectorType::Scale, "SY", &meshComponent, &scale.y, &scale);
-			ShowFloat(VectorType::Scale, "SZ", &meshComponent, &scale.z, &scale);
-
-			auto textureInternalState = ToInternal(&meshComponent.GetEntity()->GetComponent<Aurora::Material>()->m_Textures[Aurora::TextureSlot::BaseColorMap].m_Resource->m_Texture);
-			ImGui::Image((void*)textureInternalState->m_ShaderResourceView.Get(), ImVec2(200, 200));
-			if (ImGui::Button("Load New Texture"))
-			{
-				std::optional<std::string> filePath = OpenFilePath("Textures");
-				if (filePath.has_value())
-				{
-					std::string path = filePath.value();
-					AURORA_INFO(path);
-					std::shared_ptr<Aurora::AuroraResource> resource = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load("Test", path);
-					meshComponent.GetEntity()->GetComponent<Aurora::Material>()->m_Textures[Aurora::TextureSlot::BaseColorMap].m_Resource = resource;
-				}
-			}
-		}
-
-		ImGui::End();
 		
 		ImGui::Begin("Hierarchy");
 		auto& entities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
 		for (auto& entity : entities)
 		{
-			ImGui::Text(entity->GetObjectName().c_str());
+			if (ImGui::Button(entity->GetObjectName().c_str()))
+			{
+				Properties::m_InspectedEntity = entity;
+			}
 		}
+		ImGui::End();
+
+		ImGui::Begin("Project");
 		ImGui::End();
 	
 		ImGui::End(); // Ends docking context.
@@ -204,6 +131,7 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<MenuBar>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));
 }
 
 void Editor::BeginDockingContext()
@@ -256,7 +184,7 @@ void Editor::BeginDockingContext()
 	ImGuiStyle& style = ImGui::GetStyle();
 
 	float minimumWindowsize = style.WindowMinSize.x;
-	style.WindowMinSize.x = 250.0f;
+	style.WindowMinSize.x = 360.0f;
 	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 	{
 		ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");

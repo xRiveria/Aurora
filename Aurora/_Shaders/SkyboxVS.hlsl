@@ -1,16 +1,17 @@
 #include "Globals.hlsli"
 
-struct PixelShaderInput
+struct VSOut
 {
-    float3 localPosition : POSITION;
-    float4 pixelPosition : SV_POSITION;
+    float3 worldPosition : POSITION;
+    float4 position : SV_POSITION;
 };
 
-PixelShaderInput main(float3 position : POSITION)
+VSOut main(float3 position : POS, float2 inTexCoord : TEXCOORD, float3 inNormal : NORMAL)
 {
-    PixelShaderInput output;
-    output.localPosition = position;
-    output.pixelPosition = mul(g_Camera_ViewProjection, float4(position, 1.0));
+    VSOut output = (VSOut)0;
+    output.worldPosition = position;
+    output.position = mul(float4(position, 1.0), g_ObjectMatrix);
+    // output.position.z = output.position.w; 
 
     return output;
 }

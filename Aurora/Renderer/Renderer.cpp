@@ -7,6 +7,7 @@
 #include "../Scene/Components/Light.h"
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Material.h"
+#include "../Resource/Importers/Importer_Image.h"
 
 using namespace DirectX;
 
@@ -25,7 +26,6 @@ namespace Aurora
     bool Renderer::Initialize()
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
-        m_Importer_Model = std::make_shared<Importer_Model>(m_EngineContext);
         m_ShaderCompiler.Initialize();
 
         LoadShaders();
@@ -43,12 +43,15 @@ namespace Aurora
 
         CreateTexture();
 
+        m_ResourceCache = m_EngineContext->GetSubsystem<ResourceCache>();
+        PrepareSkyboxResources();
+
         m_Camera = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Default_Camera");
         m_Camera->GetComponent<Camera>()->SetPosition(3.0f, 3.0f, -10.0f);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
-        m_Importer_Model->Load("../Resources/Models/Hollow_Knight/source/v3.obj");
-        m_Importer_Model->Load("../Resources/Models/Skybox/skybox.obj", "Skybox");
+        m_ResourceCache->LoadModel("../Resources/Models/Hollow_Knight/source/v3.obj");
+        m_ResourceCache->LoadModel("../Resources/Models/Skybox/skybox.obj", "Skybox");
         m_EngineContext->GetSubsystem<World>()->GetEntityByName("defaultobject")->GetComponent<Transform>()->Scale({ 35, 35, 35 });
 
         // For scissor rects in our rasterizer set.
@@ -87,7 +90,7 @@ namespace Aurora
     {
         float resolutionScale = 1.0f;
         XMUINT2 internalResolution = XMUINT2(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0) * resolutionScale, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0) * resolutionScale);
-    
+
         // Render Targets - GBuffers
         {
             // Color
@@ -126,7 +129,6 @@ namespace Aurora
             m_GraphicsDevice->CreateTexture(&depthBufferDescription, nullptr, &m_DepthBuffer_Main);
             AURORA_INFO("DepthBuffer_Main Texture Creation Success.");
         }
-        
 
         // Render Passes - GBuffer
         {
@@ -140,7 +142,7 @@ namespace Aurora
             renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::DepthStencil(&m_DepthBuffer_Main, RHI_RenderPass_Attachment::LoadOperation_Load, RHI_RenderPass_Attachment::StoreOperation_Store, Image_Layout::Image_Layout_Shader_Resource, Image_Layout::Image_Layout_DepthStencil_ReadOnly, Image_Layout::Image_Layout_DepthStencil_ReadOnly));
 
             m_GraphicsDevice->CreateRenderPass(&renderPassDescription, &m_RenderPass_Main);
-            AURORA_INFO("Main Render Pass Creation Success.");      
+            AURORA_INFO("Main Render Pass Creation Success.");
         }
     }
 
@@ -165,6 +167,8 @@ namespace Aurora
 
         ID3D11SamplerState* samplerState = DX11_Utility::ToInternal(&m_Standard_Texture_Sampler)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(1, 1, &samplerState);
+
 
         /// Rendering to Texture
         //==============================================================================================================
@@ -178,22 +182,23 @@ namespace Aurora
         ID3D11DepthStencilView* ourDepthStencilTexture = DX11_Utility::ToInternal(&m_DepthBuffer_Main)->m_DepthStencilView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, renderTargetViews, ourDepthStencilTexture);
 
-        float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
         m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourTexture->m_RenderTargetView.Get(), color);
         m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-        
+
         ///==============================
 
         RenderScene();
+        DrawSkybox();
         DrawDebugWorld(m_Camera.get());
 
         /// ==================================
         auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
 
-         // Clear the backbuffer to black for the new frame.
+        // Clear the backbuffer to black for the new frame.
         float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-        ID3D11RenderTargetView* RTV = internalState->m_RenderTargetView.Get();   
+        ID3D11RenderTargetView* RTV = internalState->m_RenderTargetView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, 0); // Set depth as well here if it exists.    
         // Present is called from our Editor.
     }
@@ -210,30 +215,35 @@ namespace Aurora
             }
         }
 
-        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
-
         // We can play around with the below flow by binding the right pipeline depending on the material extracted from the mesh's information.
         for (auto& meshComponent : meshComponents)
         {
             UINT offset = 0;
             UINT modelStride = 8 * sizeof(float);
 
-            if (meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture.IsValid())
-            {
-                ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture)->m_ShaderResourceView.Get();
-                m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
-            }
+            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
 
             ConstantBufferData_Camera constantBuffer;
             XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix() * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
             XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix());
             m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
-            ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
 
-            
+            ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
             m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
-            
             m_GraphicsDevice->BindIndexBuffer(&meshComponent.m_IndexBuffer, meshComponent.GetIndexFormat(), 0, 0);
+
+            if (meshComponent.GetEntity()->GetObjectName() == "defaultobject")
+            {
+                m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(1, 1, &m_CubeSRV);
+            }
+            else
+            {
+                if (meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture.IsValid())
+                {
+                    ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture)->m_ShaderResourceView.Get();
+                    m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
+                }
+            }
 
             m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(meshComponent.m_Indices.size(), 0, 0);
         }
@@ -284,7 +294,7 @@ namespace Aurora
             RHI_Subresource_Data initializationData;
             initializationData.m_SystemMemory = verts;
 
-            m_GraphicsDevice->CreateBuffer(&bufferDescription, &initializationData, &gridBuffer); 
+            m_GraphicsDevice->CreateBuffer(&bufferDescription, &initializationData, &gridBuffer);
         }
 
         ConstantBufferData_Misc miscBuffer;
@@ -302,7 +312,7 @@ namespace Aurora
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
         m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
         m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Pixel_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
-        
+
         uint32_t offset = 0;
         const uint32_t stride = sizeof(XMFLOAT4) + sizeof(XMFLOAT4);
         ID3D11Buffer* vertexBufferDebug = (ID3D11Buffer*)DX11_Utility::ToInternal(&gridBuffer)->m_Resource.Get();
@@ -328,5 +338,86 @@ namespace Aurora
         samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;
 
         m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Standard_Texture_Sampler);
+
+
+    }
+
+
+    void Renderer::PrepareSkyboxResources()
+    {
+        // Load each of our cubemaps.
+        for (int i = 0; i < 6; i++)
+        {
+            std::string filePath = "../Resources/Cubemaps/Space/" + std::to_string(i) + ".jpg";
+            std::shared_ptr<CubeImage> resource = m_ResourceCache->m_Importer_Image->LoadCubeImage(filePath);
+            m_CubemapTextures.push_back(resource);
+        }
+
+        D3D11_TEXTURE2D_DESC textureCubeDescription = {};
+        textureCubeDescription.Width = m_CubemapTextures[0]->m_Width;
+        textureCubeDescription.Height = m_CubemapTextures[0]->m_Height;
+        textureCubeDescription.MipLevels = 1;
+        textureCubeDescription.ArraySize = 6;
+        textureCubeDescription.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        textureCubeDescription.SampleDesc.Count = 1;
+        textureCubeDescription.SampleDesc.Quality = 0;
+        textureCubeDescription.Usage = D3D11_USAGE_DEFAULT;
+        textureCubeDescription.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        textureCubeDescription.CPUAccessFlags = 0;
+        textureCubeDescription.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+        D3D11_SUBRESOURCE_DATA data[6];
+        for (int i = 0; i < 6; i++)
+        {
+            data[i].pSysMem = m_CubemapTextures[i]->m_Pixels.get();
+            data[i].SysMemPitch = m_CubemapTextures[i]->Pitch();
+            data[i].SysMemSlicePitch = 0;
+        }
+
+        // Create the texture resource.
+        ComPtr<ID3D11Texture2D> cubeTexture;
+        m_GraphicsDevice->m_Device->CreateTexture2D(&textureCubeDescription, data, &cubeTexture);
+
+        // Create the resource view on the texture.
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDescription = {};
+        srvDescription.Format = textureCubeDescription.Format;
+        srvDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+        srvDescription.Texture2D.MostDetailedMip = 0;
+        srvDescription.Texture2D.MipLevels = 1;
+        m_GraphicsDevice->m_Device->CreateShaderResourceView(cubeTexture.Get(), &srvDescription, &m_CubeSRV);
+
+        LoadShader(Shader_Stage::Vertex_Shader, m_SkyboxVS, "SkyboxVS.hlsl");
+        LoadShader(Shader_Stage::Pixel_Shader, m_SkyboxPS, "SkyboxPS.hlsl");
+    }
+
+    void Renderer::DrawSkybox()
+    {
+        /*
+        UINT offset = 0;
+        UINT modelStride = 8 * sizeof(float);
+
+        ConstantBufferData_Camera constantBuffer;
+        XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix() * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix());
+        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
+
+        ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
+        m_GraphicsDevice->BindIndexBuffer(&meshComponent.m_IndexBuffer, meshComponent.GetIndexFormat(), 0, 0);
+
+        auto internalState = DX11_Utility::ToInternal(&RendererGlobals::m_PSO_Object_Wire);
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetDepthStencilState(internalState->m_DepthStencilState.Get(), 0);
+
+        ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_SkyboxVS.m_InternalState.get())->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
+
+        ID3D11PixelShader* pixelShader = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_SkyboxPS.m_InternalState.get())->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
+
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(1, 1, &m_CubeSRV);
+        AURORA_INFO("Draw Skybox!");
+        m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(meshComponent.m_Indices.size(), 0, 0);
+        continue;
+        */
     }
 }

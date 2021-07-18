@@ -39,10 +39,10 @@ namespace Aurora
         XMVECTOR GetScaleVector() const;
         XMMATRIX GetLocalMatrix() const;    // Computes the local space matrix from scale, rotation and translation.
  
-    private:
+    public:
+        XMFLOAT3 m_TranslationLocal = XMFLOAT3(0, 0, 0);
         XMFLOAT3 m_ScaleLocal = XMFLOAT3(1, 1, 1);
         XMFLOAT4 m_RotationLocal = XMFLOAT4(0.0, 0.0, 0.0, 1.0);    // Quaternion
-        XMFLOAT3 m_TranslationLocal = XMFLOAT3(0, 0, 0);
 
         // The world matrix can be computed from the local scale, rotation and translation. This can be done through UpdateTransform() or by calling SetDirty() and letting the Tick system handle the updating.
         XMFLOAT4X4 m_WorldMatrix = IdentityMatrix;

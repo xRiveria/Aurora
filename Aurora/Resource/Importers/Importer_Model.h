@@ -33,15 +33,12 @@ namespace Aurora
         Importer_Model(EngineContext* engineContext);
         ~Importer_Model() = default;
 
-        void Load(const std::string& filePath, const std::string& fileName = "");
+        std::shared_ptr<Entity> Load(const std::string& filePath, const std::string& fileName = "");
 
     private:
-        bool ImporterModel_General(const std::string& filePath, const std::string& fileName = "");
-
         // Parsing
         void ParseNode(const aiNode* assimpNode, const ModelParameters& modelParameters, Entity* parentEntity = nullptr, Entity* newEntity = nullptr);
         void ParseNodeMeshes(const aiNode* assimpNode, Entity* newEntity, const ModelParameters& modelParameters);
-        // void ParseAnimations(const ModelParameters& modelParameters);
 
         // Loading
         void LoadMesh(aiMesh* assimpMesh, Entity* parentEntity, const ModelParameters& modelParameters);

@@ -30,9 +30,48 @@ namespace Aurora
 
         // Supported Files in Directory
         static bool IsSupportedImageFile(const std::string& filePath);
+        static bool IsSuppportedModelFile(const std::string& filePath);
     };
 
     static const char* EXTENSION_TEXTURE = ".texture";
+    static const char* EXTENSION_MODEL = ".model";
+
+    static const std::vector<std::string> g_Supported_Model_Formats
+    {
+        ".3ds",
+        ".obj",
+        ".fbx",
+        ".blend",
+        ".dae",
+        ".gltf",
+        ".lwo",
+        ".c4d",
+        ".ase",
+        ".dxf",
+        ".hmp",
+        ".md2",
+        ".md3",
+        ".md5",
+        ".mdc",
+        ".mdl",
+        ".nff",
+        ".ply",
+        ".stl",
+        ".x",
+        ".smd",
+        ".lxo",
+        ".lws",
+        ".ter",
+        ".ac3d",
+        ".ms3d",
+        ".cob",
+        ".q3bsp",
+        ".xgl",
+        ".csm",
+        ".bvh",
+        ".b3d",
+        ".ndo"
+    };
 
     static const std::vector<std::string> g_Supported_Image_Formats
     {

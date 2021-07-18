@@ -50,6 +50,10 @@ namespace Aurora::ShaderCompiler
                 target = "ps_5_0";
                 break;
 
+            case Shader_Stage::Compute_Shader:
+                target = "cs_5_0";
+                break;
+
             default:
                 AURORA_ERROR("Shader not supported.");
                 break;

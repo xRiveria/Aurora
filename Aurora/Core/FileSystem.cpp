@@ -172,4 +172,19 @@ namespace Aurora
 
         return false;
     }
+
+    bool FileSystem::IsSuppportedModelFile(const std::string& filePath)
+    {
+        const std::string extension = GetExtensionFromFilePath(filePath);
+
+        for (const std::string& format : g_Supported_Model_Formats)
+        {
+            if (extension == format || extension == ConvertToUppercase(format))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

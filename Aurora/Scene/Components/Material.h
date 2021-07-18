@@ -23,7 +23,7 @@ namespace Aurora
 
     struct TextureMap
     {
-        std::string m_FilePath;
+        std::string m_FilePath = "Default";
         uint32_t m_UVSet = 0;
         std::shared_ptr<AuroraResource> m_Resource;
 

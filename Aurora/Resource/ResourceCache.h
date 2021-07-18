@@ -1,17 +1,19 @@
 #pragma once
-#include <memory>
-#include <unordered_map>
-#include "ISubsystem.h"
 #include "ResourceUtilities.h"
+#include "ISubsystem.h"
 
 /*
-    - Integrate Image/Model Importers Here.
     - Resource Registry.
     - Total Vertice/Indices
 */
 
 namespace Aurora
 {
+    class AuroraResource;
+    class Entity;
+    class Importer_Model;
+    class Importer_Image;
+
     class ResourceCache : public ISubsystem
     {
     public:
@@ -25,9 +27,14 @@ namespace Aurora
             - File Data: Pointer to file data, if file was loaded manually (optional).
             - File Size: Size of file data, if file was loaded manually (optional).
         */
-        std::shared_ptr<AuroraResource> Load(const std::string& fileName, const std::string& filePath, uint32_t flags = 0);
 
-    private:
+        std::shared_ptr<AuroraResource> LoadTexture(const std::string& filePath, const std::string& fileName = "", uint32_t loadFlags = 0);
+        std::shared_ptr<Entity> LoadModel(const std::string& filePath, const std::string& fileName = "");
+
+    public:
         std::unordered_map<std::string, std::shared_ptr<AuroraResource>> m_Resources;  // We temporarily store everything.
+
+        std::shared_ptr<Importer_Model> m_Importer_Model = nullptr;
+        std::shared_ptr<Importer_Image> m_Importer_Image = nullptr;
     };
 }

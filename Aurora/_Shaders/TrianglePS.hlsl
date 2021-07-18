@@ -1,5 +1,7 @@
 #include "Globals.hlsli"
 
+TextureCube tex : register(t1);
+
 // Outputs from vertex shader go here. Can be interpolated to pixel shader.
 struct vs_out
 {
@@ -29,7 +31,7 @@ float4 main(vs_out input) : SV_TARGET // Pixel shader entry point which must ret
     float3 diff = max(dot(norm, vectorToLight), 0.0); // Ensure we are within 0 and 1. This is to ensure that we don't get a color darker than 0.0 if our light isn't near the object at all.
     
     float3 diffuse = diff * g_Light_Color * attenuationFactor;
-    float3 sampleColor = objectTexture.Sample(objectSamplerState, input.outTexCoord);
+    float3 sampleColor = objectTexture.SampleLevel(objectSamplerState, input.outTexCoord, 0);
     float3 ambientLight = g_Light_Color * 0.3f;
 
     float3 finalColor = sampleColor * (ambientLight + diffuse);

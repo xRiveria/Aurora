@@ -473,8 +473,12 @@ namespace Aurora
 
             case Shader_Stage::Compute_Shader:
             {
-                /// Soon.
-                return false;
+                std::shared_ptr<DX11_ComputeShaderPackage> internalState = std::make_shared<DX11_ComputeShaderPackage>();
+                shader->m_InternalState = internalState;
+                
+                BreakIfFailed(m_Device->CreateComputeShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
+                AURORA_INFO("Successfully created Compute Shader.");
+                return true;
             }
             break;
         }
@@ -710,7 +714,27 @@ namespace Aurora
                 {
                     if (texture->m_Description.m_ArraySize > 1)
                     {
-                        ///
+                        if (texture->m_Description.m_MiscFlags & Resource_Misc_Flag::Resource_Misc_TextureCube)
+                        {
+                            if (texture->m_Description.m_ArraySize > 6)
+                            {
+                                shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
+                                shaderResourceViewDescription.TextureCubeArray.First2DArrayFace = firstSlice;
+                                shaderResourceViewDescription.TextureCubeArray.NumCubes = std::min(texture->m_Description.m_ArraySize, sliceCount) / 6; // 6 = 1 Cube
+                                shaderResourceViewDescription.TextureCubeArray.MostDetailedMip = firstMip;
+                                shaderResourceViewDescription.TextureCubeArray.MipLevels = mipCount;
+                            }
+                            else
+                            {
+                                shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+                                shaderResourceViewDescription.TextureCube.MostDetailedMip = firstMip;
+                                shaderResourceViewDescription.TextureCube.MipLevels = mipCount;
+                            }
+                        }
+                        else
+                        {
+                            // Multisample Array
+                        }
                     }
                     else
                     {
@@ -807,6 +831,7 @@ namespace Aurora
                     AURORA_ASSERT(0);
                 }
             }
+            break;
 
             case Subresource_Type::UnorderedAccessView:
             {
@@ -852,7 +877,10 @@ namespace Aurora
                 {
                     if (texture->m_Description.m_ArraySize > 1)
                     {
-
+                        unorderedAccessViewDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+                        unorderedAccessViewDescription.Texture2DArray.FirstArraySlice = firstSlice;
+                        unorderedAccessViewDescription.Texture2DArray.ArraySize = sliceCount;
+                        unorderedAccessViewDescription.Texture2DArray.MipSlice = firstMip;
                     }
                     else
                     {

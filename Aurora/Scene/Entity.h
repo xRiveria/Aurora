@@ -147,13 +147,13 @@ namespace Aurora
 
     public:
         Transform* m_Transform; // All entities will have a transform component, regardless of whether it is empty or not.
+        bool m_IsActive = true;
 
     private:
         constexpr uint32_t GetComponentMask(ComponentType componentType) { return static_cast<uint32_t>(1) << static_cast<uint32_t>(componentType); }
         
     private:
         std::string m_ObjectName = "Entity";
-        bool m_IsActive = true;
         bool m_IsDestructionPending = false;
 
         // Components
