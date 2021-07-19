@@ -72,25 +72,6 @@ void Editor::Tick()
 		ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
 		ImGui::End();
 
-		ImGui::Begin("Light Properties");
-		Aurora::Light* component = m_EngineContext->GetSubsystem<Aurora::World>()->GetEntityByName("Directional_Light")->GetComponent<Aurora::Light>();
-		float* color[3] = { &component->m_Color.x, &component->m_Color.y, &component->m_Color.z };
-		ImGui::DragFloat3("Ambient Color", *color, 0.0, 1.0);
-
-		float* position[3] = { &component->m_Position.x, &component->m_Position.y, &component->m_Position.z };
-		ImGui::DragFloat3("Position", *position, 0.1, std::numeric_limits<float>::lowest(), (std::numeric_limits<float>::max)());
-		ImGui::End();
-
-		std::vector<std::shared_ptr<Aurora::Entity>> sceneEntities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
-		std::vector<Aurora::Mesh> meshComponents;
-		for (auto& entity : sceneEntities)
-		{
-			if (entity->HasComponent<Aurora::Mesh>())
-			{
-				meshComponents.push_back(*entity->GetComponent<Aurora::Mesh>());
-			}
-		}
-		
 		ImGui::Begin("Hierarchy");
 		auto& entities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
 		for (auto& entity : entities)

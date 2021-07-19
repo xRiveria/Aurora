@@ -67,7 +67,7 @@ namespace Aurora
     public:
         TextureMap m_Textures[TextureSlot::TextureSlot_Count];
 
-    private:
+    public:
         XMFLOAT4 m_BaseColor = XMFLOAT4(1, 1, 1, 1);
 
         uint32_t m_Flags = Material_Flags::Material_Flags_Empty;

@@ -80,6 +80,9 @@ namespace Aurora
         void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
         void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
 
+    public:
+        void BindLightResources();
+
     private:
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;
         
@@ -100,7 +103,7 @@ namespace Aurora
         ResourceCache* m_ResourceCache;
         std::shared_ptr<AuroraResource> m_DefaultWhiteTexture;
 
-        // Lock
-        std::vector<std::pair<std::shared_ptr<AuroraResource>, bool>> m_DeferredMipGenerations;
+        // Entities
+        std::vector<std::shared_ptr<Entity>> m_SceneEntities;
     };
 }

@@ -54,6 +54,23 @@ namespace Aurora
         m_ResourceCache->LoadModel("../Resources/Models/Skybox/skybox.obj", "Skybox");
         m_EngineContext->GetSubsystem<World>()->GetEntityByName("defaultobject")->GetComponent<Transform>()->Scale({ 35, 35, 35 });
 
+        auto lightEntity1 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
+        lightEntity1->SetName("PL 1");
+        lightEntity1->AddComponent<Light>();
+
+        auto lightEntity2 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
+        lightEntity2->SetName("PL 2");
+        lightEntity2->AddComponent<Light>();
+
+        auto lightEntity3 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
+        lightEntity3->SetName("PL 3");
+        lightEntity3->AddComponent<Light>();
+
+        auto lightEntity4 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
+        lightEntity4->SetName("PL 4");
+        lightEntity4->AddComponent<Light>();
+        
+
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
         for (uint32_t i = 0; i < 8; ++i)
@@ -182,11 +199,16 @@ namespace Aurora
         ID3D11DepthStencilView* ourDepthStencilTexture = DX11_Utility::ToInternal(&m_DepthBuffer_Main)->m_DepthStencilView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, renderTargetViews, ourDepthStencilTexture);
 
-        float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
         m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourTexture->m_RenderTargetView.Get(), color);
         m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         ///==============================
+
+        // Retrieve Scene Entities
+        m_SceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
+        BindLightResources();
+        // Bind whatever.
 
         RenderScene();
         DrawSkybox();
@@ -201,6 +223,24 @@ namespace Aurora
         ID3D11RenderTargetView* RTV = internalState->m_RenderTargetView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, 0); // Set depth as well here if it exists.    
         // Present is called from our Editor.
+    }
+
+    void Renderer::BindLightResources() // We can only bind up to 16 point lights at this time.
+    {
+        std::vector<std::shared_ptr<Entity>> lightEntities;
+        for (std::shared_ptr<Entity> entity : m_SceneEntities) { if (entity->HasComponent<Light>()) { lightEntities.push_back(entity); } }
+
+        ConstantBufferData_Misc miscConstantBuffer;
+        
+        for (int i = 0; i < lightEntities.size(); i++) // We will update for each as many light entities we have.
+        {
+            XMFLOAT4 position = { lightEntities[i]->GetComponent<Transform>()->GetPosition().x, lightEntities[i]->GetComponent<Transform>()->GetPosition().y, lightEntities[i]->GetComponent<Transform>()->GetPosition().z, 1 };
+            XMFLOAT4 color = { lightEntities[i]->GetComponent<Light>()->m_Color.x, lightEntities[i]->GetComponent<Light>()->m_Color.y, lightEntities[i]->GetComponent<Light>()->m_Color.z, 1 };        
+            miscConstantBuffer.g_Light_Position[i] = position;
+            miscConstantBuffer.g_Light_Color[i] = color;
+        }
+
+        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscConstantBuffer, 0);
     }
 
     void Renderer::RenderScene()
@@ -234,7 +274,7 @@ namespace Aurora
 
             if (meshComponent.GetEntity()->GetObjectName() == "defaultobject")
             {
-                m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(1, 1, &m_CubeSRV);
+                continue;
             }
             else
             {
@@ -242,6 +282,9 @@ namespace Aurora
                 {
                     ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture)->m_ShaderResourceView.Get();
                     m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
+
+                    constantBuffer.g_ObjectColor = meshComponent.GetEntity()->GetComponent<Material>()->m_BaseColor;
+                    m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
                 }
             }
 
@@ -301,14 +344,6 @@ namespace Aurora
         XMStoreFloat4x4(&miscBuffer.g_Transform, camera->GetViewProjectionMatrix());
         miscBuffer.g_Color = float4(1, 1, 1, 1);
 
-        //=========================================================================
-
-        Aurora::Light* component = m_EngineContext->GetSubsystem<Aurora::World>()->GetEntityByName("Directional_Light")->GetComponent<Aurora::Light>();
-        miscBuffer.g_Light_Color = { component->m_Color.x, component->m_Color.y, component->m_Color.z, 0 };
-        miscBuffer.g_Light_Position = { component->m_Position.x, component->m_Position.y, component->m_Position.z, 0 };
-
-        //=========================================================================
-
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
         m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
         m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Pixel_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
@@ -338,10 +373,7 @@ namespace Aurora
         samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;
 
         m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Standard_Texture_Sampler);
-
-
     }
-
 
     void Renderer::PrepareSkyboxResources()
     {

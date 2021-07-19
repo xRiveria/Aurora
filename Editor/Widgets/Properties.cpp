@@ -3,6 +3,7 @@
 #include "../Scene/Components/Transform.h"
 #include "../Scene/Components/Material.h"
 #include "../Scene/Components/Mesh.h"
+#include "../Scene/Components/Light.h"
 #include "../Backend/Source/imgui_internal.h"
 #include "../Renderer/Renderer.h"
 #include "../Backend/Extensions.h"
@@ -10,6 +11,7 @@
 
 std::weak_ptr<Aurora::Entity> Properties::m_InspectedEntity;
 std::weak_ptr<Aurora::Material> Properties::m_InspectedMaterial;
+XMFLOAT4 g_DefaultColor = { 1, 1, 1, 1 };
 
 Properties::Properties(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
@@ -44,6 +46,7 @@ void Properties::OnTickVisible()
 
         ShowTransformProperties(entityPointer->GetComponent<Aurora::Transform>());
         ShowMaterialProperties(materialPointer);
+        ShowLightProperties(entityPointer->GetComponent<Aurora::Light>());
 
         ShowAddComponentButton();
     }
@@ -64,9 +67,30 @@ void Properties::Inspect(const std::weak_ptr<Aurora::Material>& material)
 
 void Properties::ShowAddComponentButton() const
 {
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+    ImGui::SetCursorPosX(ImGui::GetWindowWidth() * 0.5 - 50);
+
     if (ImGui::Button("Add Component"))
     {
-        
+        ImGui::OpenPopup("##AddComponentContextMenu");
+    }
+
+    if (ImGui::BeginPopup("##AddComponentContextMenu"))
+    {
+        if (std::shared_ptr<Aurora::Entity> entity = m_InspectedEntity.lock())
+        {
+            if (ImGui::BeginMenu("Light"))
+            {
+                if (ImGui::MenuItem("Position"))
+                {
+                    entity->AddComponent<Aurora::Light>();
+                }
+
+                ImGui::EndMenu();
+            }
+        }
+
+        ImGui::EndPopup();
     }
 }
 
@@ -159,7 +183,7 @@ static void DrawVector3Control(const std::string& label, XMFLOAT3& values, float
     ImGui::PopID();
 }
 
-static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& materialTexture, Aurora::EngineContext* engineContext)
+static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& materialTexture, Aurora::EngineContext* engineContext, bool drawColorControls = false, XMFLOAT4& colorValues = g_DefaultColor)
 {
     ImGuiIO& io = ImGui::GetIO();
     auto boldFont = io.Fonts->Fonts[0];
@@ -195,6 +219,22 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
             std::shared_ptr<Aurora::AuroraResource> resource = engineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(path, fileName);
             materialTexture.m_FilePath = fileName; /// We need to streamline AuroraResource and TextureMap.
             materialTexture.m_Resource = resource;
+        }
+    }
+
+    if (drawColorControls)
+    {
+        ImGui::SameLine();
+        if (ImGui::ColorButton("##ColorButton", ImVec4(colorValues.x * 255, colorValues.y * 255, colorValues.z * 255, colorValues.w * 255)))
+        {
+            ImGui::OpenPopup("MaterialColorPicker");
+        }
+
+        if (ImGui::BeginPopup("MaterialColorPicker"))
+        {
+            ImGui::ColorPicker4("##MaterialColorPick", &colorValues.x);
+
+            ImGui::EndPopup();
         }
     }
 
@@ -235,10 +275,38 @@ void Properties::ShowMaterialProperties(Aurora::Material* materialComponent) con
 
     if (ComponentBegin("Material"))
     {
-        DrawMaterialControl("Albedo Map", materialComponent->m_Textures[Aurora::TextureSlot::BaseColorMap], m_EngineContext);
+        DrawMaterialControl("Albedo Map", materialComponent->m_Textures[Aurora::TextureSlot::BaseColorMap], m_EngineContext, true, materialComponent->m_BaseColor);
         DrawMaterialControl("Normal Map", materialComponent->m_Textures[Aurora::TextureSlot::NormalMap], m_EngineContext);
         DrawMaterialControl("Emissive Map", materialComponent->m_Textures[Aurora::TextureSlot::EmissiveMap], m_EngineContext);
         DrawMaterialControl("Occulusion Map", materialComponent->m_Textures[Aurora::TextureSlot::OcclusionMap], m_EngineContext);
+    }
+
+    // ComponentEnd(); // Seperator already avaliable in DrawMaterialControl.
+}
+
+void Properties::ShowLightProperties(Aurora::Light* lightComponent) const
+{
+    if (!lightComponent)
+    {
+        return;
+    }
+
+    if (ComponentBegin("Light"))
+    {
+        ImGui::Text("Light Color:");
+        ImGui::SameLine();
+
+        if (ImGui::ColorButton("##LightColorButton", ImVec4(lightComponent->m_Color.x, lightComponent->m_Color.y, lightComponent->m_Color.z, 1.0)))
+        {
+            ImGui::OpenPopup("LightColorPopup");
+        }
+
+        if (ImGui::BeginPopup("LightColorPopup"))
+        {
+            ImGui::ColorPicker3("##LightColor", &lightComponent->m_Color.x);
+
+            ImGui::EndPopup();
+        }
     }
 
     ComponentEnd();

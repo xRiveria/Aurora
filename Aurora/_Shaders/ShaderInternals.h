@@ -21,8 +21,8 @@ CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
     float4   g_Color;
 
     // Temporary
-    float4   g_Light_Position;
-    float4   g_Light_Color;
+    float4   g_Light_Position[6];
+    float4   g_Light_Color[6];
 
     float3   g_Light_Direction;  
     float roughness;
@@ -49,6 +49,10 @@ CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
     float4x4 g_Camera_View;
     float4x4 g_Camera_Projection;
 
+    float4 g_ObjectColor;
+
     float g_RenderItem; // 0 skybox.
-    float padding[3];
+    float g_Padding1;
+    float g_Padding2;
+    float g_Padding3;
 };

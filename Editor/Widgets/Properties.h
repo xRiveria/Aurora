@@ -7,6 +7,7 @@ namespace Aurora
     class Entity;
     class Transform;
     class Material;
+    class Light;
 }
 
 class Properties : public Widget
@@ -29,4 +30,5 @@ public:
 private:
     void ShowTransformProperties(Aurora::Transform* transformComponent) const;
     void ShowMaterialProperties(Aurora::Material* materialComponent) const;
+    void ShowLightProperties(Aurora::Light* lightComponent) const;
 };
