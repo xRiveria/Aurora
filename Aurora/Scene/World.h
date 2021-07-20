@@ -29,6 +29,9 @@ namespace Aurora
         const std::shared_ptr<Entity>& GetEntityByID(uint32_t entityID);
         const std::vector<std::shared_ptr<Entity>>& EntityGetAll() const { return m_Entities; }
 
+        // Default Components - In the future, we ought to load the model into memory at runtime, set to inactive and simply duplicate it when ready.
+        std::shared_ptr<Entity> CreateDefaultObject(DefaultObjectType defaultObjectType);
+
     private:
         void _EntityRemove(const std::shared_ptr<Entity>& entity);
 

@@ -72,6 +72,11 @@ void Editor::Tick()
 		ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
 		ImGui::End();
 
+		ImGui::Begin("Buffers");
+		auto internalStateBloom = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
+		ImGui::Image((void*)internalStateBloom->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
+		ImGui::End();
+
 		ImGui::Begin("Hierarchy");
 		auto& entities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
 		for (auto& entity : entities)
@@ -84,6 +89,7 @@ void Editor::Tick()
 		ImGui::End();
 
 		ImGui::Begin("Project");
+		ImGui::DragFloat("Exposure:", &m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Exposure, 0.1, 0, 1);
 		ImGui::End();
 	
 		ImGui::End(); // Ends docking context.

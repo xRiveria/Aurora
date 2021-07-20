@@ -86,6 +86,15 @@ namespace Aurora
             m_FPS_Control = false;
         }
 
+        if (inputSystem->IsKeyPressed(AURORA_KEY_LEFT_CONTROL))
+        {
+            m_Speed = 9.0f;
+        }
+        else
+        {
+            m_Speed = 3.0f;
+        }
+
         if (m_FPS_Control)
         {
             AdjustRotation((float)inputSystem->GetMousePositionDelta().second * 0.1f * deltaTime, (float)inputSystem->GetMousePositionDelta().first * 0.1f * deltaTime, 0.0f);

@@ -225,7 +225,7 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
     if (drawColorControls)
     {
         ImGui::SameLine();
-        if (ImGui::ColorButton("##ColorButton", ImVec4(colorValues.x * 255, colorValues.y * 255, colorValues.z * 255, colorValues.w * 255)))
+        if (ImGui::ColorButton("##ColorButton", ImVec4(colorValues.x, colorValues.y, colorValues.z, colorValues.w)))
         {
             ImGui::OpenPopup("MaterialColorPicker");
         }

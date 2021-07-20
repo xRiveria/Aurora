@@ -10,6 +10,8 @@ namespace Aurora
     {
         m_Importer_Model = std::make_shared<Importer_Model>(m_EngineContext);
         m_Importer_Image = std::make_shared<Importer_Image>(m_EngineContext);
+
+        MapDefaultObjects();
     }
 
     ResourceCache::~ResourceCache()
@@ -26,6 +28,12 @@ namespace Aurora
 
         AURORA_ERROR("Requested model file not supported: %s.", filePath.c_str());
         return nullptr;
+    }
+
+    void ResourceCache::MapDefaultObjects()
+    {
+        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cube] = "../Resources/Models/Default/Cube/testtest.obj.obj";
+        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Sphere] = "../Resources/Models/Default/Sphere/globe-sphere.obj";
     }
 
     std::shared_ptr<AuroraResource> ResourceCache::LoadTexture(const std::string& filePath, const std::string& fileName, uint32_t loadFlags)

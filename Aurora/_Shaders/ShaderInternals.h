@@ -24,8 +24,8 @@ CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
     float4   g_Light_Position[6];
     float4   g_Light_Color[6];
 
+    float g_Exposure;
     float3   g_Light_Direction;  
-    float roughness;
 };
 
 // Common Constant Buffers

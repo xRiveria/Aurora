@@ -8,6 +8,7 @@
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Material.h"
 #include "../Resource/Importers/Importer_Image.h"
+#include <DirectXMath.h>
 
 using namespace DirectX;
 
@@ -50,27 +51,40 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(3.0f, 3.0f, -10.0f);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
 
-        m_ResourceCache->LoadModel("../Resources/Models/Hollow_Knight/source/v3.obj");
-        m_ResourceCache->LoadModel("../Resources/Models/Skybox/skybox.obj", "Skybox");
-        m_EngineContext->GetSubsystem<World>()->GetEntityByName("defaultobject")->GetComponent<Transform>()->Scale({ 35, 35, 35 });
+        m_ResourceCache->LoadModel("../Resources/Models/House/Coridor.obj");
+        auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Cube);
+        cube = m_EngineContext->GetSubsystem<World>()->GetEntityByName("cube");
+        cube->AddComponent<Light>();
+        cube->GetComponent<Light>()->m_Color = { 50.0f, 50.0f, 0.0f };
+
+        m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Sphere);
 
         auto lightEntity1 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        lightEntity1->SetName("PL 1");
+        lightEntity1->SetName("Sunlight");
         lightEntity1->AddComponent<Light>();
+        lightEntity1->GetComponent<Light>()->m_Color = { 100.0f, 100.0f, 100.0f };
+        lightEntity1->m_Transform->Translate({ 0, 0, 20 });
 
         auto lightEntity2 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         lightEntity2->SetName("PL 2");
         lightEntity2->AddComponent<Light>();
+        lightEntity2->GetComponent<Light>()->m_Color = { 0.1f, 0.0f, 0.0f };
+        lightEntity2->m_Transform->Translate({ 2.50, 0.0, 0.0 });
 
         auto lightEntity3 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         lightEntity3->SetName("PL 3");
         lightEntity3->AddComponent<Light>();
+        lightEntity3->GetComponent<Light>()->m_Color = { 0.0f, 0.0f, 0.2f };
+        lightEntity3->m_Transform->Translate({ -2.50, 0.0, 0.0 });
 
         auto lightEntity4 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         lightEntity4->SetName("PL 4");
         lightEntity4->AddComponent<Light>();
-        
+        lightEntity4->GetComponent<Light>()->m_Color = { 0.0f, 0.1f, 0.0f };
+        lightEntity4->m_Transform->Translate({ 0.0, 0.0, -2.50 });
 
+        m_EmissiveTest = m_ResourceCache->LoadTexture("../Resources/Textures/Default/Emissive.jpg", "Emissive");
+        
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
         for (uint32_t i = 0; i < 8; ++i)
@@ -120,7 +134,7 @@ namespace Aurora
             gBufferDescription.m_Width = internalResolution.x;
             gBufferDescription.m_Height = internalResolution.y;
             gBufferDescription.m_SampleCount = GetMSAASampleCount();
-            gBufferDescription.m_Format = Format::FORMAT_R11G11B10_FLOAT;
+            gBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT; // Floating point for tonemapping.
 
             m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
             AURORA_INFO("GBuffer_Color Texture Creation Success.");
@@ -131,6 +145,24 @@ namespace Aurora
 
             m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Normal_Roughness]);
             AURORA_INFO("GBuffer_Normal_Roughness Texture Creation Success.");
+        }
+
+        // Render Targets - Bloom
+        {
+            // Bloom
+            RHI_Texture_Description bloomBufferDescription;
+            bloomBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
+            if (GetMSAASampleCount() == 1)
+            {
+                bloomBufferDescription.m_BindFlags |= Bind_Flag::Bind_Unordered_Access;
+            }
+            bloomBufferDescription.m_Width = internalResolution.x;
+            bloomBufferDescription.m_Height = internalResolution.y;
+            bloomBufferDescription.m_SampleCount = GetMSAASampleCount();
+            bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT; // Floating point for tonemapping.
+
+            m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
+            AURORA_INFO("GBuffer_Color Texture Creation Success.");
         }
 
         // Depth Buffers
@@ -178,6 +210,7 @@ namespace Aurora
             m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
         }
 
+        BindLightResources();
         UpdateCameraConstantBuffer(m_Camera, 0);
         BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
         BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
@@ -193,13 +226,17 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
 
         auto ourTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
-        ID3D11RenderTargetView* renderTargetViews[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+        auto ourBloomTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
+
+        ID3D11RenderTargetView* renderTargetViews[2];
         renderTargetViews[0] = ourTexture->m_RenderTargetView.Get();
+        renderTargetViews[1] = ourBloomTexture->m_RenderTargetView.Get();
 
         ID3D11DepthStencilView* ourDepthStencilTexture = DX11_Utility::ToInternal(&m_DepthBuffer_Main)->m_DepthStencilView.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, renderTargetViews, ourDepthStencilTexture);
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(2, renderTargetViews, ourDepthStencilTexture);
 
         float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourBloomTexture->m_RenderTargetView.Get(), color);
         m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourTexture->m_RenderTargetView.Get(), color);
         m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -207,7 +244,6 @@ namespace Aurora
 
         // Retrieve Scene Entities
         m_SceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
-        BindLightResources();
         // Bind whatever.
 
         RenderScene();
@@ -227,31 +263,54 @@ namespace Aurora
 
     void Renderer::BindLightResources() // We can only bind up to 16 point lights at this time.
     {
+        auto cube = m_EngineContext->GetSubsystem<World>()->GetEntityByName("cube");
+        cube->GetComponent<Material>()->m_BaseColor = { cube->GetComponent<Light>()->m_Color.x, cube->GetComponent<Light>()->m_Color.y, cube->GetComponent<Light>()->m_Color.z, 1.0f };
+
         std::vector<std::shared_ptr<Entity>> lightEntities;
-        for (std::shared_ptr<Entity> entity : m_SceneEntities) { if (entity->HasComponent<Light>()) { lightEntities.push_back(entity); } }
+        for (std::shared_ptr<Entity> entity : m_SceneEntities) 
+        {   
+            if (entity->IsActive())
+            {
+                if (entity->HasComponent<Light>())
+                {
+                    lightEntities.push_back(entity);
+                }
+            }
+        }
 
         ConstantBufferData_Misc miscConstantBuffer;
         
         for (int i = 0; i < lightEntities.size(); i++) // We will update for each as many light entities we have.
         {
             XMFLOAT4 position = { lightEntities[i]->GetComponent<Transform>()->GetPosition().x, lightEntities[i]->GetComponent<Transform>()->GetPosition().y, lightEntities[i]->GetComponent<Transform>()->GetPosition().z, 1 };
-            XMFLOAT4 color = { lightEntities[i]->GetComponent<Light>()->m_Color.x, lightEntities[i]->GetComponent<Light>()->m_Color.y, lightEntities[i]->GetComponent<Light>()->m_Color.z, 1 };        
+            XMFLOAT4 color = { lightEntities[i]->GetComponent<Light>()->m_Color.x, lightEntities[i]->GetComponent<Light>()->m_Color.y, lightEntities[i]->GetComponent<Light>()->m_Color.z, 1 };
             miscConstantBuffer.g_Light_Position[i] = position;
             miscConstantBuffer.g_Light_Color[i] = color;
         }
 
+        miscConstantBuffer.g_Exposure = m_Exposure;
+
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscConstantBuffer, 0);
+    }
+
+    void Renderer::BloomPass()
+    {
+
     }
 
     void Renderer::RenderScene()
     {
+        /// Render Queue Feature?
         std::vector<std::shared_ptr<Entity>> sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
         std::vector<Mesh> meshComponents;
         for (auto& entity : sceneEntities)
         {
-            if (entity->HasComponent<Mesh>())
+            if (entity->IsActive())
             {
-                meshComponents.push_back(*entity->GetComponent<Mesh>());
+                if (entity->HasComponent<Mesh>())
+                {
+                    meshComponents.push_back(*entity->GetComponent<Mesh>());
+                }
             }
         }
 
@@ -282,6 +341,9 @@ namespace Aurora
                 {
                     ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture)->m_ShaderResourceView.Get();
                     m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
+
+                    // ID3D11ShaderResourceView* shaderResourceViewEmit = DX11_Utility::ToInternal(&m_EmissiveTest->m_Texture)->m_ShaderResourceView.Get();
+                    // m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(1, 1, &shaderResourceViewEmit);
 
                     constantBuffer.g_ObjectColor = meshComponent.GetEntity()->GetComponent<Material>()->m_BaseColor;
                     m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);

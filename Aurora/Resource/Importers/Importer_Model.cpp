@@ -282,7 +282,7 @@ namespace Aurora
 
                         if (typeAssimp == aiTextureType_BASE_COLOR || typeAssimp == aiTextureType_DIFFUSE)
                         {
-                            material->SetBaseColor({ 0.0f, 0.0f, 0.0f, 0.0f });
+                            // material->SetBaseColor({ 0.0f, 0.0f, 0.0f, 0.0f });
                         }
 
                         /// Normal/Height Map Stuff.

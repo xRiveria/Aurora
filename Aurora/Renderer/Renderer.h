@@ -49,11 +49,15 @@ namespace Aurora
         RHI_Shader m_SkyboxPS;
 
         void Present();
+        void CreateTexture();
 
         // Shenanigans
 
     public:
-        void CreateTexture();
+        void BindLightResources();
+        void BloomPass();
+
+        float m_Exposure = 0.1;
 
     public:
         /// New Abstraction
@@ -80,9 +84,6 @@ namespace Aurora
         void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
         void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
 
-    public:
-        void BindLightResources();
-
     private:
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;
         
@@ -95,6 +96,7 @@ namespace Aurora
         RHI_GPU_Buffer m_VertexBuffer;
 
         RHI_Sampler m_Standard_Texture_Sampler;
+        std::shared_ptr<AuroraResource> m_EmissiveTest;
         
         // Camera
         std::shared_ptr<Entity> m_Camera;

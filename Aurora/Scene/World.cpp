@@ -20,7 +20,7 @@ namespace Aurora
     {
         CreateCamera();
         // CreateEnvironment();
-        CreateDirectionalLight();
+        // CreateDirectionalLight();
 
         // Tick Entities.
         for (std::shared_ptr<Entity>& entity : m_Entities)
@@ -117,6 +117,11 @@ namespace Aurora
 
         static std::shared_ptr<Entity> emptyEntity;
         return emptyEntity;
+    }
+
+    std::shared_ptr<Entity> World::CreateDefaultObject(DefaultObjectType defaultObjectType)
+    {
+        return m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel(m_EngineContext->GetSubsystem<ResourceCache>()->m_DefaultObjects[defaultObjectType]);
     }
 
     void World::CreateDirectionalLight()

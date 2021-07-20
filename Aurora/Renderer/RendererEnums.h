@@ -61,7 +61,8 @@ enum GBuffer_Types
 	GBuffer_Color,
 	GBuffer_Normal_Roughness,
 	GBuffer_Velocity,					// Motion Blur
-	GBuffer_Count
+	GBuffer_Bloom,
+	GBuffer_Count,
 };
 
 // Constant Buffers
