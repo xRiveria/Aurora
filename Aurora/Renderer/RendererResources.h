@@ -82,6 +82,7 @@ namespace Aurora
     {
         LoadShader(Shader_Stage::Vertex_Shader, m_VertexShader, "TriangleVS.hlsl");
         LoadShader(Shader_Stage::Pixel_Shader, m_PixelShader, "TrianglePS.hlsl");
+        LoadShader(Shader_Stage::Pixel_Shader, m_BloomPixelShader, "BlurPS.hlsl");
 
         // These input layouts are created on pipeline state creation.
         RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements =

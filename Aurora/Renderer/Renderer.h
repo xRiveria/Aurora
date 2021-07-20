@@ -56,6 +56,7 @@ namespace Aurora
     public:
         void BindLightResources();
         void BloomPass();
+        RHI_Shader m_BloomPixelShader;
 
         float m_Exposure = 0.1;
 

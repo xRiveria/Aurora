@@ -12,9 +12,11 @@
 #include "../Scene/Components/Material.h" 
 #include "../Widgets/MenuBar.h"
 #include "../Widgets/QuickDiagnostics.h"
+#include "../Widgets/ObjectsPanel.h"
 #include "../Widgets/Toolbar.h"
 #include <optional>
 #include "../Widgets/Properties.h"
+#include "Utilities/IconLibrary.h"
 
 namespace EditorConfigurations
 {
@@ -29,6 +31,7 @@ Editor::Editor()
 	// Acquire useful engine subsystems.
 	m_EngineContext = m_Engine->GetEngineContext();
 	InitializeEditor();
+	IconLibrary::GetInstance().Initialize(m_EngineContext, this);
 }
 
 Editor::~Editor()
@@ -75,6 +78,12 @@ void Editor::Tick()
 		ImGui::Begin("Buffers");
 		auto internalStateBloom = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
 		ImGui::Image((void*)internalStateBloom->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
+		
+		internalStateBloom = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong1]);
+		ImGui::Image((void*)internalStateBloom->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
+		internalStateBloom = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong2]);
+		ImGui::Image((void*)internalStateBloom->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
+		
 		ImGui::End();
 
 		ImGui::Begin("Hierarchy");
@@ -119,6 +128,7 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<MenuBar>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<ObjectsPanel>(this, m_EngineContext));
 }
 
 void Editor::BeginDockingContext()
@@ -171,7 +181,7 @@ void Editor::BeginDockingContext()
 	ImGuiStyle& style = ImGui::GetStyle();
 
 	float minimumWindowsize = style.WindowMinSize.x;
-	style.WindowMinSize.x = 360.0f;
+	style.WindowMinSize.x = 250.0f;
 	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 	{
 		ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");

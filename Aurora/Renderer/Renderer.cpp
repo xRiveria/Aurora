@@ -162,7 +162,43 @@ namespace Aurora
             bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT; // Floating point for tonemapping.
 
             m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
-            AURORA_INFO("GBuffer_Color Texture Creation Success.");
+            AURORA_INFO("GBuffer_Bloom Texture Creation Success.");
+        }
+
+        // Render Targets - PingPong1
+        {
+            // Bloom
+            RHI_Texture_Description bloomBufferDescription;
+            bloomBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
+            if (GetMSAASampleCount() == 1)
+            {
+                bloomBufferDescription.m_BindFlags |= Bind_Flag::Bind_Unordered_Access;
+            }
+            bloomBufferDescription.m_Width = internalResolution.x;
+            bloomBufferDescription.m_Height = internalResolution.y;
+            bloomBufferDescription.m_SampleCount = GetMSAASampleCount();
+            bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT;
+
+            m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong1]);
+            AURORA_INFO("GBuffer_PingPong1 Texture Creation Success.");
+        }
+
+        // Render Targets - PingPong2
+        {
+            // Bloom
+            RHI_Texture_Description bloomBufferDescription;
+            bloomBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
+            if (GetMSAASampleCount() == 1)
+            {
+                bloomBufferDescription.m_BindFlags |= Bind_Flag::Bind_Unordered_Access;
+            }
+            bloomBufferDescription.m_Width = internalResolution.x;
+            bloomBufferDescription.m_Height = internalResolution.y;
+            bloomBufferDescription.m_SampleCount = GetMSAASampleCount();
+            bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT; 
+
+            m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong2]);
+            AURORA_INFO("GBuffer_PingPong2 Texture Creation Success.");
         }
 
         // Depth Buffers
@@ -219,7 +255,6 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(1, 1, &samplerState);
 
-
         /// Rendering to Texture
         //==============================================================================================================
         D3D11_VIEWPORT viewportInfo = { 0, 0, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0), 0.0f, 1.0f };
@@ -245,10 +280,11 @@ namespace Aurora
         // Retrieve Scene Entities
         m_SceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
         // Bind whatever.
-
+    
         RenderScene();
-        DrawSkybox();
         DrawDebugWorld(m_Camera.get());
+        // BloomPass();
+        // RenderScene();
 
         /// ==================================
         auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
@@ -288,14 +324,54 @@ namespace Aurora
             miscConstantBuffer.g_Light_Color[i] = color;
         }
 
-        miscConstantBuffer.g_Exposure = m_Exposure;
-
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscConstantBuffer, 0);
     }
 
+    bool isHorizontalBloomPass = true;
+    bool isFirstIteration = true;
+    int blurAmount = 10; // 10 times, 5 times horizontally and 5 times vertically.
+    ID3D11ShaderResourceView* shaderResourceViews[2];
+    ID3D11RenderTargetView* renderTargetViews[2];
+
     void Renderer::BloomPass()
     {
+        auto bloomRTV_HDR = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
 
+        shaderResourceViews[0] = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong1])->m_ShaderResourceView.Get();
+        shaderResourceViews[1] = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong2])->m_ShaderResourceView.Get();
+
+        renderTargetViews[0] = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong1])->m_RenderTargetView.Get();
+        renderTargetViews[1] = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong2])->m_RenderTargetView.Get();
+
+        /// Set Blur Shader.
+        // ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VertexBuffer.m_InternalState.get())->m_Resource.Get();
+        // m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
+        ID3D11PixelShader* pixelShader = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_BloomPixelShader.m_InternalState.get())->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
+
+        for (unsigned int i = 0; i < blurAmount; i++)
+        {
+            // Set pingpong framebuffer as render target.
+            m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &renderTargetViews[isHorizontalBloomPass], nullptr);
+            float clearColor[4] = { 0, 0, 0, 1 };
+            m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(renderTargetViews[isHorizontalBloomPass], clearColor);
+
+            // Update the current state of our buffer - horizontal/vertical?
+            ConstantBufferData_Misc miscConstantBuffer;
+            miscConstantBuffer.g_IsHorizontalPass = isHorizontalBloomPass;
+            m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscConstantBuffer, 0);
+
+            // Bind sampling texture.
+            m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(4, 1, isFirstIteration ? &bloomRTV_HDR->m_ShaderResourceView : &shaderResourceViews[!isHorizontalBloomPass]);
+            
+            RenderScene();
+
+            isHorizontalBloomPass = !isHorizontalBloomPass;
+            if (isFirstIteration)
+            {
+                isFirstIteration = false;
+            }
+        }
     }
 
     void Renderer::RenderScene()
@@ -314,13 +390,13 @@ namespace Aurora
             }
         }
 
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+
         // We can play around with the below flow by binding the right pipeline depending on the material extracted from the mesh's information.
         for (auto& meshComponent : meshComponents)
         {
             UINT offset = 0;
             UINT modelStride = 8 * sizeof(float);
-
-            m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
 
             ConstantBufferData_Camera constantBuffer;
             XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix() * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
@@ -341,9 +417,7 @@ namespace Aurora
                 {
                     ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture)->m_ShaderResourceView.Get();
                     m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
-
-                    // ID3D11ShaderResourceView* shaderResourceViewEmit = DX11_Utility::ToInternal(&m_EmissiveTest->m_Texture)->m_ShaderResourceView.Get();
-                    // m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(1, 1, &shaderResourceViewEmit);
+                    m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(1, 1, &shaderResourceViews[isHorizontalBloomPass]);
 
                     constantBuffer.g_ObjectColor = meshComponent.GetEntity()->GetComponent<Material>()->m_BaseColor;
                     m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);

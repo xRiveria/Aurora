@@ -1,5 +1,6 @@
 #pragma once
 #include "../Graphics/RHI_GraphicsDevice.h"
+#include "AuroraObject.h"
 
 namespace Aurora
 {
@@ -9,8 +10,9 @@ namespace Aurora
         Image,
     };
 
-    struct AuroraResource
+    class AuroraResource : public AuroraObject
     {
+    public:
         Aurora::RHI_Texture m_Texture;
 
         Resource_Data_Type m_Type = Resource_Data_Type::Empty;

@@ -62,6 +62,9 @@ enum GBuffer_Types
 	GBuffer_Normal_Roughness,
 	GBuffer_Velocity,					// Motion Blur
 	GBuffer_Bloom,
+
+	GBuffer_BloomPingPong1,
+	GBuffer_BloomPingPong2,
 	GBuffer_Count,
 };
 

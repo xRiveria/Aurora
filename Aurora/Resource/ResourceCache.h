@@ -15,7 +15,8 @@ namespace Aurora
         DefaultObjectType_Sphere,
         DefaultObjectType_Capsule,
         DefaultObjectType_Cylinder,
-        DefaultObjectType_Plane
+        DefaultObjectType_Plane,
+        DefaultObjectType_PointLight,
     };
 
     class AuroraResource;
@@ -37,6 +38,7 @@ namespace Aurora
             - File Size: Size of file data, if file was loaded manually (optional).
         */
 
+        std::string GetResourceDirectory() const { return m_ResourceDirectory; }
         std::shared_ptr<AuroraResource> LoadTexture(const std::string& filePath, const std::string& fileName = "", uint32_t loadFlags = 0);
         std::shared_ptr<Entity> LoadModel(const std::string& filePath, const std::string& fileName = "");
         void MapDefaultObjects();
@@ -49,5 +51,7 @@ namespace Aurora
 
         std::shared_ptr<Importer_Model> m_Importer_Model = nullptr;
         std::shared_ptr<Importer_Image> m_Importer_Image = nullptr;
+
+        std::string m_ResourceDirectory = "../Resources";
     };
 }

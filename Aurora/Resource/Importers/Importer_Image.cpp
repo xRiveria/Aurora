@@ -15,6 +15,7 @@ namespace Aurora
     {
         Renderer* renderer = m_EngineContext->GetSubsystem<Renderer>();
         std::shared_ptr<AuroraResource> resource = std::make_shared<AuroraResource>();
+        resource->m_FilePath = filePath;
 
         const int channelCount = 4;
         int width, height, bytesPerPixel;

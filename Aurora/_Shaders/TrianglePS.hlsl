@@ -19,7 +19,7 @@ struct PS_Output
 };
 
 Texture2D objectTexture : TEXTURE: register(t0);
-Texture2D objectTextureEmit : TEXTURE: register(t1);
+Texture2D bloomBlur : TEXTURE: register(t1);
 SamplerState objectSamplerState : SAMPLER: register(s0);
 
 // Attenuation = 1 / Constant + Linear Decrease (Distance) + Exponential (Distance Squared)
@@ -32,9 +32,10 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
     float3 sampleColor = objectTexture.SampleLevel(objectSamplerState, input.outTexCoord, 0) * g_ObjectColor;
     // float3 ambientColor = 0.4f; // 0.4f ambient strength.
     // float3 lightDirection = normalize(-g_Light_Direction); // When using directional lights, position don't matter, just the direction.
-    float3 emission = objectTextureEmit.SampleLevel(objectSamplerState, input.outTexCoord, 0);
+    float3 bloomColor = bloomBlur.SampleLevel(objectSamplerState, input.outTexCoord, 0);
 
     float3 finalColor = float3(0, 0, 0);
+    finalColor += bloomColor;
     for (int i = 0; i < 6; i++)
     {
         float3 vectorToLight = normalize(g_Light_Position[i] - input.outWorldSpace);
@@ -49,10 +50,8 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
         float3 diffuse = diff * g_Light_Color[i] * attenuationFactor;
         // float3 ambientLight = g_Light_Color[i] * 1.0f;
         finalColor += diffuse;
-        finalColor += emission;
     }
 
-    // Emission
 
     float3 finalLight = finalColor * sampleColor;
   

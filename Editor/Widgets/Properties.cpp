@@ -6,7 +6,7 @@
 #include "../Scene/Components/Light.h"
 #include "../Backend/Source/imgui_internal.h"
 #include "../Renderer/Renderer.h"
-#include "../Backend/Extensions.h"
+#include "../Backend/Utilities/Extensions.h"
 #include "FileSystem.h"
 
 std::weak_ptr<Aurora::Entity> Properties::m_InspectedEntity;
@@ -211,7 +211,7 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
 
     if (ImGui::Button("Load..."))
     {
-        std::optional<std::string> filePath = OpenFilePath("Textures", engineContext);
+        std::optional<std::string> filePath = EditorExtensions::OpenFilePath("Textures", engineContext);
         if (filePath.has_value())
         {
             std::string path = filePath.value();
