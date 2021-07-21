@@ -7,7 +7,7 @@ Widget::Widget(Editor* editorContext, Aurora::EngineContext* engineContext) : m_
 
 void Widget::Tick()
 {
-    // Constant Widgets - Has its own ImGui::Begin and ImGui::End. Self contained and is always rendering.
+    // Constant Widgets - Has its own ImGui::Begin and ImGui::End if it is display related. For example, certain parts of EditorTools may not need to involve ImGui windows. Self contained and is always rendering.
     OnTickAlways();
 
     if (!m_IsWindowedWidget)

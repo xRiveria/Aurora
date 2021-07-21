@@ -48,8 +48,8 @@ namespace Aurora
         PrepareSkyboxResources();
 
         m_Camera = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Default_Camera");
-        m_Camera->GetComponent<Camera>()->SetPosition(3.0f, 3.0f, -10.0f);
-        m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
+        m_Camera->m_Transform->Translate(XMFLOAT3(3.0f, 3.0f, -10.0f));
+        m_Camera->GetComponent<Camera>()->CreatePerspective(m_RenderWidth, m_RenderHeight, 0.1f, 1000.0f, 90.0f);
 
         m_ResourceCache->LoadModel("../Resources/Models/House/Coridor.obj");
         auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Cube);
@@ -103,11 +103,11 @@ namespace Aurora
     {
         ConstantBufferData_Camera constantBuffer;
 
-        XMStoreFloat4x4(&constantBuffer.g_Camera_ViewProjection, camera->GetComponent<Camera>()->GetViewProjectionMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_Camera_View, camera->GetComponent<Camera>()->GetViewMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_Camera_Projection, camera->GetComponent<Camera>()->GetProjectionMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_Camera_InverseViewProjection, XMMatrixInverse(nullptr, camera->GetComponent<Camera>()->GetViewProjectionMatrix()));
-        XMStoreFloat3(&constantBuffer.g_Camera_Position, camera->GetComponent<Camera>()->GetPosition());
+        XMStoreFloat4x4(&constantBuffer.g_Camera_ViewProjection, camera->GetComponent<Camera>()->GetViewProjection());
+        XMStoreFloat4x4(&constantBuffer.g_Camera_View, camera->GetComponent<Camera>()->GetView());
+        XMStoreFloat4x4(&constantBuffer.g_Camera_Projection, camera->GetComponent<Camera>()->GetProjection());
+        XMStoreFloat4x4(&constantBuffer.g_Camera_InverseViewProjection, XMMatrixInverse(nullptr, camera->GetComponent<Camera>()->GetViewProjection()));
+        XMStoreFloat3(&constantBuffer.g_Camera_Position, camera->GetComponent<Camera>()->GetEye());
 
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, commandList);
     }
@@ -120,7 +120,7 @@ namespace Aurora
     inline void Renderer::ResizeBuffers()
     {
         float resolutionScale = 1.0f;
-        XMUINT2 internalResolution = XMUINT2(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0) * resolutionScale, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0) * resolutionScale);
+        XMUINT2 internalResolution = XMUINT2(m_RenderWidth, m_RenderHeight);
 
         // Render Targets - GBuffers
         {
@@ -233,8 +233,8 @@ namespace Aurora
 
     void Renderer::Tick(float deltaTime)
     {
-        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width != m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0) ||
-            m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Height != m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0))
+        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width  != m_RenderWidth ||
+            m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Height != m_RenderHeight)
         {
             ResizeBuffers();
 
@@ -243,7 +243,7 @@ namespace Aurora
             swapchainDescription.m_Height = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0));
 
             m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
-            m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0)) / static_cast<float>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0)), 0.1f, 1000.0f);
+            m_Camera->GetComponent<Camera>()->CreatePerspective(static_cast<float>(m_RenderWidth), static_cast<float>(m_RenderHeight), 0.1f, 1000.0f, 90.0f);
         }
 
         BindLightResources();
@@ -257,7 +257,7 @@ namespace Aurora
 
         /// Rendering to Texture
         //==============================================================================================================
-        D3D11_VIEWPORT viewportInfo = { 0, 0, m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0), 0.0f, 1.0f };
+        D3D11_VIEWPORT viewportInfo = { 0, 0, m_RenderWidth, m_RenderHeight, 0.0f, 1.0f };
         m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
 
         auto ourTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
@@ -399,7 +399,7 @@ namespace Aurora
             UINT modelStride = 8 * sizeof(float);
 
             ConstantBufferData_Camera constantBuffer;
-            XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix() * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+            XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix() * m_Camera->GetComponent<Camera>()->GetViewProjection());
             XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix());
             m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
 
@@ -477,7 +477,7 @@ namespace Aurora
         }
 
         ConstantBufferData_Misc miscBuffer;
-        XMStoreFloat4x4(&miscBuffer.g_Transform, camera->GetViewProjectionMatrix());
+        XMStoreFloat4x4(&miscBuffer.g_Transform, camera->GetViewProjection());
         miscBuffer.g_Color = float4(1, 1, 1, 1);
 
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);

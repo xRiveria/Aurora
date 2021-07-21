@@ -1,6 +1,7 @@
 #pragma once
 #include "IComponent.h"
 #include <DirectXMath.h>
+#include "Transform.h"
 
 using namespace DirectX;
 
@@ -15,41 +16,20 @@ namespace Aurora
         // ================
         void Initialize() override;
         void Tick(float deltaTime) override;
+        void TransformCamera(Transform* transform);
+        void CreatePerspective(float newWidth, float newHeight, float newNear, float newFar, float newFOV);
         // ================
 
         void FPSControl(float deltaTime);
-
-        void ComputePerspectiveMatrix(float fovInDegrees, float aspectRatio, float nearZ, float farZ);
-        void ComputeViewMatrix();
-        void ComputeLookAtPosition(XMFLOAT3 lookAtPosition);
-
-        const XMMATRIX& GetViewMatrix() const { return m_ViewMatrix; }
-        const XMMATRIX& GetProjectionMatrix() const { return m_ProjectionMatrix; }
-        const XMMATRIX& GetViewProjectionMatrix() const { return m_ViewMatrix * m_ProjectionMatrix; }
-        const XMMATRIX& GetInverseViewProjectMatrix() const {  }
-
-        void SetPosition(float x, float y, float z);
-        void SetRotation(float x, float y, float z);
         void AdjustRotation(float x, float y, float z);
 
-        const XMVECTOR& GetPosition() const { return m_Position; }
-        const XMVECTOR& GetRotation() const { return m_Rotation; }
-
-        const XMVECTOR& GetCurrentForwardVector() { return m_CurrentForwardVector; }
-        const XMVECTOR& GetCurrentBackwardVector() { return m_CurrentBackwardVector; }
-        const XMVECTOR& GetCurrentLeftVector() { return m_CurrentLeftVector; }
-        const XMVECTOR& GetCurrentRightVector() { return m_CurrentRightVector; }
-
-    private:
-        XMMATRIX m_ViewMatrix;
-        XMMATRIX m_ProjectionMatrix;
-
-        XMVECTOR m_Position;
-        XMVECTOR m_Rotation;
-
-        // Camera Properties
-        float m_Speed = 3.0f;
-
+        XMVECTOR GetEye() const { return XMLoadFloat3(&m_Eye); }
+        XMVECTOR GetAt() const { return XMLoadFloat3(&m_At); }
+        XMVECTOR GetUp() const { return XMLoadFloat3(&m_Up); }
+        XMMATRIX GetView() const { return XMLoadFloat4x4(&m_View); }
+        XMMATRIX GetProjection() const { return XMLoadFloat4x4(&m_Projection); }
+        XMMATRIX GetViewProjection() const { return XMLoadFloat4x4(&m_VP); }
+       
         // Default Values
         const XMVECTOR m_UpVector = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
         const XMVECTOR m_ForwardVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
@@ -58,11 +38,24 @@ namespace Aurora
         const XMVECTOR m_LeftVector = XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f);
         const XMVECTOR m_RightVector = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 
-        bool m_FPS_Control = false;
+    private:
+        //=======================================
 
-        XMVECTOR m_CurrentForwardVector;
-        XMVECTOR m_CurrentLeftVector;
-        XMVECTOR m_CurrentRightVector;
-        XMVECTOR m_CurrentBackwardVector;
+        XMFLOAT3 m_Eye = XMFLOAT3(0, 0, 0);
+        XMFLOAT3 m_At = XMFLOAT3(0, 0, 1);
+        XMFLOAT3 m_Up = XMFLOAT3(0, 1, 0);
+        XMFLOAT4X4 m_View, m_Projection, m_VP;
+        float m_Width = 0.0f;
+        float m_Height = 0.0f;
+        float m_zNearPlane = 0.1f;
+        float m_zFarPlane = 800.0f;
+        float m_FOV = XM_PI / 3.0f;
+
+        //=======================================
+
+        // Camera Properties
+        float m_Speed = 3.0f;
+
+        bool m_FPS_Control = false;
     };
 }

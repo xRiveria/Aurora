@@ -84,9 +84,14 @@ namespace Aurora
         // const RHI_GPU_Buffer* GetConstantBuffer(CB_Types bufferType) { return &RendererGlobals::g_ConstantBuffers[bufferType]; }
         void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
         void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
+        void SetRenderDimensions(float width, float height) { m_RenderWidth = width; m_RenderHeight = height; }
 
     private:
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;
+
+    private:
+        float m_RenderWidth = 1280;
+        float m_RenderHeight = 1080;
         
     public:
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;

@@ -4,6 +4,7 @@
 #include "EngineContext.h"
 #include "Widget.h"
 #include <optional>
+#include "../Widgets/EditorTools.h"
 
 class Editor
 {
@@ -22,14 +23,12 @@ private:
 	void ImGuiImplementation_ApplyStyling();
 
 private:
-	std::optional<std::string> OpenFilePath(const char* filter); // Temporary
-
-private:
 	// Engine Contexts
 	std::unique_ptr<Aurora::Engine> m_Engine;
 	Aurora::EngineContext* m_EngineContext = nullptr; // Consists of subsystems.
 
 	// Editor Contexts
 	bool m_EditorBegun = false;
+	std::shared_ptr<EditorTools> m_EditorTools;
 	std::vector<std::shared_ptr<Widget>> m_Widgets;
 };

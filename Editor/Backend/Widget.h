@@ -18,7 +18,7 @@ public:
     void Tick(); // Called across all Widgets.
 
     virtual void OnTickAlways()  {}    // Always called for all widgets, regardless of whether its a window or permanent aesthetic.
-    virtual void OnTickVisible() {}  // Called only when the widget is visible. Certain widgets can be hidden or closed.
+    virtual void OnTickVisible() {}    // Called only when the widget is visible. Certain widgets can be hidden or closed.
 
     // Properties
     void SetWidgetVisibility(bool isVisible) { m_IsWidgetVisible = isVisible; }

@@ -1,3 +1,4 @@
+#define _XM_NO_INTRINSICS_
 #include "Editor.h"
 #include "Source/imgui.h"
 #include "Source/imgui_internal.h"
@@ -17,6 +18,9 @@
 #include <optional>
 #include "../Widgets/Properties.h"
 #include "Utilities/IconLibrary.h"
+#include "Source/ImGuizmo/ImGuizmo.h"
+#include "../Input/Input.h"
+#include "../Input/InputUtilities.h"
 
 namespace EditorConfigurations
 {
@@ -44,13 +48,6 @@ inline Aurora::DX11_Utility::DX11_TexturePackage* ToInternal(const Aurora::RHI_T
 	return static_cast<Aurora::DX11_Utility::DX11_TexturePackage*>(texture->m_InternalState.get());
 }
 
-enum class VectorType
-{
-	Scale,
-	Rotation,
-	Translation
-};
-
 void Editor::Tick()
 {
 	while (true)
@@ -60,6 +57,7 @@ void Editor::Tick()
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
 
 		// Render ImGui Stuff
 		BeginDockingContext();  // The start of a docking context.
@@ -72,7 +70,11 @@ void Editor::Tick()
 
 		ImGui::Begin("Test");
 		auto internalState = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
-		ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
+		float width = static_cast<float>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x);
+		float height = static_cast<float>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y);
+		m_EngineContext->GetSubsystem<Aurora::Renderer>()->SetRenderDimensions(width, height);
+		ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(width, height));
+		m_EditorTools->Tick();
 		ImGui::End();
 
 		ImGui::Begin("Buffers");
@@ -129,6 +131,8 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<ObjectsPanel>(this, m_EngineContext));
+
+	m_EditorTools = std::make_shared<EditorTools>(this, m_EngineContext);
 }
 
 void Editor::BeginDockingContext()
