@@ -89,8 +89,8 @@ namespace Aurora
 
             vertices[i].Populate(position, texCoords, texNormals);
 
-            minimumVector = Aurora::Math::Minimum(minimumVector, position);
-            maximumVector = Aurora::Math::Maximum(maximumVector, position);
+            // minimumVector = Aurora::Math::Minimum(minimumVector, position);
+            // maximumVector = Aurora::Math::Maximum(maximumVector, position);
         }
 
         // Create buffer for our vertex data (positions).

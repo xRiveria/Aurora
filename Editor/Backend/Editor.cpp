@@ -15,6 +15,7 @@
 #include "../Widgets/QuickDiagnostics.h"
 #include "../Widgets/ObjectsPanel.h"
 #include "../Widgets/Toolbar.h"
+#include "../Widgets/MathPlayground.h"
 #include <optional>
 #include "../Widgets/Properties.h"
 #include "Utilities/IconLibrary.h"
@@ -131,6 +132,7 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<ObjectsPanel>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<MathPlayground>(this, m_EngineContext)); // For me to play with the Math library.
 
 	m_EditorTools = std::make_shared<EditorTools>(this, m_EngineContext);
 }

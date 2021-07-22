@@ -255,10 +255,18 @@ void Properties::ShowTransformProperties(Aurora::Transform* transformComponent) 
     {
         DrawVector3Control("Translation", transformComponent->m_TranslationLocal);
 
-        // Converts our radians to degrees for display in the inspector, and translates its new values back to radians.
-        XMFLOAT3 rotation = { transformComponent->m_RotationLocal.x, transformComponent->m_RotationLocal.y, transformComponent->m_RotationLocal.z };
-        DrawVector3Control("Rotation", rotation);
-        transformComponent->RotateRollPitchYaw(rotation);
+        // DrawVector3Control("Rotation", rotation);
+        XMFLOAT4 rotation = { transformComponent->m_RotationLocal.x, transformComponent->m_RotationLocal.y, transformComponent->m_RotationLocal.z, transformComponent->m_RotationLocal.w }; // In Quarternion Space
+        ImGui::DragFloat("XRotate", &rotation.x, 0.1f);
+        ImGui::DragFloat("YRotate", &rotation.y, 0.1f);
+        ImGui::DragFloat("ZRotate", &rotation.z, 0.1f);
+        ImGui::DragFloat("WRotate", &rotation.w, 0.1f);
+
+        transformComponent->m_RotationLocal.x = rotation.x;
+        //transformComponent->m_RotationLocal.y = rotation.y;
+        //transformComponent->m_RotationLocal.z = rotation.z;
+        //transformComponent->m_RotationLocal.w = rotation.w;
+        transformComponent->SetDirty();
 
         DrawVector3Control("Scale", transformComponent->m_ScaleLocal, 1.0f);
     }

@@ -1,18 +1,16 @@
 #pragma once
-#include "Core.h"
-#include "../Graphics/RHI_Implementation.h"
+#include <numeric>
 
-using namespace DirectX;
-
-namespace Aurora::Math
+namespace Aurora::Math::Utilities
 {
-    constexpr XMFLOAT3 Minimum(const XMFLOAT3& a, const XMFLOAT3& b)
-    {
-        return XMFLOAT3(std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z));
-    }
+    template <typename T>
+    constexpr T SquareRoot(T x) { return sqrt(x); }
 
-    constexpr XMFLOAT3 Maximum(const XMFLOAT3& a, const XMFLOAT3& b)
-    {
-        return XMFLOAT3(std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z));
-    }
+    // Check for equality but allow for a small margin of error.
+    template <typename T>
+    constexpr bool Equals(T argumentA, T argumentB, T marginOfError = std::numeric_limits<T>::epsilon()) { return argumentA + marginOfError >= argumentB && argumentA - marginOfError <= argumentB; }
+
+    // Returns the absolute value.
+    template <typename T>
+    constexpr T Absolute(T value) { return value >= static_cast<T>(0) ? value : -value; }
 }
