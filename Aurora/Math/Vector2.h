@@ -142,7 +142,7 @@ namespace Aurora::Math
         }
 
         // Returns a pointer to our vector data, needed for various APIs and libraries.
-        const float* Data() const { return &x; }
+        float* Data() { return &x; }
 
         std::string ToString() const;
  

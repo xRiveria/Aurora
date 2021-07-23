@@ -12,6 +12,7 @@
 #include "../Log/Log.h"
 #include "../Input/InputUtilities.h"
 #include "FileSystem.h"
+#include "../Time/Stopwatch.h"
 
 // Math
 #include "../Math/MathUtilities.h"

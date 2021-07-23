@@ -13,4 +13,8 @@ namespace Aurora::Math::Utilities
     // Returns the absolute value.
     template <typename T>
     constexpr T Absolute(T value) { return value >= static_cast<T>(0) ? value : -value; }
+
+    // Return the Sign.
+    template <typename T>
+    constexpr int Sign(T x) { return (static_cast<T>(0) < x) - (x < static_cast<T>(0)); }
 }

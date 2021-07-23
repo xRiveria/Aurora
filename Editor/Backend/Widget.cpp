@@ -15,14 +15,17 @@ void Widget::Tick()
         return;
     }
 
-
     if (!m_IsWidgetVisible)
     {
         return;
     }
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ m_WidgetPadding, m_WidgetPadding });
+
     // Individal Widgets - Can be closed or open depending on the user. If closed, they are not visible and are hence returned above. Else, their ImGui::Begin and ImGui::Ends are nested here.
     ImGui::Begin(m_WidgetName.c_str(), &m_IsWidgetVisible, m_WidgetFlags);
     OnTickVisible();
     ImGui::End();
+
+    ImGui::PopStyleVar();
 }

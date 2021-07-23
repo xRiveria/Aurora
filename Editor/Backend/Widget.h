@@ -1,13 +1,11 @@
 #pragma once
 #include <string>
-#include <DirectXMath.h>
 #include "EngineContext.h"
+#include "../Math/Vector2.h"
 #include "../Backend/Source/imgui.h"
 
 class Editor;
 class Aurora::EngineContext;
-
-using namespace DirectX;
 
 class Widget
 {
@@ -29,8 +27,8 @@ protected:
 
     std::string m_WidgetName = "Widget";
 
-    XMFLOAT2 m_WidgetSize = XMFLOAT2(-1.0, -1.0f);
-    XMFLOAT2 m_WidgetPadding = XMFLOAT2(-1.0f, -1.0f);
+    Aurora::Math::Vector2 m_WidgetSize = Aurora::Math::Vector2(-1.0, -1.0f);
+    float m_WidgetPadding = 6;
 
     int m_WidgetFlags = ImGuiWindowFlags_NoCollapse; // Disable double clicking to collapse window.
 

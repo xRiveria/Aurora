@@ -430,6 +430,7 @@ namespace Aurora
 
     void Renderer::DrawDebugWorld(Entity* entity)
     {
+        Stopwatch stopwatch("Debug World Pass");
         m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Debug[DebugRenderer_Type::DebugRenderer_Grid], 0);
         // Bind Grid Pipeline
         Camera* camera = entity->GetComponent<Camera>();

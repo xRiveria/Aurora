@@ -254,20 +254,8 @@ void Properties::ShowTransformProperties(Aurora::Transform* transformComponent) 
     if (ComponentBegin("Transform"))
     {
         DrawVector3Control("Translation", transformComponent->m_TranslationLocal);
-
-        // DrawVector3Control("Rotation", rotation);
-        XMFLOAT4 rotation = { transformComponent->m_RotationLocal.x, transformComponent->m_RotationLocal.y, transformComponent->m_RotationLocal.z, transformComponent->m_RotationLocal.w }; // In Quarternion Space
-        ImGui::DragFloat("XRotate", &rotation.x, 0.1f);
-        ImGui::DragFloat("YRotate", &rotation.y, 0.1f);
-        ImGui::DragFloat("ZRotate", &rotation.z, 0.1f);
-        ImGui::DragFloat("WRotate", &rotation.w, 0.1f);
-
-        transformComponent->m_RotationLocal.x = rotation.x;
-        //transformComponent->m_RotationLocal.y = rotation.y;
-        //transformComponent->m_RotationLocal.z = rotation.z;
-        //transformComponent->m_RotationLocal.w = rotation.w;
-        transformComponent->SetDirty();
-
+        XMFLOAT3 empty = { 0, 0, 0 };
+        DrawVector3Control("Rotation", empty);
         DrawVector3Control("Scale", transformComponent->m_ScaleLocal, 1.0f);
     }
 

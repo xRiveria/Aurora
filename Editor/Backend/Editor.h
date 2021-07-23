@@ -29,6 +29,5 @@ private:
 
 	// Editor Contexts
 	bool m_EditorBegun = false;
-	std::shared_ptr<EditorTools> m_EditorTools;
 	std::vector<std::shared_ptr<Widget>> m_Widgets;
 };

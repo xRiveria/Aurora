@@ -22,6 +22,9 @@
 #include "Source/ImGuizmo/ImGuizmo.h"
 #include "../Input/Input.h"
 #include "../Input/InputUtilities.h"
+#include "../Widgets/Viewport.h"
+#include "../Time/Stopwatch.h"
+#include "../Profiler/Profiler.h"
 
 namespace EditorConfigurations
 {
@@ -64,19 +67,13 @@ void Editor::Tick()
 		BeginDockingContext();  // The start of a docking context.
 
 		// Editor Tick
-		for (std::shared_ptr<Widget>& widget : m_Widgets) // Tick each individual widget. Each widget contains its own ImGui::Begin and ImGui::End behavior (based on visibility/constantness).
 		{
-			widget->Tick();
+			Aurora::Stopwatch widgetStopwatch("Widget Pass");
+			for (std::shared_ptr<Widget>& widget : m_Widgets) // Tick each individual widget. Each widget contains its own ImGui::Begin and ImGui::End behavior (based on visibility/constantness).
+			{
+				widget->Tick();
+			}
 		}
-
-		ImGui::Begin("Test");
-		auto internalState = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
-		float width = static_cast<float>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x);
-		float height = static_cast<float>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y);
-		m_EngineContext->GetSubsystem<Aurora::Renderer>()->SetRenderDimensions(width, height);
-		ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(width, height));
-		m_EditorTools->Tick();
-		ImGui::End();
 
 		ImGui::Begin("Buffers");
 		auto internalStateBloom = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
@@ -102,6 +99,15 @@ void Editor::Tick()
 
 		ImGui::Begin("Project");
 		ImGui::DragFloat("Exposure:", &m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Exposure, 0.1, 0, 1);
+		ImGui::End();
+
+		// Make sure this is last.
+		ImGui::Begin("Performance");
+		for (int i = 0; i < Aurora::Profiler::GetInstance().GetEntries().size(); i++)
+		{
+			ImGui::Text("%s", Aurora::Profiler::GetInstance().GetEntries()[i].c_str());
+		}
+		Aurora::Profiler::GetInstance().Reset();
 		ImGui::End();
 	
 		ImGui::End(); // Ends docking context.
@@ -133,8 +139,7 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<ObjectsPanel>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<MathPlayground>(this, m_EngineContext)); // For me to play with the Math library.
-
-	m_EditorTools = std::make_shared<EditorTools>(this, m_EngineContext);
+	m_Widgets.emplace_back(std::make_shared<Viewport>(this, m_EngineContext));
 }
 
 void Editor::BeginDockingContext()

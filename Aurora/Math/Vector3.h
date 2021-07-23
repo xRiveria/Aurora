@@ -1,9 +1,8 @@
 #include "MathUtilities.h"
+#include <string>
 
 namespace Aurora::Math
 {
-    class Vector4;
-
     class Vector3
     {
     public:
@@ -63,6 +62,9 @@ namespace Aurora::Math
                 vectorA.x * vectorB.y - vectorB.x * vectorA.y
             );
         }
+
+        // Returns the cross product.
+        Vector3 Cross(const Vector3& otherVector) const { return Cross(*this, otherVector); }
 
         // Returns the length.
         float Length() const { return Utilities::SquareRoot(x * x + y * y + z * z); }
@@ -239,11 +241,26 @@ namespace Aurora::Math
         // Return negation.
         Vector3 operator-() const { return Vector3(-this->x, -this->y, -this->z); }
         
-        const float* Data() { return &x; }
+        float* Data() { return &x; }
+        std::string ToString() const;
 
     public:
         float x = 0;
         float y = 0;
         float z = 0;
+
+        static const Vector3 Zero;
+        static const Vector3 Left;
+        static const Vector3 Right;
+        static const Vector3 Up;
+        static const Vector3 Down;
+        static const Vector3 Forward;
+        static const Vector3 Backward;
+        static const Vector3 One;
+        static const Vector3 Infinity;
+        static const Vector3 InfinityNegative;
     };
+
+    // Reverse order operators.
+    inline Vector3 operator*(float value, const Vector3& otherVector) { return otherVector * value; }
 }
