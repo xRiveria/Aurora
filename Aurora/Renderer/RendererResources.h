@@ -82,7 +82,6 @@ namespace Aurora
     {
         LoadShader(Shader_Stage::Vertex_Shader, m_VertexShader, "TriangleVS.hlsl");
         LoadShader(Shader_Stage::Pixel_Shader, m_PixelShader, "TrianglePS.hlsl");
-        LoadShader(Shader_Stage::Pixel_Shader, m_BloomPixelShader, "BlurPS.hlsl");
 
         // These input layouts are created on pipeline state creation.
         RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements =
@@ -283,6 +282,10 @@ namespace Aurora
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Material);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material]);
         AURORA_INFO("Successfully created Material Constant Buffer.");
+
+        bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Frame);
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame]);
+        AURORA_INFO("Successfully created Frame Constant Buffer.");
     }
 
     void Renderer::LoadPipelineStates()

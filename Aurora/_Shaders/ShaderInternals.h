@@ -31,16 +31,20 @@ CBUFFER(ConstantBufferData_Material, CBSLOT_RENDERER_MATERIAL)
 
     float3 g_Camera_Position;
     float g_Padding0001;
+
+    int g_Texture_BaseColorMap_Index;
+    int g_Texture_NormalMap_Index;
+    int g_Texture_MetalnessMap_Index;
+    int g_Texture_RoughnessMap_Index;
+
+    float4x4 g_ObjectMatrix; // Temporary
+    float4x4 g_WorldMatrix;
 };
 
 CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
 {
     float4x4 g_Transform;
     float4   g_Color;
-
-    // Temporary
-    float4   g_Light_Position[6];
-    float4   g_Light_Color[6];
 
     float    g_IsHorizontalPass;
     float3   g_Light_Direction;
@@ -49,15 +53,13 @@ CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
 // Common Constant Buffers
 CBUFFER(ConstantBufferData_Frame, CBSLOT_RENDERER_FRAME)
 {
-
+    float4   g_Light_Position[4];
+    float4   g_Light_Color[4];
 };
 
 // 32 bit alignment.
 CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
 {
-    float4x4 g_ObjectMatrix; // Temporary
-    float4x4 g_WorldMatrix;
-
     float4x4 g_Camera_ViewProjection;
     float4x4 g_Camera_InverseViewProjection;
 

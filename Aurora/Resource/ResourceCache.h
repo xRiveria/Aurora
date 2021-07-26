@@ -13,10 +13,10 @@ namespace Aurora
     {
         DefaultObjectType_Cube,
         DefaultObjectType_Sphere,
-        DefaultObjectType_Capsule,
-        DefaultObjectType_Cylinder,
+        DefaultObjectType_Torus,
+        DefaultObjectType_Cone,
         DefaultObjectType_Plane,
-        DefaultObjectType_PointLight,
+        DefaultObjectType_Cylinder,
     };
 
     class AuroraResource;

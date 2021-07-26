@@ -22,9 +22,12 @@ vs_out main(vs_in input)  // Vertex shader entry point called vs_main(). Entry p
 {
     vs_out output = (vs_out)0; // Zero the memory first.
 
-    output.outPosition = mul(float4(input.inPosition, 1.0), g_ObjectMatrix); // Vertex shader must output a float4 XYZW value to set the homogenous clip space (betwen -1 and 1 in XY axis and 0 and 1 in Z axis.
+    output.outPosition = mul(float4(input.inPosition, 1.0), g_WorldMatrix); // Vertex shader must output a float4 XYZW value to set the homogenous clip space (betwen -1 and 1 in XY axis and 0 and 1 in Z axis.    
+    output.outWorldSpace = output.outPosition.xyz;
+
+    output.outPosition = mul(output.outPosition, g_ObjectMatrix);
+
     output.outTexCoord = input.inTexCoord;
-    output.outNormal = mul(float4(input.inNormal, 1.0), g_WorldMatrix); // Length of 1 Normals
-    output.outWorldSpace = mul(float4(input.inPosition, 1.0), g_WorldMatrix);
+    output.outNormal = normalize(input.inNormal); // Why multipled by world matrix this break?
     return output;
 }

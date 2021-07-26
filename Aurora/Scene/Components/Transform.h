@@ -39,7 +39,15 @@ namespace Aurora
         XMVECTOR GetScaleVector() const;
         XMMATRIX GetLocalMatrix() const;    // Computes the local space matrix from scale, rotation and translation.
 
+        // Hierarchy
+        bool IsRootEntity() const { return !HasParent(); }
+        bool HasParent() const { return m_Parent; }
+       
     public:
+        //Hierarchy
+        Transform* m_Parent; // The parent of this transform.
+        std::vector<Transform*> m_Children; // The children of this transform.
+
         XMFLOAT3 m_TranslationLocal = XMFLOAT3(0, 0, 0);
         XMFLOAT3 m_ScaleLocal = XMFLOAT3(1, 1, 1);
         XMFLOAT4 m_RotationLocal = XMFLOAT4(0.0, 0.0, 0.0, 1.0);    // Quaternion

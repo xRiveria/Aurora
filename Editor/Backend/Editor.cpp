@@ -75,17 +75,6 @@ void Editor::Tick()
 			}
 		}
 
-		ImGui::Begin("Buffers");
-		auto internalStateBloom = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
-		ImGui::Image((void*)internalStateBloom->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
-		
-		internalStateBloom = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong1]);
-		ImGui::Image((void*)internalStateBloom->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
-		internalStateBloom = ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong2]);
-		ImGui::Image((void*)internalStateBloom->m_ShaderResourceView.Get(), ImVec2(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowWidth(0), m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetWindowHeight(0)));
-		
-		ImGui::End();
-
 		ImGui::Begin("Hierarchy");
 		auto& entities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
 		for (auto& entity : entities)
@@ -95,10 +84,6 @@ void Editor::Tick()
 				Properties::m_InspectedEntity = entity;
 			}
 		}
-		ImGui::End();
-
-		ImGui::Begin("Project");
-		ImGui::DragFloat("Exposure:", &m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Exposure, 0.1, 0, 1);
 		ImGui::End();
 
 		// Make sure this is last.

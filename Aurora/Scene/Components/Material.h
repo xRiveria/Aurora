@@ -2,17 +2,20 @@
 #include "IComponent.h"
 #include <DirectXMath.h>
 #include "../Resource/ResourceUtilities.h"
+#include "../_Shaders/Mappings/ResourceMappings.h"
 #include <string>
 
 using namespace DirectX;
 
 namespace Aurora
 {   
+    // These texture slots correspond to our shader binding points.
     enum TextureSlot
     {
-        BaseColorMap,
-        NormalMap,
-        SurfaceMap,
+        BaseColorMap    = TEXSLOT_RENDERER_BASECOLOR_MAP,
+        NormalMap       = TEXSLOT_RENDERER_NORMAL_MAP,
+        MetalnessMap    = TEXSLOT_RENDERER_METALNESS_MAP,
+        RoughnessMap    = TEXSLOT_RENDERER_ROUGHNESS_MAP,
         EmissiveMap,
         DisplacementMap,
         OcclusionMap,

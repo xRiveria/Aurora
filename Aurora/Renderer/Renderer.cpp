@@ -49,35 +49,16 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(0, 4, -6);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
 
-        m_ResourceCache->LoadModel("../Resources/Models/House/Coridor.obj");
-        auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Cube);
-
-        //auto lightEntity1 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        //lightEntity1->SetName("Sunlight");
-        //lightEntity1->AddComponent<Light>();
-        //lightEntity1->GetComponent<Light>()->m_Color = { 300.0f, 300.0f, 300.0f };
-        //lightEntity1->m_Transform->Translate({ 0, 0, 20 });
+        auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Torus);
+        cube->GetComponent<Transform>()->Translate({ 0.0f, 2.0f, 0.0f });
+        
+        m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Cerberus");
 
         auto lightEntity2 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         lightEntity2->SetName("PL 2");
         lightEntity2->AddComponent<Light>();
         lightEntity2->GetComponent<Light>()->m_Color = { 300.0f, 300.0f, 300.0f };
-        lightEntity2->m_Transform->Translate({ 2.50, 0.0, 0.0 });
-
-        /*
-        auto lightEntity3 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        lightEntity3->SetName("PL 3");
-        lightEntity3->AddComponent<Light>();
-        lightEntity3->GetComponent<Light>()->m_Color = { 0.0f, 0.0f, 0.2f };
-        lightEntity3->m_Transform->Translate({ -2.50, 0.0, 0.0 });
-
-        auto lightEntity4 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        lightEntity4->SetName("PL 4");
-        lightEntity4->AddComponent<Light>();
-        lightEntity4->GetComponent<Light>()->m_Color = { 0.0f, 0.1f, 0.0f };
-        lightEntity4->m_Transform->Translate({ 0.0, 0.0, -2.50 });
-        */
-        m_EmissiveTest = m_ResourceCache->LoadTexture("../Resources/Textures/Default/Emissive.jpg", "Emissive");
+        lightEntity2->m_Transform->Translate({ 2.50, 2.0, 0.0 });
         
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -93,6 +74,35 @@ namespace Aurora
         return true;
     }
 
+    int Renderer::BindMaterialTexture(TextureSlot slotType, Material* material)
+    {
+        // Remember that our slot type's enum corresponds to our shader material.
+        ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&material->m_Textures[slotType].m_Resource->m_Texture)->m_ShaderResourceView.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources((int)slotType, 1, &shaderResourceView);
+
+        return (int)slotType;
+    }
+
+    void Renderer::UpdateMaterialConstantBuffer(Material* materialComponent)
+    {
+        ConstantBufferData_Material constantBuffer;
+
+        constantBuffer.g_Material.g_ObjectColor = materialComponent->m_BaseColor;
+        constantBuffer.g_Material.g_Roughness = materialComponent->m_Roughness;
+        constantBuffer.g_Material.g_Metalness = materialComponent->m_Metalness;
+        XMStoreFloat3(&constantBuffer.g_Camera_Position, m_Camera->GetComponent<Camera>()->m_Position);
+
+        constantBuffer.g_Texture_BaseColorMap_Index = BindMaterialTexture(TextureSlot::BaseColorMap, materialComponent);
+        constantBuffer.g_Texture_NormalMap_Index = BindMaterialTexture(TextureSlot::NormalMap, materialComponent);
+        constantBuffer.g_Texture_MetalnessMap_Index = BindMaterialTexture(TextureSlot::MetalnessMap, materialComponent);
+        constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(TextureSlot::RoughnessMap, materialComponent);
+
+        XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, materialComponent->GetEntity()->m_Transform->GetLocalMatrix());
+
+        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material], &constantBuffer, 0);
+    }
+
     void Renderer::UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList)
     {
         ConstantBufferData_Camera constantBuffer;
@@ -106,10 +116,38 @@ namespace Aurora
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, commandList);
     }
 
+    void Renderer::UpdateLightConstantBuffer() // We can only bind up to 16 point lights at this time.
+    {
+        std::vector<std::shared_ptr<Entity>> lightEntities;
+        for (std::shared_ptr<Entity> entity : m_SceneEntities)
+        {
+            if (entity->IsActive())
+            {
+                if (entity->HasComponent<Light>())
+                {
+                    lightEntities.push_back(entity);
+                }
+            }
+        }
+
+        ConstantBufferData_Frame miscConstantBuffer;
+
+        for (int i = 0; i < lightEntities.size(); i++) // We will update for each as many light entities we have.
+        {
+            XMFLOAT4 position = { lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.x, lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.y, lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.z, 1 };
+            XMFLOAT4 color = { lightEntities[i]->GetComponent<Light>()->m_Color.x, lightEntities[i]->GetComponent<Light>()->m_Color.y, lightEntities[i]->GetComponent<Light>()->m_Color.z, 1 };
+            miscConstantBuffer.g_Light_Position[i] = position;
+            miscConstantBuffer.g_Light_Color[i] = color;
+        }
+
+        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame], &miscConstantBuffer, 0);
+    }
+
     void Renderer::BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList)
     {
         m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], CB_GETBINDSLOT(ConstantBufferData_Camera), commandList);
         m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material], CB_GETBINDSLOT(ConstantBufferData_Material), 0);
+        m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame], CB_GETBINDSLOT(ConstantBufferData_Frame), 0);
     }
 
     inline void Renderer::ResizeBuffers()
@@ -226,18 +264,8 @@ namespace Aurora
         }
     }
     
-    float totalTime = 0.0;
     void Renderer::Tick(float deltaTime)
     {
-        //auto& cube = m_EngineContext->GetSubsystem<World>()->GetEntityByName("cube");
-        //totalTime += deltaTime;
-        //float y = static_cast<float>(sin(2.0 * totalTime));
-        //float x = static_cast<float>(cos(2.0 * totalTime));
-        // XMFLOAT3 float3 = { static_cast<float>(1.0 * cos(5 * totalTime)), static_cast <float>(1.0 * sin( 5 * totalTime)), 0 };
-        //XMFLOAT3 float3 = { x, y, x };
-
-        //cube->m_Transform->Translate(float3);
-
         if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width  != m_RenderWidth ||
             m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Height != m_RenderHeight)
         {
@@ -251,9 +279,10 @@ namespace Aurora
             m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
         }
 
-        BindLightResources();
         BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
         BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
+
+        UpdateLightConstantBuffer();
         UpdateCameraConstantBuffer(m_Camera, 0);
 
         ID3D11SamplerState* samplerState = DX11_Utility::ToInternal(&m_Standard_Texture_Sampler)->m_Resource.Get();
@@ -288,8 +317,6 @@ namespace Aurora
     
         RenderScene();
         DrawDebugWorld(m_Camera.get());
-        // BloomPass();
-        // RenderScene();
 
         /// ==================================
         auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
@@ -300,92 +327,6 @@ namespace Aurora
         ID3D11RenderTargetView* RTV = internalState->m_RenderTargetView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, 0); // Set depth as well here if it exists.    
         // Present is called from our Editor.
-    }
-
-    void Renderer::BindLightResources() // We can only bind up to 16 point lights at this time.
-    {
-        std::vector<std::shared_ptr<Entity>> lightEntities;
-        for (std::shared_ptr<Entity> entity : m_SceneEntities) 
-        {   
-            if (entity->IsActive())
-            {
-                if (entity->HasComponent<Light>())
-                {
-                    lightEntities.push_back(entity);
-                }
-            }
-        }
-
-        ConstantBufferData_Misc miscConstantBuffer;
-        
-        for (int i = 0; i < lightEntities.size(); i++) // We will update for each as many light entities we have.
-        {
-            XMFLOAT4 position = { lightEntities[i]->GetComponent<Transform>()->GetPosition().x, lightEntities[i]->GetComponent<Transform>()->GetPosition().y, lightEntities[i]->GetComponent<Transform>()->GetPosition().z, 1 };
-            XMFLOAT4 color = { lightEntities[i]->GetComponent<Light>()->m_Color.x, lightEntities[i]->GetComponent<Light>()->m_Color.y, lightEntities[i]->GetComponent<Light>()->m_Color.z, 1 };
-            miscConstantBuffer.g_Light_Position[i] = position;
-            miscConstantBuffer.g_Light_Color[i] = color;
-        }
-
-        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscConstantBuffer, 0);
-    }
-
-    void Renderer::BindMaterialResources(Material* materialComponent)
-    {
-        ConstantBufferData_Material constantBuffer;
-
-        constantBuffer.g_Material.g_ObjectColor = materialComponent->m_BaseColor;
-        constantBuffer.g_Material.g_Roughness = materialComponent->m_Roughness;
-        constantBuffer.g_Material.g_Metalness = materialComponent->m_Metalness;
-        XMStoreFloat3(&constantBuffer.g_Camera_Position, m_Camera->GetComponent<Camera>()->m_Position);
-
-        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material], &constantBuffer, 0);
-    }
-
-    bool isHorizontalBloomPass = true;
-    bool isFirstIteration = true;
-    int blurAmount = 10; // 10 times, 5 times horizontally and 5 times vertically.
-    ID3D11ShaderResourceView* shaderResourceViews[2];
-    ID3D11RenderTargetView* renderTargetViews[2];
-
-    void Renderer::BloomPass()
-    {
-        auto bloomRTV_HDR = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
-
-        shaderResourceViews[0] = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong1])->m_ShaderResourceView.Get();
-        shaderResourceViews[1] = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong2])->m_ShaderResourceView.Get();
-
-        renderTargetViews[0] = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong1])->m_RenderTargetView.Get();
-        renderTargetViews[1] = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong2])->m_RenderTargetView.Get();
-
-        /// Set Blur Shader.
-        // ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VertexBuffer.m_InternalState.get())->m_Resource.Get();
-        // m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
-        ID3D11PixelShader* pixelShader = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_BloomPixelShader.m_InternalState.get())->m_Resource.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
-
-        for (unsigned int i = 0; i < blurAmount; i++)
-        {
-            // Set pingpong framebuffer as render target.
-            m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &renderTargetViews[isHorizontalBloomPass], nullptr);
-            float clearColor[4] = { 0, 0, 0, 1 };
-            m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(renderTargetViews[isHorizontalBloomPass], clearColor);
-
-            // Update the current state of our buffer - horizontal/vertical?
-            ConstantBufferData_Misc miscConstantBuffer;
-            miscConstantBuffer.g_IsHorizontalPass = isHorizontalBloomPass;
-            m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscConstantBuffer, 0);
-
-            // Bind sampling texture.
-            m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(4, 1, isFirstIteration ? &bloomRTV_HDR->m_ShaderResourceView : &shaderResourceViews[!isHorizontalBloomPass]);
-            
-            RenderScene();
-
-            isHorizontalBloomPass = !isHorizontalBloomPass;
-            if (isFirstIteration)
-            {
-                isFirstIteration = false;
-            }
-        }
     }
 
     void Renderer::RenderScene()
@@ -412,26 +353,17 @@ namespace Aurora
             UINT offset = 0;
             UINT modelStride = 8 * sizeof(float);
 
-            ConstantBufferData_Camera constantBuffer;
-            XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix() * m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
-            XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, meshComponent.GetEntity()->m_Transform->GetLocalMatrix());
-            m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, 0);
-
             ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
             m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
             m_GraphicsDevice->BindIndexBuffer(&meshComponent.m_IndexBuffer, meshComponent.GetIndexFormat(), 0, 0);
 
             if (meshComponent.GetEntity()->HasComponent<Material>())
             {
-                ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&meshComponent.GetEntity()->GetComponent<Material>()->m_Textures[TextureSlot::BaseColorMap].m_Resource->m_Texture)->m_ShaderResourceView.Get();
-                m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(0, 1, &shaderResourceView);
-                m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(1, 1, &shaderResourceViews[isHorizontalBloomPass]);
-
-                BindMaterialResources(meshComponent.GetEntity()->GetComponent<Material>());
+                UpdateMaterialConstantBuffer(meshComponent.GetEntity()->GetComponent<Material>());
             }
-        
+
             m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(meshComponent.m_Indices.size(), 0, 0);
-        }         
+        }
     }
 
     void Renderer::DrawDebugWorld(Entity* entity)

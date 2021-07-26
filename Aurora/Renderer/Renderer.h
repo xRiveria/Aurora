@@ -7,6 +7,8 @@
 #include "RendererEnums.h"
 #include "ShaderCompiler.h"
 #include "../Resource/Importers/Importer_Model.h"
+#include "../Scene/Components/Material.h"
+#include "../Scene/Components/Mesh.h"
 
 using namespace DirectX;
 
@@ -29,13 +31,13 @@ namespace Aurora
         // Shenanigans
 
     public:
-        void BindLightResources();
-        void BindMaterialResources(Material* materialComponent);
+        // Bindings
+        void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
 
-        void BloomPass();
-        RHI_Shader m_BloomPixelShader;
-
-        float m_Exposure = 0.1;
+        void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
+        void UpdateLightConstantBuffer();
+        void UpdateMaterialConstantBuffer(Material* materialComponent);
+        int BindMaterialTexture(TextureSlot slotType, Material* material);
 
     public:
         /// New Abstraction
@@ -56,11 +58,6 @@ namespace Aurora
         void LoadDefaultTextures();
 
         void LoadPipelineStates();
-        // void ReloadShaders();  // Fire shader reload event. Calls LoadShaders() again.
-
-        // const RHI_GPU_Buffer* GetConstantBuffer(CB_Types bufferType) { return &RendererGlobals::g_ConstantBuffers[bufferType]; }
-        void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
-        void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
         void SetRenderDimensions(float width, float height) { m_RenderWidth = width; m_RenderHeight = height; }
 
     private:
@@ -79,7 +76,6 @@ namespace Aurora
         RHI_GPU_Buffer m_VertexBuffer;
 
         RHI_Sampler m_Standard_Texture_Sampler;
-        std::shared_ptr<AuroraResource> m_EmissiveTest;
         
         // Camera
         std::shared_ptr<Entity> m_Camera;

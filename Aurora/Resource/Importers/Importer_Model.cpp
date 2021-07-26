@@ -86,10 +86,8 @@ namespace Aurora
             // Create root entity to match Assimp's root node.
             const bool isActive = false;
             newEntity = m_WorldContext->EntityCreate(isActive);
+            if (fileName == "") { newEntity->SetName(modelParameters.m_Name); } else { newEntity->SetName(modelParameters.m_Name); }
 
-            if (fileName == "") { newEntity->SetName(modelParameters.m_Name); } else { newEntity->SetName(fileName); }
-
-            /// Set root entity for model.
 
             // Parse all nodes, starting from the root node and continuing recursively.
             ParseNode(scene->mRootNode, modelParameters, nullptr, newEntity.get());
@@ -302,6 +300,9 @@ namespace Aurora
         
         // Engine Texture, Assimp PBR Texture, Assimp Legacy Texture (Fallback)
         LoadMaterialTexture(TextureSlot::BaseColorMap, aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE);
+        LoadMaterialTexture(TextureSlot::RoughnessMap, aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SHININESS); // Use specular as fallback.
+        LoadMaterialTexture(TextureSlot::MetalnessMap, aiTextureType_METALNESS, aiTextureType_AMBIENT); // Use ambient as fallback.
+        LoadMaterialTexture(TextureSlot::NormalMap, aiTextureType_NORMAL_CAMERA, aiTextureType_NORMALS);
     }
 
     std::string Importer_Model::TextureTryMultipleExtensions(const std::string& filePath)

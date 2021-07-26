@@ -32,8 +32,12 @@ namespace Aurora
 
     void ResourceCache::MapDefaultObjects()
     {
-        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cube] = "../Resources/Models/Default/Cube/scene.gltf";
-        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Sphere] = "../Resources/Models/Default/Sphere/globe-sphere.obj";
+        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cube]   = "../Resources/Models/Default/Cube.fbx";
+        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Sphere] = "../Resources/Models/Default/Sphere.fbx";
+        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Plane] = "../Resources/Models/Default/Plane.fbx";
+        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cylinder] = "../Resources/Models/Default/Cylinder.fbx";
+        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Torus] = "../Resources/Models/Default/Torus.fbx";
+        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cone] = "../Resources/Models/Default/Cone.fbx";
     }
 
     std::shared_ptr<AuroraResource> ResourceCache::LoadTexture(const std::string& filePath, const std::string& fileName, uint32_t loadFlags)

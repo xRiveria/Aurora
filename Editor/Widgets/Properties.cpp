@@ -185,6 +185,7 @@ static void DrawVector3Control(const std::string& label, XMFLOAT3& values, float
 
 static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& materialTexture, Aurora::EngineContext* engineContext, bool drawColorControls = false, XMFLOAT4& colorValues = g_DefaultColor)
 {
+    ImGui::PushID(label.c_str());
     ImGuiIO& io = ImGui::GetIO();
     auto boldFont = io.Fonts->Fonts[0];
     ImGui::PushFont(boldFont);
@@ -204,7 +205,7 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
 
     ImGui::SameLine();
 
-    bool isTrue = true; ///
+    bool isTrue = true; /// To Implemenet
     ImGui::Checkbox("Use", &isTrue);
     
     ImGui::SameLine();
@@ -242,6 +243,7 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
     ImGui::Text("File: %s", materialTexture.m_FilePath.c_str());
 
     ImGui::Separator();
+    ImGui::PopID();
 }
 
 void Properties::ShowTransformProperties(Aurora::Transform* transformComponent) const
@@ -257,6 +259,7 @@ void Properties::ShowTransformProperties(Aurora::Transform* transformComponent) 
         XMFLOAT3 empty = { 0, 0, 0 };
         DrawVector3Control("Rotation", empty);
         DrawVector3Control("Scale", transformComponent->m_ScaleLocal, 1.0f);
+        transformComponent->SetDirty(true);
     }
 
     ComponentEnd();
@@ -272,9 +275,9 @@ void Properties::ShowMaterialProperties(Aurora::Material* materialComponent) con
     if (ComponentBegin("Material"))
     {
         DrawMaterialControl("Albedo Map", materialComponent->m_Textures[Aurora::TextureSlot::BaseColorMap], m_EngineContext, true, materialComponent->m_BaseColor);
+        DrawMaterialControl("Roughness Map", materialComponent->m_Textures[Aurora::TextureSlot::RoughnessMap], m_EngineContext);
         DrawMaterialControl("Normal Map", materialComponent->m_Textures[Aurora::TextureSlot::NormalMap], m_EngineContext);
-        DrawMaterialControl("Emissive Map", materialComponent->m_Textures[Aurora::TextureSlot::EmissiveMap], m_EngineContext);
-        DrawMaterialControl("Occulusion Map", materialComponent->m_Textures[Aurora::TextureSlot::OcclusionMap], m_EngineContext);
+        DrawMaterialControl("Metallic Map", materialComponent->m_Textures[Aurora::TextureSlot::MetalnessMap], m_EngineContext);
 
         ImGui::SliderFloat("Roughness", &materialComponent->m_Roughness, 0.0, 1.0);
         ImGui::SliderFloat("Metalness", &materialComponent->m_Metalness, 0.0, 1.0);

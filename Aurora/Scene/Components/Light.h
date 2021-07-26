@@ -35,7 +35,6 @@ namespace Aurora
         // float m_RangeLocal = 10.0f;
         // float m_FOV = XM_PIDIV4;
 
-        XMFLOAT3 m_Position = { 0.0, 0.0, 0.0 };
         float m_RangeGlobal;
         XMFLOAT3 m_Direction = { -2.0f, -1.0f, -0.3f };
         XMFLOAT3 m_Rotation;

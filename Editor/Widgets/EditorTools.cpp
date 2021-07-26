@@ -56,6 +56,7 @@ void EditorTools::TickGizmos()
 			
 		ImGuizmo::Manipulate(&view._11, &projection._11, (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, &transform._11);
 
+
 		if (ImGuizmo::IsUsing())
 		{
 			XMVECTOR scaleLocal, rotationLocal, translationLocal;
