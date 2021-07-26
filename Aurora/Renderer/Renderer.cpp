@@ -49,11 +49,15 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(0, 4, -6);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
 
-        auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Torus);
-        cube->GetComponent<Transform>()->Translate({ 0.0f, 2.0f, 0.0f });
-        
-        m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Cerberus");
+        auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Plane);
+        cube->GetComponent<Transform>()->Scale({ 5, 1, 5 });
+        cube->GetComponent<Transform>()->Translate({ 0, 0.2, 0 });
 
+        auto gun = m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Cerberus");
+        gun->GetComponent<Transform>()->Scale({ 0.02, 0.02, 0.02 });
+        //gun->GetComponent<Transform>()->m_RotationLocal.x = 0.6;
+        gun->GetComponent<Transform>()->Translate({ 0.0, 2.0, 0.0 });
+        
         auto lightEntity2 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         lightEntity2->SetName("PL 2");
         lightEntity2->AddComponent<Light>();
@@ -98,7 +102,7 @@ namespace Aurora
         constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(TextureSlot::RoughnessMap, materialComponent);
 
         XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, materialComponent->GetEntity()->m_Transform->GetLocalMatrix());
+        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, materialComponent->GetEntity()->m_Transform->GetWorldMatrix());
 
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material], &constantBuffer, 0);
     }

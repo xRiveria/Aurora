@@ -84,10 +84,10 @@ namespace Aurora
             modelParameters.m_HasAnimations = scene->mNumAnimations != 0;
 
             // Create root entity to match Assimp's root node.
-            const bool isActive = false;
+            const bool isActive = true;
             newEntity = m_WorldContext->EntityCreate(isActive);
             if (fileName == "") { newEntity->SetName(modelParameters.m_Name); } else { newEntity->SetName(modelParameters.m_Name); }
-
+            /// Set root entity.
 
             // Parse all nodes, starting from the root node and continuing recursively.
             ParseNode(scene->mRootNode, modelParameters, nullptr, newEntity.get());
@@ -115,10 +115,13 @@ namespace Aurora
 
         /// Progress Tracking.
 
-        /// Transform Stuff.
-        // newEntity->m_Transform->Scale({ 0.4f, 0.4f, 0.4f });
-        // newEntity->m_Transform->RotateRollPitchYaw ({ 90, 0, 0 });
-            
+        // Set the transform of the parent node as the parent of the new entity's transform.
+        const auto parentTransform = parentEntity ? parentEntity->GetTransform() : nullptr;
+        newEntity->GetTransform()->SetParentTransform(parentTransform);
+        
+        
+        /// Set the transformation matrix of the Assimp node to the new node.
+
         // Process all of the node's meshes.
         ParseNodeMeshes(assimpNode, newEntity, modelParameters);
 
@@ -131,7 +134,6 @@ namespace Aurora
 
         /// Progress Tracking.
     }
-
 
     void Importer_Model::ParseNodeMeshes(const aiNode* assimpNode, Entity* newEntity, const ModelParameters& modelParameters)
     {
@@ -146,7 +148,7 @@ namespace Aurora
             {
                 const bool isActive = false;
                 entity = m_WorldContext->EntityCreate(isActive).get(); // Create entity.
-                /// Set parent transform.
+                entity->GetTransform()->SetParentTransform(newEntity->GetTransform()); // Set parent.
                 meshName += "_" + std::to_string(i + 1); // Set name.
             }
 

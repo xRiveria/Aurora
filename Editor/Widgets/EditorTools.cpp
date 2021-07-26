@@ -50,7 +50,7 @@ void EditorTools::TickGizmos()
 		Aurora::Camera* cameraEntity = m_EngineContext->GetSubsystem<Aurora::World>()->GetEntityByName("Default_Camera")->GetComponent<Aurora::Camera>();
 		Aurora::Transform* transformComponent = Properties::m_InspectedEntity.lock().get()->m_Transform;
 
-		XMFLOAT4X4 transform = transformComponent->m_WorldMatrix;
+		XMFLOAT4X4 transform = transformComponent->m_LocalMatrix;
 		auto view = cameraEntity->GetViewMatrix();
 		auto projection = cameraEntity->GetProjectionMatrix();
 			

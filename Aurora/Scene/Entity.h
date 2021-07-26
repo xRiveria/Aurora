@@ -144,9 +144,10 @@ namespace Aurora
         
         // Direct access for performance critical usage, which is not safe.
         std::shared_ptr<Entity> GetPointerShared() { return shared_from_this(); }
+        Transform* GetTransform() const { return m_Transform; }
 
     public:
-        Transform* m_Transform; // All entities will have a transform component, regardless of whether it is empty or not.
+        Transform* m_Transform = nullptr; // All entities will have a transform component, regardless of whether it is empty or not.
         bool m_IsActive = true;
 
     private:

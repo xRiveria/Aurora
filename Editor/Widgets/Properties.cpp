@@ -256,12 +256,20 @@ void Properties::ShowTransformProperties(Aurora::Transform* transformComponent) 
     if (ComponentBegin("Transform"))
     {
         DrawVector3Control("Translation", transformComponent->m_TranslationLocal);
-        XMFLOAT3 empty = { 0, 0, 0 };
-        DrawVector3Control("Rotation", empty);
+        //XMFLOAT4* rotation = &transformComponent->m_RotationLocal;
+        //ImGui::DragFloat4("Rotation", &rotation->x, 0.03, -1, 1);
+        XMFLOAT3 derp = { 0, 0, 0 };
+        DrawVector3Control("Rotatation", derp, 1.0f);
         DrawVector3Control("Scale", transformComponent->m_ScaleLocal, 1.0f);
         transformComponent->SetDirty(true);
     }
 
+    ImGui::Text("Parent Name: %s", transformComponent->HasParentTransform() ? transformComponent->GetParentTransform()->GetEntityName().c_str() : "No Parent");
+    ImGui::Text("Children Count: %.0f", static_cast<float>(transformComponent->m_Children.size()));
+    if (ImGui::Button("Find Children"))
+    {
+        transformComponent->AcquireChildren();
+    }
     ComponentEnd();
 }
 
