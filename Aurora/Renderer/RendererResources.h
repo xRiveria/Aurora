@@ -279,6 +279,10 @@ namespace Aurora
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Misc);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc]);
         AURORA_INFO("Successfully created Misc Constant Buffer.");
+
+        bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Material);
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material]);
+        AURORA_INFO("Successfully created Material Constant Buffer.");
     }
 
     void Renderer::LoadPipelineStates()

@@ -9,3 +9,4 @@
 #define CBSLOT_FONT                                4
 
 #define CBSLOT_RENDERER_MISC                       5
+#define CBSLOT_RENDERER_MATERIAL                   6

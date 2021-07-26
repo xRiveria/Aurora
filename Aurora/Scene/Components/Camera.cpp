@@ -1,7 +1,6 @@
 #include "Aurora.h"
 #include "Camera.h"
 #include "../Input/Input.h"
-#include "../Scene/Entity.h"
 
 namespace Aurora
 {
@@ -17,7 +16,12 @@ namespace Aurora
 
     void Camera::Initialize()
     {
+        m_Position = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+        m_Rotation = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 
+        ComputeViewMatrix();
+
+        AURORA_INFO("Initialized Camera.");
     }
 
     void Camera::Tick(float deltaTime)
@@ -26,81 +30,47 @@ namespace Aurora
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_W))
         {
-            // XMFLOAT3 derp = { 0, 0, 1 };
-            // m_Entity->m_Transform->m_TranslationLocal = m_Entity->m_Transform->m_TranslationLocal + derp;
+            m_Position = m_Position + GetCurrentForwardVector() * m_Speed * deltaTime;
+
+            ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_S))
         {
-            //m_Entity->m_Transform->m_TranslationLocal = m_Entity->m_Transform->m_TranslationLocal + GetCurrentBackwardVector() * m_Speed * deltaTime;
+            m_Position = m_Position + GetCurrentBackwardVector() * m_Speed * deltaTime;
 
+            ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_A))
         {
-            //m_Entity->m_Transform->m_TranslationLocal = m_Entity->m_Transform->m_TranslationLocal + GetCurrentLeftVector() * m_Speed * deltaTime;
+            m_Position = m_Position + GetCurrentLeftVector() * m_Speed * deltaTime;
 
+            ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_D))
         {
-            //m_Entity->m_Transform->m_TranslationLocal = m_Entity->m_Transform->m_TranslationLocal + GetCurrentRightVector() * m_Speed * deltaTime;
+            m_Position = m_Position + GetCurrentRightVector() * m_Speed * deltaTime;
+
+            ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_UP))
         {
-            m_Entity->m_Transform->GetPositionVector() + m_ForwardVector * m_Speed * deltaTime;
+            m_Position = m_Position + m_UpVector * m_Speed * deltaTime;
+
+            ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_DOWN))
         {
-            
+            m_Position = m_Position + m_DownVector * m_Speed * deltaTime;
+
+            ComputeViewMatrix();
         }
-        
+
         FPSControl(deltaTime);
-
-        XMStoreFloat4x4(&m_Projection, XMMatrixPerspectiveFovLH(m_FOV, m_Width / m_Height, m_zNearPlane, m_zFarPlane));
-
-        TransformCamera(m_Entity->m_Transform);
-
-        XMVECTOR _Eye = XMLoadFloat3(&m_Eye); // Eye Position
-        XMVECTOR _At = XMLoadFloat3(&m_At); // Focus Direction
-        XMVECTOR _Up = XMLoadFloat3(&m_Up); // Up Direction
-        
-        XMMATRIX _View = XMMatrixLookToLH(_Eye, _At, _Up);
-        XMStoreFloat4x4(&m_View, _View);
-
-        XMMATRIX _P = XMLoadFloat4x4(&m_Projection);
-        XMMATRIX _VP = XMMatrixMultiply(_View, _P);
-        XMStoreFloat4x4(&m_VP, _VP);
-
-        // FPSControl(deltaTime);
-    }
-
-    void Camera::TransformCamera(Transform* transform)
-    {
-        XMVECTOR Scale, Rotate, Translate;
-        XMMatrixDecompose(&Scale, &Rotate, &Translate, XMLoadFloat4x4(&transform->m_WorldMatrix));
-
-        XMVECTOR _Eye = Translate;
-        XMVECTOR _At = XMVectorSet(0, 0, 1, 0);
-        XMVECTOR _Up = XMVectorSet(0, 1, 0, 0);
-
-        XMMATRIX _V = XMMatrixLookAtLH(_Eye, _At, _Up);
-        XMStoreFloat4x4(&m_View, _V);
-
-        XMStoreFloat3(&m_Eye, _Eye);
-        XMStoreFloat3(&m_At, _At);
-        XMStoreFloat3(&m_Up, _Up);
-    }
-
-    void Camera::CreatePerspective(float newWidth, float newHeight, float newNear, float newFar, float newFOV)
-    {
-        m_zNearPlane = newNear;
-        m_zFarPlane = newFar;
-        m_Width = newWidth;
-        m_Height = newHeight;
-        m_FOV = newFOV;
     }
 
     void Camera::FPSControl(float deltaTime)
@@ -128,18 +98,102 @@ namespace Aurora
         if (m_FPS_Control)
         {
             AdjustRotation((float)inputSystem->GetMousePositionDelta().second * 0.1f * deltaTime, (float)inputSystem->GetMousePositionDelta().first * 0.1f * deltaTime, 0.0f);
+            ComputeViewMatrix();
         }
+    }
+
+    void Camera::ComputePerspectiveMatrix(float fovInDegrees, float aspectRatio, float nearZ, float farZ)
+    {
+        float fovInRadians = (fovInDegrees / 360.0f) * XM_2PI;
+        m_ProjectionMatrix = XMMatrixPerspectiveFovLH(fovInRadians, aspectRatio, nearZ, farZ);
+    }
+
+    void Camera::ComputeViewMatrix()
+    {
+        XMFLOAT3 rotation;
+        XMStoreFloat3(&rotation, m_Rotation);
+
+        // Calculate Rotation Matrix.
+        XMMATRIX cameraRotationMatrix = XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+
+        // Calculate unit vector of camera target based on our camera's forward value transformed by the rotation. Direction.
+        XMVECTOR cameraTarget = XMVector3TransformCoord(m_ForwardVector, cameraRotationMatrix);
+
+        // Adjust camera target to be offset by the camera's current position.
+        cameraTarget += m_Position;
+
+        // Calculate up direction based on current rotation.
+        XMVECTOR upDirection = XMVector3TransformCoord(m_UpVector, cameraRotationMatrix);
+
+        // Rebuild View Matrix.
+        m_ViewMatrix = XMMatrixLookAtLH(m_Position, cameraTarget, upDirection);
+
+        XMMATRIX vectorRotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, rotation.y, 0.0f);
+
+        m_CurrentForwardVector = XMVector3TransformCoord(m_ForwardVector, vectorRotationMatrix);
+        m_CurrentBackwardVector = XMVector3TransformCoord(m_BackwardVector, vectorRotationMatrix);
+        m_CurrentLeftVector = XMVector3TransformCoord(m_LeftVector, vectorRotationMatrix);
+        m_CurrentRightVector = XMVector3TransformCoord(m_RightVector, vectorRotationMatrix);
+    }
+
+    void Camera::ComputeLookAtPosition(XMFLOAT3 lookAtPosition)
+    {
+        // Verify that our look at position is not the same as the camera's position.
+        XMFLOAT3 currentPosition;
+        XMStoreFloat3(&currentPosition, m_Position);
+        if (lookAtPosition.x == currentPosition.x && lookAtPosition.y == currentPosition.y && lookAtPosition.z == currentPosition.z)
+        {
+            return;
+        }
+
+        lookAtPosition.x = currentPosition.x - lookAtPosition.x;
+        lookAtPosition.y = currentPosition.y - lookAtPosition.y;
+        lookAtPosition.z = currentPosition.z - lookAtPosition.z;
+
+        float pitch = 0.0f;
+        if (lookAtPosition.y != 0.0f)
+        {
+            const float distance = sqrt(lookAtPosition.x * lookAtPosition.x + lookAtPosition.z * lookAtPosition.z);
+            pitch = atan(lookAtPosition.y / distance);
+        }
+
+        float yaw = 0.0f;
+        if (lookAtPosition.x != 0.0f)
+        {
+            yaw = atan(lookAtPosition.x / lookAtPosition.z);
+        }
+        if (lookAtPosition.z > 0)
+        {
+            yaw += XM_PI;
+        }
+
+        SetRotation(pitch, yaw, 0.0f);
+    }
+
+    void Camera::SetPosition(float x, float y, float z)
+    {
+        XMFLOAT3 newPosition = XMFLOAT3(x, y, z);
+        m_Position = XMLoadFloat3(&newPosition);
+        ComputeViewMatrix();
+    }
+
+    void Camera::SetRotation(float x, float y, float z)
+    {
+        XMFLOAT3 newRotation = XMFLOAT3(x, y, z);
+        m_Rotation = XMLoadFloat3(&newRotation);
+        ComputeViewMatrix();
     }
 
     void Camera::AdjustRotation(float x, float y, float z)
     {
         XMFLOAT3 rotation;
-        XMVECTOR rotationVector = XMVectorSet(m_Entity->m_Transform->m_RotationLocal.x, m_Entity->m_Transform->m_RotationLocal.y, m_Entity->m_Transform->m_RotationLocal.z, m_Entity->m_Transform->m_RotationLocal.w);
-        XMStoreFloat3(&rotation, rotationVector);
+        XMStoreFloat3(&rotation, m_Rotation);
 
         rotation.x += x;
         rotation.y += y;
         rotation.z += z;
-        m_Entity->m_Transform->m_RotationLocal = { rotation.x, rotation.y, rotation.z, 1.0 };
+        m_Rotation = XMLoadFloat3(&rotation);
+
+        ComputeViewMatrix();
     }
 }

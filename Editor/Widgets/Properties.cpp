@@ -275,9 +275,12 @@ void Properties::ShowMaterialProperties(Aurora::Material* materialComponent) con
         DrawMaterialControl("Normal Map", materialComponent->m_Textures[Aurora::TextureSlot::NormalMap], m_EngineContext);
         DrawMaterialControl("Emissive Map", materialComponent->m_Textures[Aurora::TextureSlot::EmissiveMap], m_EngineContext);
         DrawMaterialControl("Occulusion Map", materialComponent->m_Textures[Aurora::TextureSlot::OcclusionMap], m_EngineContext);
+
+        ImGui::SliderFloat("Roughness", &materialComponent->m_Roughness, 0.0, 1.0);
+        ImGui::SliderFloat("Metalness", &materialComponent->m_Metalness, 0.0, 1.0);
     }
 
-    // ComponentEnd(); // Seperator already avaliable in DrawMaterialControl.
+    ComponentEnd(); // Seperator already avaliable in DrawMaterialControl.
 }
 
 void Properties::ShowLightProperties(Aurora::Light* lightComponent) const

@@ -113,19 +113,4 @@ namespace Aurora
 
         return nullptr;
     }
-
-    std::shared_ptr<CubeImage> Importer_Image::LoadCubeImage(const std::string& filePath)
-    {
-        std::shared_ptr<CubeImage> cubeImage = std::make_shared<CubeImage>();
-        unsigned char* pixels = stbi_load(filePath.c_str(), &cubeImage->m_Width, &cubeImage->m_Height, &cubeImage->m_Channels, 4);
-        if (pixels)
-        {
-            cubeImage->m_Pixels.reset(pixels);
-            AURORA_WARNING("Successfully read cube image: %s", filePath.c_str());
-        }
-
-        cubeImage->m_Channels = 4;
-
-        return cubeImage;
-    }
 }

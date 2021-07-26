@@ -12,22 +12,6 @@ using namespace DirectX;
 
 namespace Aurora
 {
-    /// Makeshift
-    class CubeImage
-    {
-    public:
-        CubeImage() {};
-        ~CubeImage() {};
-
-        int BytesPerPixel() const { return m_Channels * sizeof(unsigned char); }
-        int Pitch() const { return m_Width * BytesPerPixel(); }
-       
-        int m_Width;
-        int m_Height;
-        int m_Channels = 4; // Default
-        std::unique_ptr<unsigned char> m_Pixels;
-    };
-
     class Renderer : public ISubsystem
     {
     public:
@@ -37,16 +21,7 @@ namespace Aurora
         bool Initialize() override;
         void Tick(float deltaTime) override;
         void RenderScene();
-        void DrawSkybox();
         void DrawDebugWorld(Entity* entity);
-
-        // Texture Cube
-        void PrepareSkyboxResources();
-        ComPtr<ID3D11ShaderResourceView> m_CubeSRV;
-        std::vector<std::shared_ptr<CubeImage>> m_CubemapTextures;
-
-        RHI_Shader m_SkyboxVS;
-        RHI_Shader m_SkyboxPS;
 
         void Present();
         void CreateTexture();
@@ -55,6 +30,8 @@ namespace Aurora
 
     public:
         void BindLightResources();
+        void BindMaterialResources(Material* materialComponent);
+
         void BloomPass();
         RHI_Shader m_BloomPixelShader;
 
@@ -89,7 +66,7 @@ namespace Aurora
     private:
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;
 
-    private:
+    public:
         float m_RenderWidth = 1280;
         float m_RenderHeight = 1080;
         

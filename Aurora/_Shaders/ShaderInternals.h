@@ -13,7 +13,25 @@ static const uint Entity_Type_DirectionalLight = 0;
 static const uint Entity_Type_PointLight = 1;
 static const uint Entity_Type_SpotLight = 2;
 
+struct ShaderMaterialData
+{
+    float4 g_ObjectColor;
+
+    float g_Roughness;
+    float g_Metalness;
+    float g_Padding001;
+    float g_Padding002;
+};
+
 // On Demand Constant Buffers
+
+CBUFFER(ConstantBufferData_Material, CBSLOT_RENDERER_MATERIAL)
+{
+    ShaderMaterialData g_Material;
+
+    float3 g_Camera_Position;
+    float g_Padding0001;
+};
 
 CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
 {
@@ -25,7 +43,7 @@ CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
     float4   g_Light_Color[6];
 
     float    g_IsHorizontalPass;
-    float3   g_Light_Direction;  
+    float3   g_Light_Direction;
 };
 
 // Common Constant Buffers
@@ -43,13 +61,8 @@ CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
     float4x4 g_Camera_ViewProjection;
     float4x4 g_Camera_InverseViewProjection;
 
-    float3 g_Camera_Position;
-    uint g_Padding;
-
     float4x4 g_Camera_View;
     float4x4 g_Camera_Projection;
-
-    float4 g_ObjectColor;
 
     float g_RenderItem; // 0 skybox.
     float g_Padding1;

@@ -32,7 +32,7 @@ namespace Aurora
 
     void ResourceCache::MapDefaultObjects()
     {
-        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cube] = "../Resources/Models/Default/Cube/testtest.obj.obj";
+        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cube] = "../Resources/Models/Default/Cube/scene.gltf";
         m_DefaultObjects[DefaultObjectType::DefaultObjectType_Sphere] = "../Resources/Models/Default/Sphere/globe-sphere.obj";
     }
 

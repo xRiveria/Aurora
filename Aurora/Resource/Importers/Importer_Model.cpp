@@ -200,6 +200,10 @@ namespace Aurora
 
                 meshComponent->m_VertexNormals.push_back(storedNormal);
             }
+            else
+            {
+                AURORA_ERROR("Object has no normals!");
+            }
 
             // Texture Coordinates
             const uint32_t uvChannel = 0;

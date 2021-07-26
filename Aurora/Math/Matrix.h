@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector3.h"
 #include "Vector4.h"
+#include "Quaternion.h"
 
 namespace Aurora::Math
 {
@@ -25,6 +26,20 @@ namespace Aurora::Math
             this->m30 = m30; this->m31 = m31; this->m32 = m32; this->m33 = m33;
         }
 
+        Matrix(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
+        {
+
+        }
+
+        ~Matrix() = default;
+
+        void Decompose(Vector3& scale, Quaternion& rotation, Vector3& translation) const
+        {
+            scale = GetScale();
+            translation = GetTranslation();
+            rotation = GetRotation();
+        }
+
         void SetIdentity()
         {
             m00 = 1; m01 = 0; m02 = 0; m03 = 0;
@@ -47,11 +62,51 @@ namespace Aurora::Math
         }
 
         // ==== Rotation ====
+        Quaternion GetRotation() const
+        {
+            const Vector3 scale = GetScale();
+
+            // Avoid division by zero (as we will divide to remove scaling).
+            if (scale.x == 0.0f || scale.y == 0.0f || scale.z == 0.0f) { return Quaternion(0, 0, 0, 1); }
+
+            // Extract rotation and remove scaling.
+            Matrix normalizedMatrix;
+            normalizedMatrix.m00 = m00 / scale.x; normalizedMatrix.m01 = m01 / scale.x; normalizedMatrix.m02 = m02 / scale.x; normalizedMatrix.m03 = 0.0f;
+            normalizedMatrix.m10 = m10 / scale.y; normalizedMatrix.m11 = m11 / scale.y; normalizedMatrix.m12 = m12 / scale.y; normalizedMatrix.m13 = 0.0f;
+            normalizedMatrix.m20 = m20 / scale.z; normalizedMatrix.m21 = m21 / scale.z; normalizedMatrix.m22 = m22 / scale.z; normalizedMatrix.m23 = 0.0f;
+            normalizedMatrix.m30 = 0; normalizedMatrix.m31 = 0; normalizedMatrix.m32 = 0; normalizedMatrix.m33 = 1.0f;
+
+            return RotationMatrixToQuaternion(normalizedMatrix);
+        }
+
+        /// Rotations!
+        static inline Quaternion RotationMatrixToQuaternion(const Matrix& rotationMatrix)
+        {
+            Quaternion quaternion;
+            float squareRoot;
+            float half;
+            const float scale = rotationMatrix.m00 + rotationMatrix.m11 + rotationMatrix.m22;
+
+            if (scale > 0.0f)
+            {
+
+            }
+        }
 
         // ==== Scale ==== 
-        Vector3 GetScale()
+        Vector3 GetScale() const
         {
-            // 00 , 11, 22
+            // Multiply across our X, Y and Z components and retrieve its negative or positive sign.
+            const int xSign = (Utilities::Sign(m00 * m01 * m02 * m03) < 0) ? -1 : 1; 
+            const int ySign = (Utilities::Sign(m10 * m11 * m12 * m13) < 0) ? -1 : 1;
+            const int zSign = (Utilities::Sign(m20 * m21 * m22 * m23) < 0) ? -1 : 1;
+
+            // We multiply with our signs to keep the positive/negative scalar.
+            return Vector3(
+                static_cast<float>(xSign) * Utilities::SquareRoot(m00 * m00 + m01 * m01 + m02 * m02),
+                static_cast<float>(ySign) * Utilities::SquareRoot(m10 * m10 + m11 * m11 + m12 * m12),
+                static_cast<float>(zSign) * Utilities::SquareRoot(m20 * m20 + m21 * m21 + m22 * m22)
+            );
         }
 
         static inline Matrix CreateScale(float scale) { return CreateScale(scale, scale, scale); }
@@ -81,9 +136,11 @@ namespace Aurora::Math
             );  
         }
 
-        // Addition 
+        // FOV is in Radians.
+        static inline Matrix CreatePerspectiveFieldOfViewLH(float fieldOfView, float aspectRatio, float nearPlaneDistance, float farPlaneDistance)
+        {
 
-        // Substraction
+        }
 
         // Multiplication - Row by Column.
         Matrix operator*(const Matrix& otherMatrix) const
@@ -116,7 +173,7 @@ namespace Aurora::Math
             (*this) = (*this) * otherMatrix;
         }
 
-        // Returns a 3x1. Hence, we insert a 4th W component and make it a Vector4 for multiplication purposes and return a Vector3 multiplied by the W component.
+        // Returns a 3x1. We will transform the Vector3 to homegenous coordinates, conduct our operations and revert them back to Cartesian.
         Vector3 operator*(const Vector3& otherVector) const
         {
             // Hence, we are essentially working with a vector 4, but with 1 as the W componenot.
@@ -143,7 +200,7 @@ namespace Aurora::Math
 
     public:
         float* Data() { return &m00; }
-        std::string ToString() const;
+        // std::string ToString() const;
 
         // Column-major memory representation.
         float m00 = 0.0f, m10 = 0.0f, m20 = 0.0f, m30 = 0.0f;

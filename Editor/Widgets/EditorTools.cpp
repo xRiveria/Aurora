@@ -51,10 +51,10 @@ void EditorTools::TickGizmos()
 		Aurora::Transform* transformComponent = Properties::m_InspectedEntity.lock().get()->m_Transform;
 
 		XMFLOAT4X4 transform = transformComponent->m_WorldMatrix;
-		auto view = cameraEntity->GetView();
-		auto projection = cameraEntity->GetProjection();
+		auto view = cameraEntity->GetViewMatrix();
+		auto projection = cameraEntity->GetProjectionMatrix();
 			
-		ImGuizmo::Manipulate(&view._11, &projection._11, (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::WORLD, &transform._11);
+		ImGuizmo::Manipulate(&view._11, &projection._11, (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, &transform._11);
 
 		if (ImGuizmo::IsUsing())
 		{

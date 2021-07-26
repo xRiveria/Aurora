@@ -69,6 +69,8 @@ namespace Aurora
 
     public:
         XMFLOAT4 m_BaseColor = XMFLOAT4(1, 1, 1, 1);
+        float m_Roughness = 0.4;
+        float m_Metalness = 0.5;
 
         uint32_t m_Flags = Material_Flags::Material_Flags_Empty;
     };

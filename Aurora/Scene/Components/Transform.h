@@ -38,7 +38,7 @@ namespace Aurora
         XMVECTOR GetRotationVector() const;
         XMVECTOR GetScaleVector() const;
         XMMATRIX GetLocalMatrix() const;    // Computes the local space matrix from scale, rotation and translation.
- 
+
     public:
         XMFLOAT3 m_TranslationLocal = XMFLOAT3(0, 0, 0);
         XMFLOAT3 m_ScaleLocal = XMFLOAT3(1, 1, 1);

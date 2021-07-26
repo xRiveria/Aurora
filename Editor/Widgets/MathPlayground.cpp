@@ -10,6 +10,8 @@ Vector2 m_PointB(1.0f, 1.0f);
 Vector3 m_PointC(1.0f, 1.0f, 1.0f);
 Vector4 m_PointD(1.0f, 1.0f, 1.0f, 1.0f);
 
+float m_Degrees = 90.0f;
+float PI = 3.14159265359f;
 
 MathPlayground::MathPlayground(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
@@ -55,6 +57,16 @@ void MathPlayground::OnTickAlways()
         {
             m_PointD.Normalize();
         }
+    }
+
+    // C++ Cosine and Sin functions take in radians. Hence, we must convert to use accordingly.
+    // Remember that  the Unit circle has a radius of 1 centered at the origin. We can use an incremental offset to increase the length of this radius. When this happens, our Sine and Cosine functions increase past their original limits as well, allowing a wider span.
+    if (ImGui::CollapsingHeader("Angles"))
+    {
+        ImGui::InputFloat("Theta (Degrees): ", &m_Degrees);
+        ImGui::Text("Radians: %f", m_Degrees * PI / 180.0f); // 180 degrees = PI Radians. Therefore 1 Degree = PI / 180.
+        ImGui::Text("Cosine: %f", cos(m_Degrees * PI / 180.0f));
+        ImGui::Text("Sine: %f", sin(m_Degrees * PI / 180.0f));
     }
 
     ImGui::End();
