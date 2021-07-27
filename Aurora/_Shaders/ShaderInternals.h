@@ -30,12 +30,17 @@ CBUFFER(ConstantBufferData_Material, CBSLOT_RENDERER_MATERIAL)
     ShaderMaterialData g_Material;
 
     float3 g_Camera_Position;
-    float g_Padding0001;
+    int g_Texture_SkyHDRMap_Index;
 
     int g_Texture_BaseColorMap_Index;
     int g_Texture_NormalMap_Index;
     int g_Texture_MetalnessMap_Index;
     int g_Texture_RoughnessMap_Index;
+
+    int g_Texture_TextureCube_Index;
+    int padding00001;
+    int padding00002;
+    int padding00003;
 
     float4x4 g_ObjectMatrix; // Temporary
     float4x4 g_WorldMatrix;

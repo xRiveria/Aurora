@@ -1,7 +1,33 @@
-TextureCube tex : register(t1);
-SamplerState samp : register(s1);
+#include "Globals.hlsli"
+#include "Mappings.hlsli"
 
-float4 main(float3 worldPosition : POSITION) : SV_TARGET
+SamplerState objectSamplerState : SAMPLER: register(s0);
+
+struct InputPixelType
 {
-    return tex.Sample(samp, worldPosition);
+    float4 outPosition : SV_POSITION; // The position is identified by the SV_POSITION semantic.
+    float3 localPosition : TEXCOORD1;
+};
+
+static const float inverseAtan = float2(0.1591, 0.3183);
+
+float2 SampleSphericalMap(float3 v)
+{
+    float2 uv = float2(atan2(v.z, v.x), asin(v.y));
+    uv *= inverseAtan;
+    uv += 0.5;
+    return uv;
+}
+
+float4 main(InputPixelType input) : SV_TARGET
+{
+    // float3 color = Texture_SkyHDRMap.Sample(objectSamplerState, input.localPosition).rgb;
+    float2 uv = SampleSphericalMap(normalize(input.localPosition));
+    float3 color = Texture_SkyHDRMap.Sample(objectSamplerState, uv).rgb;
+
+    // Tonemapping
+    color = color / (color + float3(1.0, 1.0, 1.0));
+    color = pow(color, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
+
+    return float4(color, 1.0);
 }

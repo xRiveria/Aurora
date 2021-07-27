@@ -25,6 +25,11 @@
 #include "../Widgets/Viewport.h"
 #include "../Time/Stopwatch.h"
 #include "../Profiler/Profiler.h"
+#include "Utilities/Extensions.h"
+#include "FileSystem.h"
+#include "EngineContext.h"
+#include "../Graphics/DX11/Skybox.h"
+#include "../Widgets/Hierarchy.h"
 
 namespace EditorConfigurations
 {
@@ -75,17 +80,6 @@ void Editor::Tick()
 			}
 		}
 
-		ImGui::Begin("Hierarchy");
-		auto& entities = m_EngineContext->GetSubsystem<Aurora::World>()->EntityGetAll();
-		for (auto& entity : entities)
-		{
-			if (ImGui::Button(entity->GetObjectName().c_str()))
-			{
-				Properties::m_InspectedEntity = entity;
-			}
-		}
-		ImGui::End();
-
 		// Make sure this is last.
 		ImGui::Begin("Performance");
 		for (int i = 0; i < Aurora::Profiler::GetInstance().GetEntries().size(); i++)
@@ -93,6 +87,59 @@ void Editor::Tick()
 			ImGui::Text("%s", Aurora::Profiler::GetInstance().GetEntries()[i].c_str());
 		}
 		Aurora::Profiler::GetInstance().Reset();
+		ImGui::End();
+
+		// Sky
+		ImGui::Begin("Sky");
+		/*
+		if (m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_SkyHDR->m_Texture.IsValid())
+		{
+			Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_SkyHDR->m_Texture);
+			ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(300, 300));
+		}
+		else
+		{
+			Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->m_Texture);
+			ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(300, 300));
+		}
+		if (ImGui::Button("Load..."))
+		{
+			std::optional<std::string> filePath = EditorExtensions::OpenFilePath("Textures", m_EngineContext);
+			if (filePath.has_value())
+			{
+				std::string path = filePath.value();
+				std::string fileName = Aurora::FileSystem::GetFileNameFromFilePath(path);
+				std::shared_ptr<Aurora::AuroraResource> resource = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTextureHDR(path, 4);
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_SkyHDR->m_Texture = resource->m_Texture;
+			}
+		}
+		*/
+		Aurora::Camera* camera = m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>();
+		if (ImGui::Button("Front"))
+		{
+			camera->SetRotation(0.0f, 90.0f, 0.0f); // front
+		}
+		if (ImGui::Button("Back"))
+		{
+			camera->SetRotation(0.0f, 270.0f, 0.0f);
+		}
+		if (ImGui::Button("Top"))
+		{
+			camera->SetRotation(-90.0f, 0.0f, 0.0f); // top
+		}
+		if (ImGui::Button("Bottom"))
+		{
+			camera->SetRotation(90.0f, 0.0f, 0.0f); // bottom
+		}
+		if (ImGui::Button("Left"))
+		{
+			camera->SetRotation(0.0f, 0.0f, 0.0f); // left
+		}
+		if (ImGui::Button("Right"))
+		{
+			camera->SetRotation(0.0f, 180.0f, 0.0f); // right
+		}
+
 		ImGui::End();
 	
 		ImGui::End(); // Ends docking context.
@@ -125,6 +172,7 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<ObjectsPanel>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<MathPlayground>(this, m_EngineContext)); // For me to play with the Math library.
 	m_Widgets.emplace_back(std::make_shared<Viewport>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<Hierarchy>(this, m_EngineContext));
 }
 
 void Editor::BeginDockingContext()

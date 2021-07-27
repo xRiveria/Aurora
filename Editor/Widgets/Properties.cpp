@@ -256,10 +256,7 @@ void Properties::ShowTransformProperties(Aurora::Transform* transformComponent) 
     if (ComponentBegin("Transform"))
     {
         DrawVector3Control("Translation", transformComponent->m_TranslationLocal);
-        //XMFLOAT4* rotation = &transformComponent->m_RotationLocal;
-        //ImGui::DragFloat4("Rotation", &rotation->x, 0.03, -1, 1);
-        XMFLOAT3 derp = { 0, 0, 0 };
-        DrawVector3Control("Rotatation", derp, 1.0f);
+        DrawVector3Control("Rotation", transformComponent->m_RotationAngles, 1.0f);
         DrawVector3Control("Scale", transformComponent->m_ScaleLocal, 1.0f);
         transformComponent->SetDirty(true);
     }

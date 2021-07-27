@@ -1,8 +1,11 @@
 #include "Aurora.h"
 #include "Entity.h"
 #include "Components/Camera.h"
+#include "Components/Light.h"
 #include "../Core/FileSystem.h"
 #include <type_traits>
+#include "../Scene/World.h"
+#include <functional>
 
 namespace Aurora
 {
@@ -65,11 +68,64 @@ namespace Aurora
         }
     }
 
+    void Entity::Clone()
+    {
+        auto world = m_EngineContext->GetSubsystem<World>();
+        std::vector<Entity*> clonedEntities;
+
+        // Creation of new entity and copying of its selected properties.
+        auto CloneEntity = [&world, &clonedEntities](Entity* entity)
+        {
+            // Clone the name and ID.
+            auto clonedEntity = world->EntityCreate().get();
+            clonedEntity->SetObjectID(GenerateObjectID());
+            clonedEntity->SetName(entity->GetObjectName());
+            clonedEntity->SetActive(entity->IsActive());
+            clonedEntity->SetHierarchyVisibility(entity->IsVisibleInHierarchy());
+
+            // Clone all of its components.
+            for (const auto& component : entity->GetAllComponents())
+            {
+                const auto& originalComponent = component;
+                auto clonedComponent = clonedEntity->AddComponent(component->GetType());
+                /// Copy Attributes.
+            }
+
+            clonedEntities.emplace_back(clonedEntity);
+
+            return clonedEntity;
+        };
+
+        // Cloning of an entity and its descendants.
+        std::function<Entity*(Entity*)> CloneEntityAndDescendants = [&CloneEntityAndDescendants, &CloneEntity](Entity* original)
+        {
+            // Clone self.
+            const auto clonedSelf = CloneEntity(original);
+
+            // Clone children.
+            for (const auto& childTransform : original->GetTransform()->GetChildren())
+            {
+                const auto clonedChild = CloneEntityAndDescendants(childTransform->GetEntity());
+                clonedChild->GetTransform()->SetParentTransform(clonedSelf->GetTransform());
+            }
+
+            // Return self.
+            return clonedSelf;
+        };
+
+        // Clone the entire hierarchy.
+        CloneEntityAndDescendants(this);
+    }
+
     IComponent* Entity::AddComponent(ComponentType componentType, uint32_t componentID)
     {
         switch (componentType)
         {
             case ComponentType::Camera: return AddComponent<Camera>(componentID);
+            case ComponentType::Light: return AddComponent<Light>(componentID);
+            case ComponentType::Transform: return AddComponent<Transform>(componentID);
+            case ComponentType::Material: return AddComponent<Material>(componentID);
+            case ComponentType::Mesh: return AddComponent<Mesh>(componentID);
             default: nullptr;
         }
 

@@ -14,6 +14,8 @@ using namespace DirectX;
 
 namespace Aurora
 {
+    class Skybox;
+
     class Renderer : public ISubsystem
     {
     public:
@@ -38,6 +40,8 @@ namespace Aurora
         void UpdateLightConstantBuffer();
         void UpdateMaterialConstantBuffer(Material* materialComponent);
         int BindMaterialTexture(TextureSlot slotType, Material* material);
+        int BindSkyboxTexture(int slotNumber, RHI_Texture* texture);
+        int BindSkyboxTexture(int slotNumber, ID3D11ShaderResourceView* shaderResourceView);
 
     public:
         /// New Abstraction
@@ -56,6 +60,7 @@ namespace Aurora
         void LoadShaders();
         bool LoadShader(Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel = Shader_Model::ShaderModel_5_0);
         void LoadDefaultTextures();
+        void LoadSkyPipelineState(RHI_Shader* vertexShader, RHI_Shader* pixelShader);
 
         void LoadPipelineStates();
         void SetRenderDimensions(float width, float height) { m_RenderWidth = width; m_RenderHeight = height; }
@@ -66,13 +71,18 @@ namespace Aurora
     public:
         float m_RenderWidth = 1280;
         float m_RenderHeight = 1080;
-        
+        std::shared_ptr<Skybox> m_Skybox;
+        RHI_PipelineState m_PSO_Object_Sky;
+
     public:
+        
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
         RHI_SwapChain m_SwapChain;
         RHI_Shader m_VertexShader;
         RHI_Shader m_PixelShader;
+
+
         RHI_GPU_Buffer m_VertexBuffer;
 
         RHI_Sampler m_Standard_Texture_Sampler;

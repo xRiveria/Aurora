@@ -74,7 +74,7 @@ namespace Aurora
     }
 
     // Example of an event based input system. This is where we setup all our callbacks that will ultimately throw input data into our custom data structures.
-    void Input::SetupInputCallbacks() const
+    void Input::SetupInputCallbacks()
     {
         glfwSetKeyCallback(static_cast<GLFWwindow*>(m_QueryWindow), [](GLFWwindow* window, int keyPressed, int scanCode, int action, int mods)
         {
@@ -84,6 +84,7 @@ namespace Aurora
                 {
                     KeyPressedEvent keyPressedEvent(keyPressed, 0);
                     AURORA_INFO(keyPressedEvent.ToString());
+                    
                     break;
                 }
 

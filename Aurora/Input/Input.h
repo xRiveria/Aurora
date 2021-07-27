@@ -32,9 +32,13 @@ namespace Aurora
 
         bool IsKeyPressed(int keyCode);
         bool IsMouseButtonPressed(int mouseCode);
-        void SetupInputCallbacks() const;
+        void SetupInputCallbacks();
 
         bool RegisterShortcut(); /// Should we register shortcuts in a mapping?
+
+    public:
+        bool m_IsDPressed;
+        bool m_IsCtrlPressed;
 
     private:
         void* m_QueryWindow = nullptr;

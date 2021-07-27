@@ -7,6 +7,8 @@
 #include "../Input/Input.h"
 #include "../Input/InputUtilities.h"
 
+const static float PI_Formula = 180 / 3.14159265359;
+
 EditorTools::EditorTools(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
 	m_IsWidgetVisible = false; // Should not be visible.
@@ -50,25 +52,27 @@ void EditorTools::TickGizmos()
 		Aurora::Camera* cameraEntity = m_EngineContext->GetSubsystem<Aurora::World>()->GetEntityByName("Default_Camera")->GetComponent<Aurora::Camera>();
 		Aurora::Transform* transformComponent = Properties::m_InspectedEntity.lock().get()->m_Transform;
 
-		XMFLOAT4X4 transform = transformComponent->m_LocalMatrix;
+		// XMFLOAT4X4 transform = transformComponent->m_LocalMatrix;
 		auto view = cameraEntity->GetViewMatrix();
 		auto projection = cameraEntity->GetProjectionMatrix();
-			
-		ImGuizmo::Manipulate(&view._11, &projection._11, (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, &transform._11);
 
+		DirectX::XMFLOAT4X4 transform;
+		float Ftranslation[3] = { transformComponent->m_TranslationLocal.x, transformComponent->m_TranslationLocal.y, transformComponent->m_TranslationLocal.z };
+		float Frotation[3] = { DirectX::XMConvertToDegrees(transformComponent->m_RotationAngles.x), DirectX::XMConvertToDegrees(transformComponent->m_RotationAngles.y), DirectX::XMConvertToDegrees(transformComponent->m_RotationAngles.z) };
+		float Fscale[3] = { transformComponent->m_ScaleLocal.x, transformComponent->m_ScaleLocal.x, transformComponent->m_ScaleLocal.x };
+		ImGuizmo::RecomposeMatrixFromComponents(Ftranslation, Frotation, Fscale, *transform.m);
+
+		ImGuizmo::Manipulate(&view._11, &projection._11, (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, *transform.m);
 
 		if (ImGuizmo::IsUsing())
 		{
-			XMVECTOR scaleLocal, rotationLocal, translationLocal;
-			XMMatrixDecompose(&scaleLocal, &rotationLocal, &translationLocal, XMLoadFloat4x4(&transform));
+			float Ftranslation[3] = { 0.0f, 0.0f, 0.0f }, Frotation[3] = { 0.0f, 0.0f, 0.0f }, Fscale[3] = { 0.0f, 0.0f, 0.0f };
+			ImGuizmo::DecomposeMatrixToComponents(*transform.m, Ftranslation, Frotation, Fscale);
+			// XMMatrixDecompose(&scaleLocal, &rotationLocal, &translationLocal, XMLoadFloat4x4(&transform));
 
-			XMFLOAT3 translation = { translationLocal.vector4_f32[0], translationLocal.vector4_f32[1], translationLocal.vector4_f32[2] };
-			XMFLOAT3 scale = { scaleLocal.vector4_f32[0], scaleLocal.vector4_f32[1], scaleLocal.vector4_f32[2] };
-			XMFLOAT4 rotate = { rotationLocal.vector4_f32[0], rotationLocal.vector4_f32[1], rotationLocal.vector4_f32[2], rotationLocal.vector4_f32[3] };
-
-			transformComponent->Translate(translation);
-			transformComponent->Scale(scale);
-			transformComponent->Rotate(rotate);
+			transformComponent->m_TranslationLocal = XMFLOAT3(Ftranslation);
+			transformComponent->m_RotationAngles = DirectX::XMFLOAT3(DirectX::XMConvertToRadians(Frotation[0]), DirectX::XMConvertToRadians(Frotation[1]), DirectX::XMConvertToRadians(Frotation[2]));
+			transformComponent->m_ScaleLocal = DirectX::XMFLOAT3(Fscale);
 		}
 	}
 }

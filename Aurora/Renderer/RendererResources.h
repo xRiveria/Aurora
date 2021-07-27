@@ -4,6 +4,9 @@
 #include "../Graphics/DX11/DX11_Utilities.h"
 #include "../Scene/World.h"
 
+//====
+#include "../Graphics/DX11/RenderTexture.h"
+
 namespace Aurora
 {
     namespace RendererGlobals
@@ -17,7 +20,6 @@ namespace Aurora
 
         // Pipeline States
         RHI_PipelineState m_PSO_Object_Wire; // Right now we're using this for everything.
-        RHI_PipelineState m_PSO_Object_Sky[SkyRender_Count];
         RHI_PipelineState m_PSO_Object_Debug[DebugRenderer_Count];
 
         std::string g_ShaderPath = "_Shaders/";
@@ -300,6 +302,18 @@ namespace Aurora
         pipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
 
         m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_Wire);
+
+       //  ===========================================================
+       // RHI_PipelineState_Description skyPipelineDescription;
+
+       // pipelineDescription.m_VertexShader = &m_SkyVertexShader;
+       // pipelineDescription.m_PixelShader = &m_SkyPixelShader;
+       // pipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
+       // pipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Front];
+       // pipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
+       // pipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
+
+       // m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_Sky);
 
         //=========================================================
         

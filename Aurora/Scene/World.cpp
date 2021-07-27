@@ -119,6 +119,21 @@ namespace Aurora
         return emptyEntity;
     }
 
+    std::vector<std::shared_ptr<Entity>> World::EntityGetRoots()
+    {
+        std::vector<std::shared_ptr<Entity>> rootEntities;
+
+        for (const std::shared_ptr<Entity>& entity : m_Entities)
+        {
+            if (entity->GetTransform()->IsRootTransform())
+            {
+                rootEntities.emplace_back(entity);
+            }
+        }
+
+        return rootEntities;
+    }
+
     std::shared_ptr<Entity> World::CreateDefaultObject(DefaultObjectType defaultObjectType)
     {
         return m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel(m_EngineContext->GetSubsystem<ResourceCache>()->m_DefaultObjects[defaultObjectType]);

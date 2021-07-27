@@ -3,12 +3,31 @@
 #include "EngineContext.h"
 #include "../Window/WindowContext.h"
 #include "../Utilities/IconLibrary.h"
+#include "../Scene/Entity.h"
 #include "../Source/imgui.h"
 #include "../Backend/Source/imgui_internal.h"
 #include <variant>
 
 namespace EditorExtensions
 {
+	class ContextHelper
+	{
+	public:
+		static ContextHelper& GetInstance()
+		{
+			static ContextHelper m_ContextHelperInstance;
+			return m_ContextHelperInstance;
+		}
+
+		void SetSelectedEntity(const std::shared_ptr<Aurora::Entity>& entity)
+		{
+			// Keep returned entity instead as the transform gizmo can decide to reject it.
+			m_SelectedEntity = entity;
+		}
+
+		std::weak_ptr<Aurora::Entity> m_SelectedEntity;
+	};
+
 	static const ImVec4 g_DefaultTint = { 255, 255, 255, 255 };
 
 	inline std::optional<std::string> OpenFilePath(const char* filter, Aurora::EngineContext* engineContext)

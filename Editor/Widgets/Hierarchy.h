@@ -21,6 +21,9 @@ private:
     void TreeAddEntity(Aurora::Entity* entity);
     void SetSelectedEntity(const std::shared_ptr<Aurora::Entity>& entity, bool fromEditor = true);
 
+    void HandlePopups();
+    void PopupContextMenu();
+
 private:
     std::shared_ptr<Aurora::Entity> m_Empty_Entity;
 };

@@ -10,6 +10,7 @@
 #include "../Resource/Importers/Importer_Image.h"
 #include "../Time/Timer.h"
 #include <DirectXMath.h>
+#include "../Graphics/DX11/Skybox.h"
 
 namespace Aurora
 {
@@ -48,15 +49,15 @@ namespace Aurora
         m_Camera = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Default_Camera");
         m_Camera->GetComponent<Camera>()->SetPosition(0, 4, -6);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
-
+    
         auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Plane);
         cube->GetComponent<Transform>()->Scale({ 5, 1, 5 });
         cube->GetComponent<Transform>()->Translate({ 0, 0.2, 0 });
 
         auto gun = m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Cerberus");
         gun->GetComponent<Transform>()->Scale({ 0.02, 0.02, 0.02 });
-        //gun->GetComponent<Transform>()->m_RotationLocal.x = 0.6;
-        gun->GetComponent<Transform>()->Translate({ 0.0, 2.0, 0.0 });
+        gun->GetComponent<Transform>()->m_RotationAngles = { -1.50, 1.50, -2.99 };
+        gun->GetComponent<Transform>()->Translate({ 0.64, 2.55, -0.05 });
         
         auto lightEntity2 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         lightEntity2->SetName("PL 2");
@@ -74,7 +75,8 @@ namespace Aurora
             pRects[i].top = INT32_MIN;
         }
         m_GraphicsDevice->m_DeviceContextImmediate->RSSetScissorRects(8, pRects);
-
+        m_Skybox = std::make_shared<Skybox>(m_EngineContext);
+        m_Skybox->InitializeResources();
         return true;
     }
 
@@ -85,6 +87,22 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources((int)slotType, 1, &shaderResourceView);
 
         return (int)slotType;
+    }
+
+    int Renderer::BindSkyboxTexture(int slotNumber, RHI_Texture* texture)
+    {
+        // Remember that our slot type's enum corresponds to our shader material.
+        ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(texture)->m_ShaderResourceView.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(slotNumber, 1, &shaderResourceView);
+
+        return slotNumber;
+    }
+
+    int Renderer::BindSkyboxTexture(int slotNumber, ID3D11ShaderResourceView* shaderResourceView)
+    {
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(slotNumber, 1, &shaderResourceView);
+
+        return slotNumber;
     }
 
     void Renderer::UpdateMaterialConstantBuffer(Material* materialComponent)
@@ -100,6 +118,15 @@ namespace Aurora
         constantBuffer.g_Texture_NormalMap_Index = BindMaterialTexture(TextureSlot::NormalMap, materialComponent);
         constantBuffer.g_Texture_MetalnessMap_Index = BindMaterialTexture(TextureSlot::MetalnessMap, materialComponent);
         constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(TextureSlot::RoughnessMap, materialComponent);
+
+        if (m_Skybox->m_SkyHDR != nullptr)
+        {
+            constantBuffer.g_Texture_SkyHDRMap_Index = BindSkyboxTexture(m_Skybox->m_SkyboxHDRMappingIndex, &m_Skybox->m_SkyHDR->m_Texture);
+        }
+        if (m_Skybox->m_Cubemap != nullptr)
+        {
+            constantBuffer.g_Texture_TextureCube_Index = BindSkyboxTexture(m_Skybox->m_SkyboxCubemapMappingIndex, m_Skybox->m_Cubemap->GetSRV());
+        }
 
         XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
         XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, materialComponent->GetEntity()->m_Transform->GetWorldMatrix());
@@ -340,7 +367,7 @@ namespace Aurora
         std::vector<Mesh> meshComponents;
         for (auto& entity : sceneEntities)
         {
-            if (entity->IsActive())
+            if (entity->IsActive() && entity->m_EntityType == EntityType::Renderable)
             {
                 if (entity->HasComponent<Mesh>())
                 {
@@ -368,6 +395,8 @@ namespace Aurora
 
             m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(meshComponent.m_Indices.size(), 0, 0);
         }
+
+        m_Skybox->Render();
     }
 
     void Renderer::DrawDebugWorld(Entity* entity)
@@ -384,7 +413,7 @@ namespace Aurora
         if (!gridBuffer.IsValid())
         {
             const float h = 0.01f; // avoid z-fight with zero plane
-            const int a = 20;
+            const int a = 40;
             XMFLOAT4 verts[((a + 1) * 2 + (a + 1) * 2) * 2];
 
             int count = 0;
@@ -452,5 +481,19 @@ namespace Aurora
         samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;
 
         m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Standard_Texture_Sampler);
+    }
+
+    void Renderer::LoadSkyPipelineState(RHI_Shader* vertexShader, RHI_Shader* pixelShader)
+    {
+        RHI_PipelineState_Description skyPipelineDescription;
+
+        skyPipelineDescription.m_VertexShader = vertexShader;
+        skyPipelineDescription.m_PixelShader = pixelShader;
+        skyPipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
+        skyPipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Front];
+        skyPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
+        skyPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
+
+        m_GraphicsDevice->CreatePipelineState(&skyPipelineDescription, &m_PSO_Object_Sky);
     }
 }

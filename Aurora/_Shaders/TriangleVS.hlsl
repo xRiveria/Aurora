@@ -28,6 +28,6 @@ vs_out main(vs_in input)  // Vertex shader entry point called vs_main(). Entry p
     output.outPosition = mul(output.outPosition, g_ObjectMatrix);
 
     output.outTexCoord = input.inTexCoord;
-    output.outNormal = normalize(input.inNormal); // Why multipled by world matrix this break?
+    output.outNormal = mul(input.inNormal, g_WorldMatrix);
     return output;
 }

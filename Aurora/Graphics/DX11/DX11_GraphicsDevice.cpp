@@ -1256,6 +1256,9 @@ namespace Aurora
 
         auto internalState = ToInternal(pipelineStateObject);
 
+        ID3D11InputLayout* inputLayout = pipelineDescription.m_InputLayout == nullptr ? nullptr : internalState->m_InputLayout.Get();
+        m_DeviceContextImmediate->IASetInputLayout(inputLayout);
+
         ID3D11VertexShader* vertexShader = pipelineDescription.m_VertexShader == nullptr ? nullptr : static_cast<DX11_VertexShaderPackage*>(pipelineDescription.m_VertexShader->m_InternalState.get())->m_Resource.Get();
         m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
 
@@ -1271,9 +1274,7 @@ namespace Aurora
 
        // ID3D11DepthStencilState* depthStencilState = pipelineDescription.m_DepthStencilState == nullptr ? nullptr : internalState->m_DepthStencilState.Get();     
        // m_DeviceContextImmediate->OMSetDepthStencilState(depthStencilState, 0); /// 0 for now.
-        
-        ID3D11InputLayout* inputLayout = pipelineDescription.m_InputLayout == nullptr ? nullptr : internalState->m_InputLayout.Get();
-        m_DeviceContextImmediate->IASetInputLayout(inputLayout);
+       
 
    
         D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

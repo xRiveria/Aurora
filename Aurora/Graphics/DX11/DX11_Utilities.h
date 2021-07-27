@@ -479,6 +479,10 @@ namespace Aurora::DX11_Utility
 			case FORMAT_R16G16_FLOAT:
 				return DXGI_FORMAT_R16G16_FLOAT;
 				break;
+
+			case FORMAT_BC6H_SF16:
+				return DXGI_FORMAT_BC6H_SF16;
+				break;
 		}
 
 		return DXGI_FORMAT_UNKNOWN;

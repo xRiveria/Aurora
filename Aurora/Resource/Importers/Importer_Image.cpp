@@ -101,7 +101,10 @@ namespace Aurora
 
                 RHI_Subresource_Data initializationData;
                 initializationData.m_SystemMemory = pixels;
-                initializationData.m_SystemMemoryPitch = width * bytesPerChannel;
+
+                int bytesPerPixel = 4 * sizeof(float);
+                int pitch = textureDescription.m_Width * bytesPerPixel;
+                initializationData.m_SystemMemoryPitch = pitch;
 
                 m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice->CreateTexture(&textureDescription, &initializationData, &resource->m_Texture);
                 m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice->CreateSubresource(&resource->m_Texture, Subresource_Type::ShaderResourceView, 0, 1, 0, 1);

@@ -16,7 +16,6 @@ namespace Aurora
         std::shared_ptr<AuroraResource> LoadTexture(const std::string& filePath, const std::string& fileName, uint32_t loadFlags);
         std::shared_ptr<AuroraResource> LoadHDRTexture(const std::string& filePath, int channels);
 
-
     private:
         EngineContext* m_EngineContext;
     };

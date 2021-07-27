@@ -11,16 +11,23 @@ using namespace DirectX::PackedVector;
 
 namespace Aurora
 {
+    enum class EntityType
+    {
+        Skybox,
+        Renderable
+    };
+
     class Entity : public AuroraObject, public std::enable_shared_from_this<Entity>
     {
     public:
-
         Entity(EngineContext* engineContext);
         ~Entity();
 
         void Start();                   // Starts all owned Components.
         void Stop();                    // Stops all owned Components.
         void Tick(float deltaTime);     // Ticks all owned components.
+
+        void Clone();
 
         // Properties
         const std::string& GetObjectName() const { return m_ObjectName; }
@@ -146,14 +153,19 @@ namespace Aurora
         std::shared_ptr<Entity> GetPointerShared() { return shared_from_this(); }
         Transform* GetTransform() const { return m_Transform; }
 
+        bool IsVisibleInHierarchy() const { return m_IsVisibleInHierarchy; }
+        void SetHierarchyVisibility(const bool hierarchyVisibility) { m_IsVisibleInHierarchy = hierarchyVisibility; }
+
     public:
         Transform* m_Transform = nullptr; // All entities will have a transform component, regardless of whether it is empty or not.
         bool m_IsActive = true;
+        EntityType m_EntityType = EntityType::Renderable;
 
     private:
         constexpr uint32_t GetComponentMask(ComponentType componentType) { return static_cast<uint32_t>(1) << static_cast<uint32_t>(componentType); }
         
     private:
+        bool m_IsVisibleInHierarchy = true;
         std::string m_ObjectName = "Entity";
         bool m_IsDestructionPending = false;
 

@@ -50,4 +50,9 @@ namespace Aurora
         AURORA_ERROR("Requested image file is not supported: %s.", filePath.c_str());
         return nullptr;
     }
+
+    std::shared_ptr<AuroraResource> ResourceCache::LoadTextureHDR(const std::string& filePath, int channels)
+    {
+        return m_Importer_Image->LoadHDRTexture(filePath, channels);
+    }
 }

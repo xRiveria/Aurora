@@ -41,8 +41,8 @@ namespace Aurora
         FORMAT_R24G8_TYPELESS,          // Depth (24-bit) + Stencil (8-bit) + Shader Resource (24-bit)
 
         FORMAT_R16G16_FLOAT,
-
         FORMAT_R32_UINT,
+        FORMAT_BC6H_SF16,
 
         FORMAT_R16_UINT
     };
@@ -54,6 +54,7 @@ namespace Aurora
         case FORMAT_R32G32B32A32_FLOAT:
         case FORMAT_R32G32B32A32_UINT:
         case FORMAT_R32G32B32A32_SINT:
+        case FORMAT_BC6H_SF16:
             return 16;
 
         case FORMAT_R32G32B32_FLOAT:

@@ -39,7 +39,7 @@ namespace Aurora
         modelParameters.m_MaxNormalSmoothingAngle = 80.0f;    // Normals exceeding this limit are not smoothed.
         modelParameters.m_MaxTangentSmoothingAngle = 80.0f;   // Tangents exceeding this limit are not smoothed. Default is 45, max is 175.
         modelParameters.m_FilePath = filePath;
-        modelParameters.m_Name = FileSystem::GetFileNameFromFilePath(filePath);
+        modelParameters.m_Name = fileName == "" ? FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath) : fileName;
 
         // Setup an Assimp Importer.
         Importer importer;

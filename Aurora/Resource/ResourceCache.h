@@ -40,6 +40,7 @@ namespace Aurora
 
         std::string GetResourceDirectory() const { return m_ResourceDirectory; }
         std::shared_ptr<AuroraResource> LoadTexture(const std::string& filePath, const std::string& fileName = "", uint32_t loadFlags = 0);
+        std::shared_ptr<AuroraResource> LoadTextureHDR(const std::string& filePath, int channels = 4);
         std::shared_ptr<Entity> LoadModel(const std::string& filePath, const std::string& fileName = "");
         void MapDefaultObjects();
 
