@@ -38,7 +38,7 @@ CBUFFER(ConstantBufferData_Material, CBSLOT_RENDERER_MATERIAL)
     int g_Texture_RoughnessMap_Index;
 
     int g_Texture_TextureCube_Index;
-    int padding00001;
+    int g_Texture_DepthShadowMap_Index;
     int padding00002;
     int padding00003;
 
@@ -60,6 +60,9 @@ CBUFFER(ConstantBufferData_Frame, CBSLOT_RENDERER_FRAME)
 {
     float4   g_Light_Position[4];
     float4   g_Light_Color[4];
+    float    g_Light_Intensity[4];
+
+    float4x4 g_LightSpaceMatrix;
 };
 
 // 32 bit alignment.

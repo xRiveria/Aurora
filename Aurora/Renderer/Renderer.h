@@ -50,6 +50,9 @@ namespace Aurora
         RHI_Texture m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Count];
 
         RHI_Texture m_DepthBuffer_Main; // Used for depth-testing. Can be used for MSAA.
+        RHI_Texture m_ShadowDepthMap; // Used for shadows.
+        std::shared_ptr<Entity> m_DirectionalLight;
+
         RHI_RenderPass m_RenderPass_DepthPrePass;
         RHI_RenderPass m_RenderPass_Main;
         uint32_t m_MSAA_SampleCount = 1;
@@ -81,7 +84,9 @@ namespace Aurora
         RHI_SwapChain m_SwapChain;
         RHI_Shader m_VertexShader;
         RHI_Shader m_PixelShader;
-
+        RHI_Shader m_SimpleDepthShaderVS;
+        RHI_Shader m_SimpleDepthShaderPS;
+        int m_DepthShadowMappingIndex = TEXSLOT_RENDERER_DEPTHSHADOW_MAP;
 
         RHI_GPU_Buffer m_VertexBuffer;
 

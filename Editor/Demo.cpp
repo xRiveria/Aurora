@@ -7,7 +7,7 @@ int main(int argc, int argv[])
     HRESULT hr = CoInitialize(NULL);
 
     Editor editor;
-    // Aurora::Engine engine;
+    
     editor.Tick();
 
     CoUninitialize();

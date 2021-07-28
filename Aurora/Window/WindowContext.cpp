@@ -44,6 +44,19 @@ namespace Aurora
         AURORA_INFO("Successfully shutdown GLFW dependency.");
     }
 
+    void WindowContext::Tick(float deltaTime)
+    {
+        if (!glfwWindowShouldClose(static_cast<GLFWwindow*>(GetRenderWindow())))
+        {
+            // Window is still opening and ticking.
+
+        }
+        else
+        {
+            m_IsRunning = false;
+        }
+    }
+
     void* WindowContext::Create(const WindowDescription& description)
     {
         GLFWwindow* newWindow = glfwCreateWindow(description.m_Width, description.m_Height, description.m_Title.c_str(), NULL, NULL);

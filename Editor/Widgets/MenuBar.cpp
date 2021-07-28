@@ -1,4 +1,5 @@
 #include "MenuBar.h"
+#include "../Scene/World.h"
 
 MenuBar::MenuBar(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
@@ -15,7 +16,12 @@ void MenuBar::OnTickAlways()
 			ImGui::MenuItem("New Scene", "Ctrl + N");
 			ImGui::MenuItem("Open Scene", "Ctrl + O");
 			ImGui::Separator();
-			ImGui::MenuItem("Save");
+
+			if (ImGui::MenuItem("Save Scene"))
+			{
+				m_EngineContext->GetSubsystem<Aurora::World>()->SerializeScene();
+			}
+
 			ImGui::EndMenu();
 		}
 

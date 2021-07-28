@@ -97,12 +97,12 @@ namespace Aurora
             texture->SetRenderTarget(ourDepthStencilTexture);
             texture->ClearRenderTarget(ourDepthStencilTexture, { 0, 0, 1 });
 
-            if (i == 0) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
-            if (i == 1) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(0.0f, 270.0f, 0.0f); // back
-            if (i == 2) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(-90.0f, 0.0f, 0.0f); // top
-            if (i == 3) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(90.0f, 0.0f, 0.0f); // bottom
-            if (i == 4) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(0.0f, 0.0f, 0.0f); // left
-            if (i == 5) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
+            //if (i == 0) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
+            //if (i == 1) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(0.0f, 270.0f, 0.0f); // back
+            //if (i == 2) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(-90.0f, 0.0f, 0.0f); // top
+            //if (i == 3) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(90.0f, 0.0f, 0.0f); // bottom
+            //if (i == 4) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(0.0f, 0.0f, 0.0f); // left
+            //if (i == 5) m_Renderer->m_Camera->GetComponent<Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
 
             // Transform Rect to Cubemap
             RenderForResources();

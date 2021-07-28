@@ -107,6 +107,9 @@ namespace Aurora
 
         LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_VertexColor], "VertexColorVS.hlsl");
         LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_PixelColor], "VertexColorPS.hlsl");   
+
+        LoadShader(Shader_Stage::Vertex_Shader, m_SimpleDepthShaderVS, "SimpleDepthVS.hlsl");
+        LoadShader(Shader_Stage::Pixel_Shader, m_SimpleDepthShaderPS, "SimpleDepthPS.hlsl");
     }
 
     void Renderer::LoadStates()

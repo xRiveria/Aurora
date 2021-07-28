@@ -2,6 +2,7 @@
 #include "EngineContext.h"
 #include "ISubsystem.h"
 #include "Entity.h"
+#include "../Serializer/Serializer.h"
 
 namespace Aurora
 {
@@ -33,6 +34,9 @@ namespace Aurora
         // Default Components - In the future, we ought to load the model into memory at runtime, set to inactive and simply duplicate it when ready.
         std::shared_ptr<Entity> CreateDefaultObject(DefaultObjectType defaultObjectType);
 
+        // Serializing
+        void SerializeScene();
+
     private:
         void _EntityRemove(const std::shared_ptr<Entity>& entity);
 
@@ -42,6 +46,7 @@ namespace Aurora
         void CreateEnvironment();
 
     private:
+        Serializer m_Serializer;
         std::string m_WorldName;  // Or Scene Name.
 
         std::vector<std::shared_ptr<Entity>> m_Entities;

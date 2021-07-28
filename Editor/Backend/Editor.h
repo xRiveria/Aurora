@@ -14,6 +14,8 @@ public:
 
 	void Tick();
 
+	Aurora::EngineContext* GetEngineContext() const { return m_EngineContext; }
+
 private:
 	void InitializeEditor();
 	void BeginDockingContext();

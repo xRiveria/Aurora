@@ -261,12 +261,11 @@ void Properties::ShowTransformProperties(Aurora::Transform* transformComponent) 
         transformComponent->SetDirty(true);
     }
 
+    ImGui::Spacing();
+    ImGui::Separator();
     ImGui::Text("Parent Name: %s", transformComponent->HasParentTransform() ? transformComponent->GetParentTransform()->GetEntityName().c_str() : "No Parent");
     ImGui::Text("Children Count: %.0f", static_cast<float>(transformComponent->m_Children.size()));
-    if (ImGui::Button("Find Children"))
-    {
-        transformComponent->AcquireChildren();
-    }
+    ImGui::Spacing();
     ComponentEnd();
 }
 
@@ -300,6 +299,7 @@ void Properties::ShowLightProperties(Aurora::Light* lightComponent) const
 
     if (ComponentBegin("Light"))
     {
+        ImGui::DragFloat("Light Intensity ", &lightComponent->m_Intensity, 0.1, 0.0, 500);
         ImGui::Text("Light Color:");
         ImGui::SameLine();
 

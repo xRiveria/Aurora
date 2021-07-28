@@ -54,6 +54,10 @@ namespace Aurora
         cube->GetComponent<Transform>()->Scale({ 5, 1, 5 });
         cube->GetComponent<Transform>()->Translate({ 0, 0.2, 0 });
 
+        auto cube1 = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Cube);
+        // cube1->GetComponent<Transform>()->Scale({ 5, 1, 5 });
+        cube1->GetComponent<Transform>()->Translate({ 0, 0.7, 0 });
+
         auto gun = m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Cerberus");
         gun->GetComponent<Transform>()->Scale({ 0.02, 0.02, 0.02 });
         gun->GetComponent<Transform>()->m_RotationAngles = { -1.50, 1.50, -2.99 };
@@ -62,9 +66,15 @@ namespace Aurora
         auto lightEntity2 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         lightEntity2->SetName("PL 2");
         lightEntity2->AddComponent<Light>();
-        lightEntity2->GetComponent<Light>()->m_Color = { 300.0f, 300.0f, 300.0f };
+        lightEntity2->GetComponent<Light>()->m_Color = { 1.0f, 1.0f, 1.0f };
         lightEntity2->m_Transform->Translate({ 2.50, 2.0, 0.0 });
-        
+
+        m_DirectionalLight = m_EngineContext->GetSubsystem<World>()->EntityCreate();
+        m_DirectionalLight->SetName("DirectionalLight");
+        m_DirectionalLight->AddComponent<Light>();
+        m_DirectionalLight->GetComponent<Light>()->m_Color = { 300.0f, 300.0f, 300.0f };
+        m_DirectionalLight->m_Transform->Translate({ 0.0, 10.0, 0.0 });
+
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
         for (uint32_t i = 0; i < 8; ++i)
@@ -128,6 +138,7 @@ namespace Aurora
             constantBuffer.g_Texture_TextureCube_Index = BindSkyboxTexture(m_Skybox->m_SkyboxCubemapMappingIndex, m_Skybox->m_Cubemap->GetSRV());
         }
 
+        constantBuffer.g_Texture_DepthShadowMap_Index = BindSkyboxTexture(m_DepthShadowMappingIndex, &m_ShadowDepthMap);
         XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
         XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, materialComponent->GetEntity()->m_Transform->GetWorldMatrix());
 
@@ -163,13 +174,27 @@ namespace Aurora
 
         ConstantBufferData_Frame miscConstantBuffer;
 
+        // Our Ortho Projection Matrix for Directional Light Source Modelling
+        float nearPlane = 1.0f, farPlane = 50.0f;
+
         for (int i = 0; i < lightEntities.size(); i++) // We will update for each as many light entities we have.
         {
             XMFLOAT4 position = { lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.x, lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.y, lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.z, 1 };
             XMFLOAT4 color = { lightEntities[i]->GetComponent<Light>()->m_Color.x, lightEntities[i]->GetComponent<Light>()->m_Color.y, lightEntities[i]->GetComponent<Light>()->m_Color.z, 1 };
             miscConstantBuffer.g_Light_Position[i] = position;
             miscConstantBuffer.g_Light_Color[i] = color;
+            miscConstantBuffer.g_Light_Intensity[i] = lightEntities[i]->GetComponent<Light>()->m_Intensity;
         }
+
+
+        XMFLOAT3 lookAtPosition = { 0, 0, 0 };
+        XMFLOAT3 upPosition = { 0.0f, 1.0f, 0.0f };
+        XMMATRIX viewMatrix = XMMatrixLookAtLH(XMLoadFloat3(&m_DirectionalLight->GetComponent<Transform>()->m_TranslationLocal), XMLoadFloat3(&lookAtPosition), XMLoadFloat3(&upPosition));
+        XMMATRIX orthographicMatrix = XMMatrixOrthographicLH(10, 10, 1.0, 1000.0f);
+
+        XMMATRIX lightSpaceMatrix = viewMatrix * orthographicMatrix; // This will render everything from the light's perspective.
+
+        XMStoreFloat4x4(&miscConstantBuffer.g_LightSpaceMatrix, lightSpaceMatrix);
 
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame], &miscConstantBuffer, 0);
     }
@@ -277,6 +302,17 @@ namespace Aurora
 
             m_GraphicsDevice->CreateTexture(&depthBufferDescription, nullptr, &m_DepthBuffer_Main);
             AURORA_INFO("DepthBuffer_Main Texture Creation Success.");
+
+            RHI_Texture_Description shadowDepthBufferDescription;
+            shadowDepthBufferDescription.m_Width = internalResolution.x;
+            shadowDepthBufferDescription.m_Height = internalResolution.y;
+            shadowDepthBufferDescription.m_SampleCount = GetMSAASampleCount();
+            shadowDepthBufferDescription.m_Layout = Image_Layout::Image_Layout_DepthStencil;
+            shadowDepthBufferDescription.m_Format = Format::FORMAT_R32G8X24_TYPELESS;
+            shadowDepthBufferDescription.m_BindFlags = Bind_Flag::Bind_Depth_Stencil | Bind_Flag::Bind_Shader_Resource;
+
+            m_GraphicsDevice->CreateTexture(&shadowDepthBufferDescription, nullptr, &m_ShadowDepthMap);
+            AURORA_INFO("Shadow Depth Buffer Texture Creation Success.");
         }
 
         // Render Passes - GBuffer
@@ -332,18 +368,47 @@ namespace Aurora
         renderTargetViews[0] = ourTexture->m_RenderTargetView.Get();
         renderTargetViews[1] = ourBloomTexture->m_RenderTargetView.Get();
 
+        // Retrieve Scene Entities
+        m_SceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
+
+
+
+
+
+
+        //============== Depth Buffer Pass ==================
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+        ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_SimpleDepthShaderVS.m_InternalState.get())->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
+
+        ID3D11PixelShader* pixelShader = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_SimpleDepthShaderPS.m_InternalState.get())->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
+
+        float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        ID3D11DepthStencilView* shadowMapTexture = DX11_Utility::ToInternal(&m_ShadowDepthMap)->m_DepthStencilView.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(0, nullptr, shadowMapTexture);
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(shadowMapTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+        RenderScene();
+
+
+
+
+
+
+
+        // ================ Scene Pass ==================================
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+
         ID3D11DepthStencilView* ourDepthStencilTexture = DX11_Utility::ToInternal(&m_DepthBuffer_Main)->m_DepthStencilView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(2, renderTargetViews, ourDepthStencilTexture);
 
-        float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
         m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourBloomTexture->m_RenderTargetView.Get(), color);
         m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourTexture->m_RenderTargetView.Get(), color);
         m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         ///==============================
 
-        // Retrieve Scene Entities
-        m_SceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
         // Bind whatever.
     
         RenderScene();
@@ -375,8 +440,6 @@ namespace Aurora
                 }
             }
         }
-
-        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
 
         // We can play around with the below flow by binding the right pipeline depending on the material extracted from the mesh's information.
         for (auto& meshComponent : meshComponents)

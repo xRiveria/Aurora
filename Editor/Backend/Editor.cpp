@@ -59,7 +59,7 @@ inline Aurora::DX11_Utility::DX11_TexturePackage* ToInternal(const Aurora::RHI_T
 
 void Editor::Tick()
 {
-	while (true)
+	while (m_EngineContext->GetSubsystem<Aurora::WindowContext>()->IsWindowRunning())
 	{
 		m_Engine->Tick();
 

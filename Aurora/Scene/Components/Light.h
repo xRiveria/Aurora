@@ -41,6 +41,7 @@ namespace Aurora
         XMFLOAT3 m_Scale;
         XMFLOAT3 m_Front;
         XMFLOAT3 m_Right;
+        float m_Intensity = 1.0;
 
     public:
         void SetIsCastingShadow(bool value) 

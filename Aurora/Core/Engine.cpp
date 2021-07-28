@@ -32,7 +32,7 @@ namespace Aurora
     }
 
     void Engine::Tick() const
-    {
+    {     
         float deltaTime = m_EngineContext->GetSubsystem<Timer>()->GetDeltaTimeInSeconds();
         // AURORA_INFO("Delta Time (Seconds): %f", deltaTime);
 

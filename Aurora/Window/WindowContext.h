@@ -22,7 +22,9 @@ namespace Aurora
 
         virtual bool Initialize() override;
         virtual void Shutdown() override;
-
+        void Tick(float deltaTime) override;
+        bool IsWindowRunning() const { return m_IsRunning; }
+        
         void* Create(const WindowDescription& description);
 
         void SetCurrentContext(int windowID);
@@ -46,6 +48,7 @@ namespace Aurora
 
     private:
         std::unordered_map<uint8_t, void*> m_Windows;
+        bool m_IsRunning = true;
         bool m_IsInitialized = false;
     };
 }

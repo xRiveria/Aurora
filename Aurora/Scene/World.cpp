@@ -139,6 +139,11 @@ namespace Aurora
         return m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel(m_EngineContext->GetSubsystem<ResourceCache>()->m_DefaultObjects[defaultObjectType]);
     }
 
+    void World::SerializeScene()
+    {
+        m_Serializer.SerializeScene(this);
+    }
+
     void World::CreateDirectionalLight()
     {
         std::shared_ptr<Entity> entity = EntityCreate();
