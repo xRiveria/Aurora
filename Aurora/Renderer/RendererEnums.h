@@ -75,6 +75,7 @@ enum CB_Types
 	CB_Camera,
 	CB_Misc,
 	CB_Material,
+	CB_Entity,
 	CB_Count
 };
 

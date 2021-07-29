@@ -10,3 +10,4 @@
 
 #define CBSLOT_RENDERER_MISC                       5
 #define CBSLOT_RENDERER_MATERIAL                   6
+#define CBSLOT_RENDERER_ENTITY                     7

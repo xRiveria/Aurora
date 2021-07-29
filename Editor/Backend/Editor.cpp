@@ -91,12 +91,14 @@ void Editor::Tick()
 
 		// Sky
 		ImGui::Begin("Sky");
+
+	    Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_ShadowDepthMap);
+	    ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(600, 600));
+
+		Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
+		ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
+
 		/*
-		if (m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_SkyHDR->m_Texture.IsValid())
-		{
-			Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_SkyHDR->m_Texture);
-			ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(300, 300));
-		}
 		else
 		{
 			Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->m_Texture);
@@ -114,32 +116,6 @@ void Editor::Tick()
 			}
 		}
 		*/
-		Aurora::Camera* camera = m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>();
-		if (ImGui::Button("Front"))
-		{
-			camera->SetRotation(0.0f, 90.0f, 0.0f); // front
-		}
-		if (ImGui::Button("Back"))
-		{
-			camera->SetRotation(0.0f, 270.0f, 0.0f);
-		}
-		if (ImGui::Button("Top"))
-		{
-			camera->SetRotation(-90.0f, 0.0f, 0.0f); // top
-		}
-		if (ImGui::Button("Bottom"))
-		{
-			camera->SetRotation(90.0f, 0.0f, 0.0f); // bottom
-		}
-		if (ImGui::Button("Left"))
-		{
-			camera->SetRotation(0.0f, 0.0f, 0.0f); // left
-		}
-		if (ImGui::Button("Right"))
-		{
-			camera->SetRotation(0.0f, 180.0f, 0.0f); // right
-		}
-
 		ImGui::End();
 	
 		ImGui::End(); // Ends docking context.

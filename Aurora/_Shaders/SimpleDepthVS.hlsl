@@ -1,3 +1,5 @@
+#pragma pack_matrix ( row_major )
+
 #include "Globals.hlsli"
 
 struct InputVertexType
@@ -14,10 +16,12 @@ struct InputPixelType
 
 InputPixelType main(InputVertexType input)
 {
-    InputPixelType output;
-   
-    output.outPosition = mul(float4(input.inPosition, 1.0f), g_WorldMatrix);
+    InputPixelType output = (InputPixelType)0; // Zero the memory first.
+
+    output.outPosition = mul(float4(input.inPosition, 1.0), g_ModelMatrix); // Vertex shader must output a float4 XYZW value to set the homogenous clip space (betwen -1 and 1 in XY axis and 0 and 1 in Z axis.    
     output.outPosition = mul(output.outPosition, g_LightSpaceMatrix);
 
     return output;
+
+
 }

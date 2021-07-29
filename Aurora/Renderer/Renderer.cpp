@@ -47,7 +47,7 @@ namespace Aurora
         m_ResourceCache = m_EngineContext->GetSubsystem<ResourceCache>();
 
         m_Camera = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Default_Camera");
-        m_Camera->GetComponent<Camera>()->SetPosition(0, 4, -6);
+        m_Camera->GetComponent<Camera>()->SetPosition(0.01, 4, 0);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
     
         auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Plane);
@@ -58,22 +58,21 @@ namespace Aurora
         // cube1->GetComponent<Transform>()->Scale({ 5, 1, 5 });
         cube1->GetComponent<Transform>()->Translate({ 0, 0.7, 0 });
 
-        auto gun = m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Cerberus");
-        gun->GetComponent<Transform>()->Scale({ 0.02, 0.02, 0.02 });
-        gun->GetComponent<Transform>()->m_RotationAngles = { -1.50, 1.50, -2.99 };
-        gun->GetComponent<Transform>()->Translate({ 0.64, 2.55, -0.05 });
-        
         auto lightEntity2 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        lightEntity2->SetName("PL 2");
+        lightEntity2->SetName("PL 22");
         lightEntity2->AddComponent<Light>();
-        lightEntity2->GetComponent<Light>()->m_Color = { 1.0f, 1.0f, 1.0f };
+        lightEntity2->GetComponent<Light>()->m_Color = { 1, 1, 1 };
         lightEntity2->m_Transform->Translate({ 2.50, 2.0, 0.0 });
+        lightEntity2->GetComponent<Light>()->m_Intensity = 5;
 
+        //auto cube2 = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Torus);
+        //cube2->GetComponent<Transform>()->Translate({ 0, 2.45, 0 });
+        
         m_DirectionalLight = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        m_DirectionalLight->SetName("DirectionalLight");
-        m_DirectionalLight->AddComponent<Light>();
-        m_DirectionalLight->GetComponent<Light>()->m_Color = { 300.0f, 300.0f, 300.0f };
-        m_DirectionalLight->m_Transform->Translate({ 0.0, 10.0, 0.0 });
+        m_DirectionalLight->SetName("PL 2");
+        //m_DirectionalLight->AddComponent<Light>();
+        //m_DirectionalLight->GetComponent<Light>()->m_Color = { 1.0f, 1.0f, 1.0f };
+        m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -139,10 +138,17 @@ namespace Aurora
         }
 
         constantBuffer.g_Texture_DepthShadowMap_Index = BindSkyboxTexture(m_DepthShadowMappingIndex, &m_ShadowDepthMap);
-        XMStoreFloat4x4(&constantBuffer.g_ObjectMatrix, m_Camera->GetComponent<Camera>()->GetViewProjectionMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_WorldMatrix, materialComponent->GetEntity()->m_Transform->GetWorldMatrix());
 
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material], &constantBuffer, 0);
+    }
+
+    void Renderer::UpdateEntityConstantBuffer(Entity* entity)
+    {
+        ConstantBufferData_Entity entityConstantBuffer;
+
+        XMStoreFloat4x4(&entityConstantBuffer.g_ModelMatrix, XMLoadFloat4x4(&entity->GetComponent<Transform>()->m_WorldMatrix));
+
+        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Entity], &entityConstantBuffer, 0);
     }
 
     void Renderer::UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList)
@@ -186,11 +192,12 @@ namespace Aurora
             miscConstantBuffer.g_Light_Intensity[i] = lightEntities[i]->GetComponent<Light>()->m_Intensity;
         }
 
-
         XMFLOAT3 lookAtPosition = { 0, 0, 0 };
         XMFLOAT3 upPosition = { 0.0f, 1.0f, 0.0f };
-        XMMATRIX viewMatrix = XMMatrixLookAtLH(XMLoadFloat3(&m_DirectionalLight->GetComponent<Transform>()->m_TranslationLocal), XMLoadFloat3(&lookAtPosition), XMLoadFloat3(&upPosition));
-        XMMATRIX orthographicMatrix = XMMatrixOrthographicLH(10, 10, 1.0, 1000.0f);
+
+        XMFLOAT3 lightTranslation = m_DirectionalLight->GetComponent<Transform>()->m_TranslationLocal;
+        XMMATRIX viewMatrix = XMMatrixLookAtLH(-XMLoadFloat3(&lightTranslation), { 0.0, 0.0, 0.0 }, { 0, 1, 0 });
+        XMMATRIX orthographicMatrix = XMMatrixOrthographicLH(30, 30, 1, 50);
 
         XMMATRIX lightSpaceMatrix = viewMatrix * orthographicMatrix; // This will render everything from the light's perspective.
 
@@ -201,7 +208,7 @@ namespace Aurora
 
     void Renderer::BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList)
     {
-        m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], CB_GETBINDSLOT(ConstantBufferData_Camera), commandList);
+        m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], CB_GETBINDSLOT(ConstantBufferData_Camera), 0);
         m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material], CB_GETBINDSLOT(ConstantBufferData_Material), 0);
         m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame], CB_GETBINDSLOT(ConstantBufferData_Frame), 0);
     }
@@ -307,7 +314,7 @@ namespace Aurora
             shadowDepthBufferDescription.m_Width = internalResolution.x;
             shadowDepthBufferDescription.m_Height = internalResolution.y;
             shadowDepthBufferDescription.m_SampleCount = GetMSAASampleCount();
-            shadowDepthBufferDescription.m_Layout = Image_Layout::Image_Layout_DepthStencil;
+            shadowDepthBufferDescription.m_Layout = Image_Layout::Image_Layout_DepthStencil_ReadOnly;
             shadowDepthBufferDescription.m_Format = Format::FORMAT_R32G8X24_TYPELESS;
             shadowDepthBufferDescription.m_BindFlags = Bind_Flag::Bind_Depth_Stencil | Bind_Flag::Bind_Shader_Resource;
 
@@ -353,8 +360,9 @@ namespace Aurora
         UpdateCameraConstantBuffer(m_Camera, 0);
 
         ID3D11SamplerState* samplerState = DX11_Utility::ToInternal(&m_Standard_Texture_Sampler)->m_Resource.Get();
+        ID3D11SamplerState* samplerState2 = DX11_Utility::ToInternal(&m_Depth_Texture_Sampler)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(1, 1, &samplerState);
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(1, 1, &samplerState2);
 
         /// Rendering to Texture
         //==============================================================================================================
@@ -372,12 +380,8 @@ namespace Aurora
         m_SceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
 
 
-
-
-
-
         //============== Depth Buffer Pass ==================
-        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_WireThing , 0);
         ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_SimpleDepthShaderVS.m_InternalState.get())->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
 
@@ -390,12 +394,6 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(shadowMapTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         RenderScene();
-
-
-
-
-
-
 
         // ================ Scene Pass ==================================
         m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
@@ -427,6 +425,8 @@ namespace Aurora
 
     void Renderer::RenderScene()
     {
+        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Entity], CB_GETBINDSLOT(ConstantBufferData_Entity), 0);
+
         /// Render Queue Feature?
         std::vector<std::shared_ptr<Entity>> sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
         std::vector<Mesh> meshComponents;
@@ -444,6 +444,8 @@ namespace Aurora
         // We can play around with the below flow by binding the right pipeline depending on the material extracted from the mesh's information.
         for (auto& meshComponent : meshComponents)
         {
+            UpdateEntityConstantBuffer(meshComponent.GetEntity());
+
             UINT offset = 0;
             UINT modelStride = 8 * sizeof(float);
 
@@ -544,6 +546,16 @@ namespace Aurora
         samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;
 
         m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Standard_Texture_Sampler);
+
+        samplerDescription.m_Filter = Filter::FILTER_MIN_MAG_MIP_LINEAR;
+        samplerDescription.m_AddressU = Texture_Address_Mode::Texture_Address_Clamp;
+        samplerDescription.m_AddressV = Texture_Address_Mode::Texture_Address_Clamp;
+        samplerDescription.m_AddressW = Texture_Address_Mode::Texture_Address_Clamp;
+        samplerDescription.m_ComparisonFunction = ComparisonFunction::Comparison_Never;
+        samplerDescription.m_MinLOD = 0;
+        samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;
+
+        m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Depth_Texture_Sampler);
     }
 
     void Renderer::LoadSkyPipelineState(RHI_Shader* vertexShader, RHI_Shader* pixelShader)

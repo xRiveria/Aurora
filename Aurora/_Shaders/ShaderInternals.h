@@ -25,6 +25,12 @@ struct ShaderMaterialData
 
 // On Demand Constant Buffers
 
+// Bound per entity.
+CBUFFER(ConstantBufferData_Entity, CBSLOT_RENDERER_ENTITY)
+{
+    float4x4 g_ModelMatrix;
+};
+
 CBUFFER(ConstantBufferData_Material, CBSLOT_RENDERER_MATERIAL)
 {
     ShaderMaterialData g_Material;
@@ -41,9 +47,6 @@ CBUFFER(ConstantBufferData_Material, CBSLOT_RENDERER_MATERIAL)
     int g_Texture_DepthShadowMap_Index;
     int padding00002;
     int padding00003;
-
-    float4x4 g_ObjectMatrix; // Temporary
-    float4x4 g_WorldMatrix;
 };
 
 CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
@@ -58,11 +61,11 @@ CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
 // Common Constant Buffers
 CBUFFER(ConstantBufferData_Frame, CBSLOT_RENDERER_FRAME)
 {
+    float4x4 g_LightSpaceMatrix;
     float4   g_Light_Position[4];
     float4   g_Light_Color[4];
-    float    g_Light_Intensity[4];
 
-    float4x4 g_LightSpaceMatrix;
+    float    g_Light_Intensity[4];
 };
 
 // 32 bit alignment.

@@ -20,6 +20,7 @@ namespace Aurora
 
         // Pipeline States
         RHI_PipelineState m_PSO_Object_Wire; // Right now we're using this for everything.
+        RHI_PipelineState m_PSO_Object_WireThing; // Right now we're using this for everything.
         RHI_PipelineState m_PSO_Object_Debug[DebugRenderer_Count];
 
         std::string g_ShaderPath = "_Shaders/";
@@ -291,6 +292,10 @@ namespace Aurora
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Frame);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame]);
         AURORA_INFO("Successfully created Frame Constant Buffer.");
+
+        bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Entity);
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Entity]);
+        AURORA_INFO("Successfully created Entity Constant Buffer.");
     }
 
     void Renderer::LoadPipelineStates()
@@ -307,16 +312,16 @@ namespace Aurora
         m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_Wire);
 
        //  ===========================================================
-       // RHI_PipelineState_Description skyPipelineDescription;
+        RHI_PipelineState_Description shadowPassDescription;
 
-       // pipelineDescription.m_VertexShader = &m_SkyVertexShader;
-       // pipelineDescription.m_PixelShader = &m_SkyPixelShader;
-       // pipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
-       // pipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Front];
-       // pipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
-       // pipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
+        shadowPassDescription.m_VertexShader = &m_VertexShader;
+        shadowPassDescription.m_PixelShader = &m_PixelShader;
+        shadowPassDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
+        shadowPassDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Back];
+        shadowPassDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
+        shadowPassDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
 
-       // m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_Sky);
+        m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_WireThing);
 
         //=========================================================
         

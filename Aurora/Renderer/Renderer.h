@@ -36,6 +36,7 @@ namespace Aurora
         // Bindings
         void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
 
+        void UpdateEntityConstantBuffer(Entity* entity);
         void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
         void UpdateLightConstantBuffer();
         void UpdateMaterialConstantBuffer(Material* materialComponent);
@@ -91,7 +92,8 @@ namespace Aurora
         RHI_GPU_Buffer m_VertexBuffer;
 
         RHI_Sampler m_Standard_Texture_Sampler;
-        
+        RHI_Sampler m_Depth_Texture_Sampler;
+
         // Camera
         std::shared_ptr<Entity> m_Camera;
 
