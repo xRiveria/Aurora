@@ -11,6 +11,7 @@
 #include "../Time/Timer.h"
 #include <DirectXMath.h>
 #include "../Graphics/DX11/Skybox.h"
+#include <iostream>
 
 namespace Aurora
 {
@@ -49,29 +50,39 @@ namespace Aurora
         m_Camera = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Default_Camera");
         m_Camera->GetComponent<Camera>()->SetPosition(0.01, 4, 0);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
+
+        //auto gun = m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Cerberus");
+        //gun->GetComponent<Transform>()->Scale({ 0.02, 0.02, 0.02 });
+        //gun->GetComponent<Transform>()->m_RotationLocal.x = 0.6;
+        //gun->GetComponent<Transform>()->Translate({ 0.0, 2.0, 0.0 });
     
         auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Plane);
-        cube->GetComponent<Transform>()->Scale({ 5, 1, 5 });
+        cube->GetComponent<Transform>()->Scale({ 12, 1, 12 });
         cube->GetComponent<Transform>()->Translate({ 0, 0.2, 0 });
 
         auto cube1 = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Cube);
         // cube1->GetComponent<Transform>()->Scale({ 5, 1, 5 });
         cube1->GetComponent<Transform>()->Translate({ 0, 0.7, 0 });
 
-        auto lightEntity2 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        lightEntity2->SetName("PL 22");
-        lightEntity2->AddComponent<Light>();
-        lightEntity2->GetComponent<Light>()->m_Color = { 1, 1, 1 };
-        lightEntity2->m_Transform->Translate({ 2.50, 2.0, 0.0 });
-        lightEntity2->GetComponent<Light>()->m_Intensity = 5;
+        auto lightEntity4 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
+        lightEntity4->SetName("PL 22");
+        lightEntity4->AddComponent<Light>();
+        lightEntity4->GetComponent<Light>()->m_Color = { 1, 1, 1 };
+        lightEntity4->m_Transform->Translate({ 0.89, 2.12, -0.99 });
+        lightEntity4->GetComponent<Light>()->m_Intensity = 40;
+
+        auto lightEntity5 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
+        lightEntity5->SetName("PL 222");
+        lightEntity5->AddComponent<Light>();
+        lightEntity5->GetComponent<Light>()->m_Color = { 1, 1, 1 };
+        lightEntity5->m_Transform->Translate({ 0.89, 2.12, -0.99 });
+        lightEntity5->GetComponent<Light>()->m_Intensity = 40;
 
         //auto cube2 = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Torus);
         //cube2->GetComponent<Transform>()->Translate({ 0, 2.45, 0 });
         
         m_DirectionalLight = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         m_DirectionalLight->SetName("PL 2");
-        //m_DirectionalLight->AddComponent<Light>();
-        //m_DirectionalLight->GetComponent<Light>()->m_Color = { 1.0f, 1.0f, 1.0f };
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
         // For scissor rects in our rasterizer set.
@@ -159,6 +170,7 @@ namespace Aurora
         XMStoreFloat4x4(&constantBuffer.g_Camera_View, camera->GetComponent<Camera>()->GetViewMatrix());
         XMStoreFloat4x4(&constantBuffer.g_Camera_Projection, camera->GetComponent<Camera>()->GetProjectionMatrix());
         XMStoreFloat4x4(&constantBuffer.g_Camera_InverseViewProjection, XMMatrixInverse(nullptr, camera->GetComponent<Camera>()->GetViewProjectionMatrix()));
+        constantBuffer.g_Light_Bias = m_LightBias;
         // XMStoreFloat3(&constantBuffer.g_Camera_Position, camera->GetComponent<Camera>()->m_Position);
 
         m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, commandList);
@@ -186,18 +198,18 @@ namespace Aurora
         for (int i = 0; i < lightEntities.size(); i++) // We will update for each as many light entities we have.
         {
             XMFLOAT4 position = { lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.x, lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.y, lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.z, 1 };
-            XMFLOAT4 color = { lightEntities[i]->GetComponent<Light>()->m_Color.x, lightEntities[i]->GetComponent<Light>()->m_Color.y, lightEntities[i]->GetComponent<Light>()->m_Color.z, 1 };
+            XMFLOAT4 color = { lightEntities[i]->GetComponent<Light>()->m_Color.x, lightEntities[i]->GetComponent<Light>()->m_Color.y, lightEntities[i]->GetComponent<Light>()->m_Color.z, 0.0f };
             miscConstantBuffer.g_Light_Position[i] = position;
             miscConstantBuffer.g_Light_Color[i] = color;
-            miscConstantBuffer.g_Light_Intensity[i] = lightEntities[i]->GetComponent<Light>()->m_Intensity;
+            miscConstantBuffer.g_Light_Color[i].w = lightEntities[i]->GetComponent<Light>()->m_Intensity;
         }
 
         XMFLOAT3 lookAtPosition = { 0, 0, 0 };
         XMFLOAT3 upPosition = { 0.0f, 1.0f, 0.0f };
 
         XMFLOAT3 lightTranslation = m_DirectionalLight->GetComponent<Transform>()->m_TranslationLocal;
-        XMMATRIX viewMatrix = XMMatrixLookAtLH(-XMLoadFloat3(&lightTranslation), { 0.0, 0.0, 0.0 }, { 0, 1, 0 });
-        XMMATRIX orthographicMatrix = XMMatrixOrthographicLH(30, 30, 1, 50);
+        XMMATRIX viewMatrix = XMMatrixLookAtLH(XMLoadFloat3(&lightTranslation), { 0.0, 0.0, 0.0 }, { 0, 1, 0 });
+        XMMATRIX orthographicMatrix = XMMatrixOrthographicLH(20, 20, -20, 20);
 
         XMMATRIX lightSpaceMatrix = viewMatrix * orthographicMatrix; // This will render everything from the light's perspective.
 
@@ -351,6 +363,11 @@ namespace Aurora
 
             m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
             m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
+
+            D3D11_VIEWPORT viewportInfo = { 0, 0, m_RenderWidth, m_RenderHeight, 0.0f, 1.0f };
+            m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
+
+            AURORA_INFO("RESIZED");
         }
 
         BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
@@ -366,9 +383,6 @@ namespace Aurora
 
         /// Rendering to Texture
         //==============================================================================================================
-        D3D11_VIEWPORT viewportInfo = { 0, 0, m_RenderWidth, m_RenderHeight, 0.0f, 1.0f };
-        m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
-
         auto ourTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
         auto ourBloomTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
 
@@ -381,7 +395,7 @@ namespace Aurora
 
 
         //============== Depth Buffer Pass ==================
-        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_WireThing , 0);
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_WireThing, 0);
         ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_SimpleDepthShaderVS.m_InternalState.get())->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
 
@@ -551,6 +565,10 @@ namespace Aurora
         samplerDescription.m_AddressU = Texture_Address_Mode::Texture_Address_Clamp;
         samplerDescription.m_AddressV = Texture_Address_Mode::Texture_Address_Clamp;
         samplerDescription.m_AddressW = Texture_Address_Mode::Texture_Address_Clamp;
+        samplerDescription.m_BorderColor[0] = 1.0f;
+        samplerDescription.m_BorderColor[1] = 1.0f;
+        samplerDescription.m_BorderColor[2] = 1.0f;
+        samplerDescription.m_BorderColor[3] = 1.0f;
         samplerDescription.m_ComparisonFunction = ComparisonFunction::Comparison_Never;
         samplerDescription.m_MinLOD = 0;
         samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;

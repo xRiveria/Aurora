@@ -1,5 +1,6 @@
 #pragma once
 #include "../Backend/Widget.h"
+#include "../Backend/Utilities/Extensions.h"
 
 class ObjectsPanel : public Widget
 {
@@ -9,11 +10,11 @@ public:
     void OnTickVisible() override;
 
     // Object Panel Specific
-    void ObjectDrag(const std::string& objectType) const;
+    void ObjectDrag(const Aurora::DefaultObjectType objectType, const std::string& objectName) const;
 
 private:
     float m_IconSize = 20.0f;
 
     // Internal
-    /// Drag.
+    mutable EditorExtensions::DragDropPayload m_DragDropPayload; // Currently operating payload.
 };

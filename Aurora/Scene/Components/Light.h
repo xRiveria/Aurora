@@ -40,8 +40,9 @@ namespace Aurora
         XMFLOAT3 m_Rotation;
         XMFLOAT3 m_Scale;
         XMFLOAT3 m_Front;
+        float m_Bias = 0.05;
         XMFLOAT3 m_Right;
-        float m_Intensity = 1.0;
+        float m_Intensity = 40.0;
 
     public:
         void SetIsCastingShadow(bool value) 

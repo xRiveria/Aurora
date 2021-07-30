@@ -77,6 +77,7 @@ namespace Aurora
         float m_RenderHeight = 1080;
         std::shared_ptr<Skybox> m_Skybox;
         RHI_PipelineState m_PSO_Object_Sky;
+        float m_LightBias = 0.025f;
 
     public:
         

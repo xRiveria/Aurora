@@ -1,11 +1,12 @@
 #pragma once
 #include <optional>
 #include "EngineContext.h"
-#include "../Window/WindowContext.h"
-#include "../Utilities/IconLibrary.h"
-#include "../Scene/Entity.h"
 #include "../Source/imgui.h"
 #include "../Backend/Source/imgui_internal.h"
+#include "../Scene/Entity.h"
+#include "../Window/WindowContext.h"
+#include "../Utilities/IconLibrary.h"
+#include "../Resource/ResourceCache.h"
 #include <variant>
 
 namespace EditorExtensions
@@ -87,7 +88,7 @@ namespace EditorExtensions
 
 	struct DragDropPayload
 	{
-		typedef std::variant<const char*, unsigned int> DataVariant; // Holds either a const char* or unsigned integer identifier.
+		typedef std::variant<const char*, unsigned int, Aurora::DefaultObjectType> DataVariant; // Holds either a const char* or unsigned integer identifier.
 
 		DragDropPayload(const DragPayloadType payloadType = DragPayloadType::DragPayloadType_Unknown, const DataVariant data = nullptr)
 		{

@@ -25,7 +25,7 @@ vs_out main(vs_in input)  // Vertex shader entry point called vs_main(). Entry p
 
     output.outPosition = mul(float4(input.inPosition, 1.0), g_ModelMatrix); // Vertex shader must output a float4 XYZW value to set the homogenous clip space (betwen -1 and 1 in XY axis and 0 and 1 in Z axis.    
     output.outFragPosInLightSpace = mul(output.outPosition, g_LightSpaceMatrix);
-    
+    output.outFragPosInLightSpace = output.outFragPosInLightSpace * float4(0.5f, -0.5f, 1.0f, 1.0f) + (float4(0.5f, 0.5f, 0.0f, 0.0f) * output.outFragPosInLightSpace.w);
     output.outWorldSpace = output.outPosition.xyz;
 
     output.outPosition = mul(output.outPosition, g_Camera_ViewProjection);

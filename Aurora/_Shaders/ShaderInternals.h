@@ -65,7 +65,7 @@ CBUFFER(ConstantBufferData_Frame, CBSLOT_RENDERER_FRAME)
     float4   g_Light_Position[4];
     float4   g_Light_Color[4];
 
-    float    g_Light_Intensity[4];
+    // float   g_Light_Intensity[4];
 };
 
 // 32 bit alignment.
@@ -78,7 +78,8 @@ CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
     float4x4 g_Camera_Projection;
 
     float g_RenderItem; // 0 skybox.
-    float g_Padding1;
+    float g_Light_Bias;
+
     float g_Padding2;
     float g_Padding3;
 };

@@ -2,6 +2,7 @@
 #include "../Scene/World.h"
 #include "../Input/Input.h"
 #include "../Renderer/Renderer.h"
+#include "../Backend/Utilities/Extensions.h"
 
 Viewport::Viewport(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
@@ -38,6 +39,12 @@ void Viewport::OnTickVisible()
 
     auto internalState = Aurora::DX11_Utility::ToInternal(&m_RendererSubsystem->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
     ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(width, height));
+
+    // Handle model dropping.
+    if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Entity))
+    {
+        m_WorldSubsystem->CreateDefaultObject(std::get<Aurora::DefaultObjectType>(payload->m_Data));
+    }
    
     m_EditorTools->Tick();
 }

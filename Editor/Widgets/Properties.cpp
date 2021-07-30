@@ -278,6 +278,8 @@ void Properties::ShowMaterialProperties(Aurora::Material* materialComponent) con
 
     if (ComponentBegin("Material"))
     {
+        ImGui::PushID(materialComponent->GetObjectID());
+
         DrawMaterialControl("Albedo Map", materialComponent->m_Textures[Aurora::TextureSlot::BaseColorMap], m_EngineContext, true, materialComponent->m_BaseColor);
         DrawMaterialControl("Roughness Map", materialComponent->m_Textures[Aurora::TextureSlot::RoughnessMap], m_EngineContext);
         DrawMaterialControl("Normal Map", materialComponent->m_Textures[Aurora::TextureSlot::NormalMap], m_EngineContext);
@@ -285,6 +287,8 @@ void Properties::ShowMaterialProperties(Aurora::Material* materialComponent) con
 
         ImGui::SliderFloat("Roughness", &materialComponent->m_Roughness, 0.0, 1.0);
         ImGui::SliderFloat("Metalness", &materialComponent->m_Metalness, 0.0, 1.0);
+
+        ImGui::PopID();
     }
 
     ComponentEnd(); // Seperator already avaliable in DrawMaterialControl.
@@ -299,7 +303,8 @@ void Properties::ShowLightProperties(Aurora::Light* lightComponent) const
 
     if (ComponentBegin("Light"))
     {
-        ImGui::DragFloat("Light Intensity ", &lightComponent->m_Intensity, 0.1, 0.0, 500);
+        ImGui::PushID(lightComponent->GetObjectID());
+        ImGui::DragFloat("Light Intensity", &lightComponent->m_Intensity, 0.1, 0.0, 500);
         ImGui::Text("Light Color:");
         ImGui::SameLine();
 
@@ -314,6 +319,8 @@ void Properties::ShowLightProperties(Aurora::Light* lightComponent) const
 
             ImGui::EndPopup();
         }
+
+        ImGui::PopID();
     }
 
     ComponentEnd();

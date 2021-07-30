@@ -97,7 +97,7 @@ void Editor::Tick()
 
 		Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
 		ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
-
+		ImGui::DragFloat("Light Bias", &m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_LightBias, 0.01, 0.005, 0.1);
 		/*
 		else
 		{
