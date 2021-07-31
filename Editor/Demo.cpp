@@ -5,6 +5,7 @@
 int main(int argc, int argv[])
 {
     HRESULT hr = CoInitialize(NULL);
+    srand(time(0)); // Seed generator.
 
     Editor editor;
     

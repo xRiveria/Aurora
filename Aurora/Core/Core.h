@@ -16,9 +16,11 @@ if (!(##expression))               \
 namespace YAML
 {
     class Emitter;
+    class Node;
 }
 
 typedef YAML::Emitter SerializationStream;
+typedef YAML::Node    SerializationNode;
 
 // Future Graphics APIs
 // #define AURORA_GRAPHICS_DX11

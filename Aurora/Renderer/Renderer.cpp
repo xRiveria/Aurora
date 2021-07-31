@@ -52,11 +52,7 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(0.01, 4, 0);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
 
-        //auto gun = m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Cerberus");
-        //gun->GetComponent<Transform>()->Scale({ 0.02, 0.02, 0.02 });
-        //gun->GetComponent<Transform>()->m_RotationLocal.x = 0.6;
-        //gun->GetComponent<Transform>()->Translate({ 0.0, 2.0, 0.0 });
-    
+ /*
         auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Plane);
         cube->GetComponent<Transform>()->Scale({ 12, 1, 12 });
         cube->GetComponent<Transform>()->Translate({ 0, 0.2, 0 });
@@ -78,12 +74,10 @@ namespace Aurora
         lightEntity5->GetComponent<Light>()->m_Color = { 1, 1, 1 };
         lightEntity5->m_Transform->Translate({ 0.89, 2.12, -0.99 });
         lightEntity5->GetComponent<Light>()->m_Intensity = 40;
+*/
 
-        //auto cube2 = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Torus);
-        //cube2->GetComponent<Transform>()->Translate({ 0, 2.45, 0 });
-        
         m_DirectionalLight = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        m_DirectionalLight->SetName("PL 2");
+        m_DirectionalLight->SetName("Directional Light");
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
         // For scissor rects in our rasterizer set.

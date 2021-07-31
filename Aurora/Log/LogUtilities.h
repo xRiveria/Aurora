@@ -19,6 +19,13 @@ namespace Aurora
 		Error,
 	};
 
+	enum class LogLayer
+	{
+		Engine,
+		Graphics,
+		Physics
+	};
+
 	struct LogPackage
 	{
 		LogPackage() {}

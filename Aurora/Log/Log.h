@@ -14,8 +14,9 @@
 
 namespace Aurora
 {
-	// Macros
-	#define AURORA_INFO(text, ...)        { Aurora::Log::WriteInfoLog(std::string(__FUNCTION__)    + ": " + std::string(text), __VA_ARGS__); }
+	// Macros for different forms of logging information.
+	#define AURORA_INFO(text, ...)				 { Aurora::Log::WriteInfoLog(std::string(__FUNCTION__)    + ": " + std::string(text), __VA_ARGS__); }
+
 	#define AURORA_WARNING(text, ...)     { Aurora::Log::WriteWarningLog(std::string(__FUNCTION__) + ": " + std::string(text), __VA_ARGS__); }
 	#define AURORA_ERROR(text, ...)       { Aurora::Log::WriteErrorLog(std::string(__FUNCTION__)   + ": " + std::string(text), __VA_ARGS__); }
 	
@@ -31,7 +32,7 @@ namespace Aurora
 
 		//Alphabetical
 		static void WriteLog(const char* logMessage, const LogType logType);
-		static void WriteInfoLog(const char* logMessage, ...);
+		static void WriteInfoLog(LogLayer logLayer, const char* logMessage, ...);
 		static void WriteWarningLog(const char* logMessage, ...);
 		static void WriteErrorLog(const char* logMessage, ...);
 

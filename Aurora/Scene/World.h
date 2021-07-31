@@ -36,6 +36,7 @@ namespace Aurora
 
         // Serializing
         void SerializeScene();
+        void DeserializeScene(const std::string& filePath);
 
     private:
         void _EntityRemove(const std::shared_ptr<Entity>& entity);
@@ -46,7 +47,7 @@ namespace Aurora
         void CreateEnvironment();
 
     private:
-        Serializer m_Serializer;
+        std::shared_ptr<Serializer> m_Serializer;
         std::string m_WorldName;  // Or Scene Name.
 
         std::vector<std::shared_ptr<Entity>> m_Entities;

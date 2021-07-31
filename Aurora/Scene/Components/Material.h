@@ -60,6 +60,9 @@ namespace Aurora
     public:
         Material(EngineContext* engineContext, Entity* entity, uint32_t componentID = 0);
 
+        void Serialize(SerializationStream& outputStream) override;
+        void Deserialize(SerializationNode& inputNode) override;
+
         XMFLOAT4 GetBaseColor() const { return m_BaseColor; }
 
         void SetBaseColor(const XMFLOAT4& newColor) { SetDirty(); m_BaseColor = newColor; }

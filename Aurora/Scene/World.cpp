@@ -28,6 +28,8 @@ namespace Aurora
             entity->Start();
         }
 
+        m_Serializer = std::make_shared<Serializer>(this);
+
         return true;
     }
 
@@ -141,7 +143,12 @@ namespace Aurora
 
     void World::SerializeScene()
     {
-        m_Serializer.SerializeScene(this);
+        m_Serializer->SerializeScene(this);
+    }
+
+    void World::DeserializeScene(const std::string& filePath)
+    {
+        m_Serializer->DeserializeScene(filePath);
     }
 
     void World::CreateDirectionalLight()

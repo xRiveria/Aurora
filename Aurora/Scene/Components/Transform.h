@@ -22,6 +22,7 @@ namespace Aurora
 
         void Tick(float deltaTime) override;
         void Serialize(SerializationStream& outputStream) override;
+        void Deserialize(SerializationNode& inputNode) override;
 
         void UpdateTransform();
 

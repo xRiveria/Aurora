@@ -13,11 +13,15 @@ namespace Aurora
     class Serializer
     {
     public:
-        Serializer() = default;
+        Serializer(World* world);
 
         void SerializeScene(World* scene);
+        bool DeserializeScene(const std::string& filePath);
         
     private:
         void SerializeEntity(YAML::Emitter& outputStream, Entity* entity);
+
+    private:
+        World* m_World;
     };
 }

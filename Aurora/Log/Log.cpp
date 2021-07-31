@@ -56,7 +56,7 @@ namespace Aurora
 		RestoreConsoleAttributes();
 	}
 
-	void Log::WriteInfoLog(const char* logMessage, ...)
+	void Log::WriteInfoLog(LogLayer logLayer, const char* logMessage, ...)
 	{
 		char buffer[2048];
 

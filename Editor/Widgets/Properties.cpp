@@ -218,7 +218,7 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
             std::string path = filePath.value();
             std::string fileName = Aurora::FileSystem::GetFileNameFromFilePath(path);
             std::shared_ptr<Aurora::AuroraResource> resource = engineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(path, fileName);
-            materialTexture.m_FilePath = fileName; /// We need to streamline AuroraResource and TextureMap.
+            materialTexture.m_FilePath = path; /// We need to streamline AuroraResource and TextureMap.
             materialTexture.m_Resource = resource;
         }
     }
@@ -311,6 +311,12 @@ void Properties::ShowLightProperties(Aurora::Light* lightComponent) const
         if (ImGui::ColorButton("##LightColorButton", ImVec4(lightComponent->m_Color.x, lightComponent->m_Color.y, lightComponent->m_Color.z, 1.0)))
         {
             ImGui::OpenPopup("LightColorPopup");
+        }
+
+        bool areShadowsEnabled = lightComponent->IsCastingShadow();
+        if (ImGui::Checkbox("Cast Shadows", &areShadowsEnabled))
+        {
+            lightComponent->SetIsCastingShadow(areShadowsEnabled);
         }
 
         if (ImGui::BeginPopup("LightColorPopup"))

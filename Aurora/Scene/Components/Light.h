@@ -6,6 +6,20 @@ using namespace DirectX;
 
 namespace Aurora
 {
+    enum Lighting_Type
+    {
+        Directional = 0,            // 0
+        Point = 1,                  // 1
+        Spot = 2,                   // 2
+        LightingType_Count
+    };
+
+    enum Lighting_Flags
+    {
+        Lighting_Flags_Empty = 0,
+        Cast_Shadow = 1 << 0,
+    };
+
     class Light : public IComponent
     {
     public:
@@ -13,42 +27,11 @@ namespace Aurora
         ~Light();
 
         void Serialize(SerializationStream& outputStream) override;
+        void Deserialize(SerializationNode& inputNode) override;
 
-        
+        void SetLightingType(Lighting_Type type) { m_Type = type; }
+        Lighting_Type GetLightingType() const { return m_Type; }
 
-        enum Lighting_Flags
-        {
-            Empty = 0,
-            Cast_Shadow = 1 << 0,
-        };
-
-        uint32_t m_Flags = Lighting_Flags::Empty;
-        XMFLOAT3 m_Color = XMFLOAT3(1, 1, 1);
-
-        enum Lighting_Type
-        {
-            Directional = 0,   // 0
-            Point       = 1,         // 1
-            Spot        = 2,          // 2
-            LightingType_Count
-        };
-
-        
-        Lighting_Type m_Type = Lighting_Type::Point;
-        // float m_Energy = 1.0f;
-        // float m_RangeLocal = 10.0f;
-        // float m_FOV = XM_PIDIV4;
-
-        float m_RangeGlobal;
-        XMFLOAT3 m_Direction = { -2.0f, -1.0f, -0.3f };
-        XMFLOAT3 m_Rotation;
-        XMFLOAT3 m_Scale;
-        XMFLOAT3 m_Front;
-        float m_Bias = 0.05;
-        XMFLOAT3 m_Right;
-        float m_Intensity = 40.0;
-
-    public:
         void SetIsCastingShadow(bool value) 
         { 
             if (value) 
@@ -60,10 +43,14 @@ namespace Aurora
                 m_Flags &= ~Lighting_Flags::Cast_Shadow;
             }
         }
-
         bool IsCastingShadow() const { return m_Flags & Lighting_Flags::Cast_Shadow; }
 
-        void SetLightingType(Lighting_Type type) { m_Type = type; }
-        Lighting_Type GetType() const { return m_Type; }
+    public:
+        XMFLOAT3 m_Color = XMFLOAT3(1, 1, 1);
+        float m_Intensity = 40.0;
+
+        Lighting_Type m_Type = Lighting_Type::Point;
+        uint32_t m_Flags = Lighting_Flags::Lighting_Flags_Empty;
+        // float m_Bias = 0.05;
     };
 }

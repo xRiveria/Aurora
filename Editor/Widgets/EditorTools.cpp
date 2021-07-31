@@ -21,21 +21,24 @@ void EditorTools::OnTickAlways()
 
 void EditorTools::TickGizmos()
 {
-	if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_E))
+	if (ImGui::IsWindowFocused())
 	{
-		m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-	}
-	else if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_R))
-	{
-		m_GizmoType = ImGuizmo::OPERATION::SCALE;
-	}
-	else if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_T))
-	{
-		m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-	}
-	else if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_Q))
-	{
-		m_GizmoType = -1;
+		if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_E))
+		{
+			m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+		}
+		else if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_R))
+		{
+			m_GizmoType = ImGuizmo::OPERATION::SCALE;
+		}
+		else if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_T))
+		{
+			m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+		}
+		else if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_Q))
+		{
+			m_GizmoType = -1;
+		}
 	}
 
 	// Gizmo

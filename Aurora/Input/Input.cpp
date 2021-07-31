@@ -51,7 +51,7 @@ namespace Aurora
         if (m_EngineContext->GetSubsystem<WindowContext>()->WindowExistsInMapping(window))
         {
             m_QueryWindow = window;
-            SetupInputCallbacks();
+            // SetupInputCallbacks();
          
             AURORA_INFO("Successfully directed input querying to window.");
             return true;

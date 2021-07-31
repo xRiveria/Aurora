@@ -22,6 +22,7 @@ namespace Aurora
         // Create Cube Entity
         m_SkyboxEntity = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Cube);
         m_SkyboxEntity->m_EntityType = EntityType::Skybox;
+        m_SkyboxEntity->SetName("Skybox");
 
         for (int i = 0; i < m_SkyboxEntity->GetComponent<Transform>()->m_Children.size(); i++)
         {

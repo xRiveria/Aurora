@@ -9,8 +9,7 @@ namespace Aurora
 
     Transform::Transform(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
-        m_ParentTransform = nullptr;
-        
+        m_ParentTransform = nullptr;     
     }
 
     void Transform::Tick(float deltaTime)
@@ -20,14 +19,31 @@ namespace Aurora
 
     void Transform::Serialize(SerializationStream& outputStream)
     {
-        outputStream << YAML::Key << "Transform Component";
+        outputStream << YAML::Key << "TransformComponent";
         outputStream << YAML::BeginMap;
 
         outputStream << YAML::Key << "Translation" << YAML::Value << m_TranslationLocal;
         outputStream << YAML::Key << "Scale" << YAML::Value << m_ScaleLocal;
         outputStream << YAML::Key << "Rotation" << YAML::Value << m_RotationLocal;
 
+        if (HasParentTransform())
+        {
+            outputStream << YAML::Key << "ParentEntity" << YAML::Value << GetParentTransform()->GetEntity()->GetObjectID();  /// Save by ID?
+        }
+
         outputStream << YAML::EndMap;
+    }
+
+    void Transform::Deserialize(SerializationNode& inputNode)
+    {
+        m_TranslationLocal = inputNode["Translation"].as<XMFLOAT3>();
+        m_ScaleLocal = inputNode["Scale"].as<XMFLOAT3>();
+        m_RotationLocal = inputNode["Rotation"].as<XMFLOAT4>();
+
+        if (inputNode["ParentEntity"])
+        {
+            SetParentTransform(m_EngineContext->GetSubsystem<World>()->GetEntityByID(inputNode["ParentEntity"].as<uint32_t>())->GetComponent<Transform>());
+        }
     }
 
     void Transform::UpdateTransform()

@@ -10,6 +10,9 @@ namespace Aurora
     public:
         Mesh(EngineContext* engineContext, Entity* entity, uint32_t componentID = 0);
 
+        void Serialize(SerializationStream& outputStream) override;
+        void Deserialize(SerializationNode& inputNode) override;
+
         void CreateRenderData();
 
     public:

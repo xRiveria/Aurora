@@ -39,6 +39,7 @@ namespace Aurora
         virtual void Tick(float deltaTime) {}
 
         virtual void Serialize(SerializationStream& outputStream) {}
+        virtual void Deserialize(SerializationNode& inputNode) {}
 
         // Type
         template <typename T>

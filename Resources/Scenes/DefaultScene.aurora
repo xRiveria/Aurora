@@ -1,0 +1,1349 @@
+Scene: Unnamed Scene
+Entities:
+  - Entity: 1111
+    NameComponent:
+      Name: Plane
+    TransformComponent:
+      Translation: [0, 0.200000003, 0]
+      Scale: [12, 1, 12]
+      Rotation: [0, 0, 0, 1]
+  - Entity: 17752
+    NameComponent:
+      Name: pPlane1
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+      ParentEntity: 1111
+    MeshComponent:
+      VertexPosition_0: [-0.5, 0, -0.5]
+      VertexPosition_1: [-0.400000006, 0, -0.5]
+      VertexPosition_2: [-0.400000006, 0, -0.400000006]
+      VertexPosition_3: [-0.5, 0, -0.400000006]
+      VertexPosition_4: [-0.300000012, 0, -0.5]
+      VertexPosition_5: [-0.300000012, 0, -0.400000006]
+      VertexPosition_6: [-0.199999988, 0, -0.5]
+      VertexPosition_7: [-0.199999988, 0, -0.400000006]
+      VertexPosition_8: [-0.099999994, 0, -0.5]
+      VertexPosition_9: [-0.099999994, 0, -0.400000006]
+      VertexPosition_10: [0, 0, -0.5]
+      VertexPosition_11: [0, 0, -0.400000006]
+      VertexPosition_12: [0.100000024, 0, -0.5]
+      VertexPosition_13: [0.100000024, 0, -0.400000006]
+      VertexPosition_14: [0.199999988, 0, -0.5]
+      VertexPosition_15: [0.199999988, 0, -0.400000006]
+      VertexPosition_16: [0.300000012, 0, -0.5]
+      VertexPosition_17: [0.300000012, 0, -0.400000006]
+      VertexPosition_18: [0.400000036, 0, -0.5]
+      VertexPosition_19: [0.400000036, 0, -0.400000006]
+      VertexPosition_20: [0.5, 0, -0.5]
+      VertexPosition_21: [0.5, 0, -0.400000006]
+      VertexPosition_22: [-0.400000006, 0, -0.300000012]
+      VertexPosition_23: [-0.5, 0, -0.300000012]
+      VertexPosition_24: [-0.300000012, 0, -0.300000012]
+      VertexPosition_25: [-0.199999988, 0, -0.300000012]
+      VertexPosition_26: [-0.099999994, 0, -0.300000012]
+      VertexPosition_27: [0, 0, -0.300000012]
+      VertexPosition_28: [0.100000024, 0, -0.300000012]
+      VertexPosition_29: [0.199999988, 0, -0.300000012]
+      VertexPosition_30: [0.300000012, 0, -0.300000012]
+      VertexPosition_31: [0.400000036, 0, -0.300000012]
+      VertexPosition_32: [0.5, 0, -0.300000012]
+      VertexPosition_33: [-0.400000006, 0, -0.199999988]
+      VertexPosition_34: [-0.5, 0, -0.199999988]
+      VertexPosition_35: [-0.300000012, 0, -0.199999988]
+      VertexPosition_36: [-0.199999988, 0, -0.199999988]
+      VertexPosition_37: [-0.099999994, 0, -0.199999988]
+      VertexPosition_38: [0, 0, -0.199999988]
+      VertexPosition_39: [0.100000024, 0, -0.199999988]
+      VertexPosition_40: [0.199999988, 0, -0.199999988]
+      VertexPosition_41: [0.300000012, 0, -0.199999988]
+      VertexPosition_42: [0.400000036, 0, -0.199999988]
+      VertexPosition_43: [0.5, 0, -0.199999988]
+      VertexPosition_44: [-0.400000006, 0, -0.099999994]
+      VertexPosition_45: [-0.5, 0, -0.099999994]
+      VertexPosition_46: [-0.300000012, 0, -0.099999994]
+      VertexPosition_47: [-0.199999988, 0, -0.099999994]
+      VertexPosition_48: [-0.099999994, 0, -0.099999994]
+      VertexPosition_49: [0, 0, -0.099999994]
+      VertexPosition_50: [0.100000024, 0, -0.099999994]
+      VertexPosition_51: [0.199999988, 0, -0.099999994]
+      VertexPosition_52: [0.300000012, 0, -0.099999994]
+      VertexPosition_53: [0.400000036, 0, -0.099999994]
+      VertexPosition_54: [0.5, 0, -0.099999994]
+      VertexPosition_55: [-0.400000006, 0, -0]
+      VertexPosition_56: [-0.5, 0, -0]
+      VertexPosition_57: [-0.300000012, 0, -0]
+      VertexPosition_58: [-0.199999988, 0, -0]
+      VertexPosition_59: [-0.099999994, 0, -0]
+      VertexPosition_60: [0, 0, -0]
+      VertexPosition_61: [0.100000024, 0, -0]
+      VertexPosition_62: [0.199999988, 0, -0]
+      VertexPosition_63: [0.300000012, 0, -0]
+      VertexPosition_64: [0.400000036, 0, -0]
+      VertexPosition_65: [0.5, 0, -0]
+      VertexPosition_66: [-0.400000006, 0, 0.100000024]
+      VertexPosition_67: [-0.5, 0, 0.100000024]
+      VertexPosition_68: [-0.300000012, 0, 0.100000024]
+      VertexPosition_69: [-0.199999988, 0, 0.100000024]
+      VertexPosition_70: [-0.099999994, 0, 0.100000024]
+      VertexPosition_71: [0, 0, 0.100000024]
+      VertexPosition_72: [0.100000024, 0, 0.100000024]
+      VertexPosition_73: [0.199999988, 0, 0.100000024]
+      VertexPosition_74: [0.300000012, 0, 0.100000024]
+      VertexPosition_75: [0.400000036, 0, 0.100000024]
+      VertexPosition_76: [0.5, 0, 0.100000024]
+      VertexPosition_77: [-0.400000006, 0, 0.199999988]
+      VertexPosition_78: [-0.5, 0, 0.199999988]
+      VertexPosition_79: [-0.300000012, 0, 0.199999988]
+      VertexPosition_80: [-0.199999988, 0, 0.199999988]
+      VertexPosition_81: [-0.099999994, 0, 0.199999988]
+      VertexPosition_82: [0, 0, 0.199999988]
+      VertexPosition_83: [0.100000024, 0, 0.199999988]
+      VertexPosition_84: [0.199999988, 0, 0.199999988]
+      VertexPosition_85: [0.300000012, 0, 0.199999988]
+      VertexPosition_86: [0.400000036, 0, 0.199999988]
+      VertexPosition_87: [0.5, 0, 0.199999988]
+      VertexPosition_88: [-0.400000006, 0, 0.300000012]
+      VertexPosition_89: [-0.5, 0, 0.300000012]
+      VertexPosition_90: [-0.300000012, 0, 0.300000012]
+      VertexPosition_91: [-0.199999988, 0, 0.300000012]
+      VertexPosition_92: [-0.099999994, 0, 0.300000012]
+      VertexPosition_93: [0, 0, 0.300000012]
+      VertexPosition_94: [0.100000024, 0, 0.300000012]
+      VertexPosition_95: [0.199999988, 0, 0.300000012]
+      VertexPosition_96: [0.300000012, 0, 0.300000012]
+      VertexPosition_97: [0.400000036, 0, 0.300000012]
+      VertexPosition_98: [0.5, 0, 0.300000012]
+      VertexPosition_99: [-0.400000006, 0, 0.400000036]
+      VertexPosition_100: [-0.5, 0, 0.400000036]
+      VertexPosition_101: [-0.300000012, 0, 0.400000036]
+      VertexPosition_102: [-0.199999988, 0, 0.400000036]
+      VertexPosition_103: [-0.099999994, 0, 0.400000036]
+      VertexPosition_104: [0, 0, 0.400000036]
+      VertexPosition_105: [0.100000024, 0, 0.400000036]
+      VertexPosition_106: [0.199999988, 0, 0.400000036]
+      VertexPosition_107: [0.300000012, 0, 0.400000036]
+      VertexPosition_108: [0.400000036, 0, 0.400000036]
+      VertexPosition_109: [0.5, 0, 0.400000036]
+      VertexPosition_110: [-0.400000006, 0, 0.5]
+      VertexPosition_111: [-0.5, 0, 0.5]
+      VertexPosition_112: [-0.300000012, 0, 0.5]
+      VertexPosition_113: [-0.199999988, 0, 0.5]
+      VertexPosition_114: [-0.099999994, 0, 0.5]
+      VertexPosition_115: [0, 0, 0.5]
+      VertexPosition_116: [0.100000024, 0, 0.5]
+      VertexPosition_117: [0.199999988, 0, 0.5]
+      VertexPosition_118: [0.300000012, 0, 0.5]
+      VertexPosition_119: [0.400000036, 0, 0.5]
+      VertexPosition_120: [0.5, 0, 0.5]
+      VertexPositionsSize: 121
+      VertexNormal_0: [0, 1, -0]
+      VertexNormal_1: [0, 1, -0]
+      VertexNormal_2: [0, 1, -0]
+      VertexNormal_3: [0, 1, -0]
+      VertexNormal_4: [0, 1, -0]
+      VertexNormal_5: [0, 1, -0]
+      VertexNormal_6: [0, 1, -0]
+      VertexNormal_7: [0, 1, -0]
+      VertexNormal_8: [0, 1, -0]
+      VertexNormal_9: [0, 1, -0]
+      VertexNormal_10: [0, 1, -0]
+      VertexNormal_11: [0, 1, -0]
+      VertexNormal_12: [0, 1, -0]
+      VertexNormal_13: [0, 1, -0]
+      VertexNormal_14: [0, 1, -0]
+      VertexNormal_15: [0, 1, -0]
+      VertexNormal_16: [0, 1, -0]
+      VertexNormal_17: [0, 1, -0]
+      VertexNormal_18: [0, 1, -0]
+      VertexNormal_19: [0, 1, -0]
+      VertexNormal_20: [0, 1, -0]
+      VertexNormal_21: [0, 1, -0]
+      VertexNormal_22: [0, 1, -0]
+      VertexNormal_23: [0, 1, -0]
+      VertexNormal_24: [0, 1, -0]
+      VertexNormal_25: [0, 1, -0]
+      VertexNormal_26: [0, 1, -0]
+      VertexNormal_27: [0, 1, -0]
+      VertexNormal_28: [0, 1, -0]
+      VertexNormal_29: [0, 1, -0]
+      VertexNormal_30: [0, 1, -0]
+      VertexNormal_31: [0, 1, -0]
+      VertexNormal_32: [0, 1, -0]
+      VertexNormal_33: [0, 1, -0]
+      VertexNormal_34: [0, 1, -0]
+      VertexNormal_35: [0, 1, -0]
+      VertexNormal_36: [0, 1, -0]
+      VertexNormal_37: [0, 1, -0]
+      VertexNormal_38: [0, 1, -0]
+      VertexNormal_39: [0, 1, -0]
+      VertexNormal_40: [0, 1, -0]
+      VertexNormal_41: [0, 1, -0]
+      VertexNormal_42: [0, 1, -0]
+      VertexNormal_43: [0, 1, -0]
+      VertexNormal_44: [0, 1, -0]
+      VertexNormal_45: [0, 1, -0]
+      VertexNormal_46: [0, 1, -0]
+      VertexNormal_47: [0, 1, -0]
+      VertexNormal_48: [0, 1, -0]
+      VertexNormal_49: [0, 1, -0]
+      VertexNormal_50: [0, 1, -0]
+      VertexNormal_51: [0, 1, -0]
+      VertexNormal_52: [0, 1, -0]
+      VertexNormal_53: [0, 1, -0]
+      VertexNormal_54: [0, 1, -0]
+      VertexNormal_55: [0, 1, -0]
+      VertexNormal_56: [0, 1, -0]
+      VertexNormal_57: [0, 1, -0]
+      VertexNormal_58: [0, 1, -0]
+      VertexNormal_59: [0, 1, -0]
+      VertexNormal_60: [0, 1, -0]
+      VertexNormal_61: [0, 1, -0]
+      VertexNormal_62: [0, 1, -0]
+      VertexNormal_63: [0, 1, -0]
+      VertexNormal_64: [0, 1, -0]
+      VertexNormal_65: [0, 1, -0]
+      VertexNormal_66: [0, 1, -0]
+      VertexNormal_67: [0, 1, -0]
+      VertexNormal_68: [0, 1, -0]
+      VertexNormal_69: [0, 1, -0]
+      VertexNormal_70: [0, 1, -0]
+      VertexNormal_71: [0, 1, -0]
+      VertexNormal_72: [0, 1, -0]
+      VertexNormal_73: [0, 1, -0]
+      VertexNormal_74: [0, 1, -0]
+      VertexNormal_75: [0, 1, -0]
+      VertexNormal_76: [0, 1, -0]
+      VertexNormal_77: [0, 1, -0]
+      VertexNormal_78: [0, 1, -0]
+      VertexNormal_79: [0, 1, -0]
+      VertexNormal_80: [0, 1, -0]
+      VertexNormal_81: [0, 1, -0]
+      VertexNormal_82: [0, 1, -0]
+      VertexNormal_83: [0, 1, -0]
+      VertexNormal_84: [0, 1, -0]
+      VertexNormal_85: [0, 1, -0]
+      VertexNormal_86: [0, 1, -0]
+      VertexNormal_87: [0, 1, -0]
+      VertexNormal_88: [0, 1, -0]
+      VertexNormal_89: [0, 1, -0]
+      VertexNormal_90: [0, 1, -0]
+      VertexNormal_91: [0, 1, -0]
+      VertexNormal_92: [0, 1, -0]
+      VertexNormal_93: [0, 1, -0]
+      VertexNormal_94: [0, 1, -0]
+      VertexNormal_95: [0, 1, -0]
+      VertexNormal_96: [0, 1, -0]
+      VertexNormal_97: [0, 1, -0]
+      VertexNormal_98: [0, 1, -0]
+      VertexNormal_99: [0, 1, -0]
+      VertexNormal_100: [0, 1, -0]
+      VertexNormal_101: [0, 1, -0]
+      VertexNormal_102: [0, 1, -0]
+      VertexNormal_103: [0, 1, -0]
+      VertexNormal_104: [0, 1, -0]
+      VertexNormal_105: [0, 1, -0]
+      VertexNormal_106: [0, 1, -0]
+      VertexNormal_107: [0, 1, -0]
+      VertexNormal_108: [0, 1, -0]
+      VertexNormal_109: [0, 1, -0]
+      VertexNormal_110: [0, 1, -0]
+      VertexNormal_111: [0, 1, -0]
+      VertexNormal_112: [0, 1, -0]
+      VertexNormal_113: [0, 1, -0]
+      VertexNormal_114: [0, 1, -0]
+      VertexNormal_115: [0, 1, -0]
+      VertexNormal_116: [0, 1, -0]
+      VertexNormal_117: [0, 1, -0]
+      VertexNormal_118: [0, 1, -0]
+      VertexNormal_119: [0, 1, -0]
+      VertexNormal_120: [0, 1, -0]
+      VertexNormalsSize: 121
+      UVSet0_0: [0, 1]
+      UVSet0_1: [0.100000001, 1]
+      UVSet0_2: [0.100000001, 0.899999976]
+      UVSet0_3: [0, 0.899999976]
+      UVSet0_4: [0.200000003, 1]
+      UVSet0_5: [0.200000003, 0.899999976]
+      UVSet0_6: [0.300000012, 1]
+      UVSet0_7: [0.300000012, 0.899999976]
+      UVSet0_8: [0.400000006, 1]
+      UVSet0_9: [0.400000006, 0.899999976]
+      UVSet0_10: [0.5, 1]
+      UVSet0_11: [0.5, 0.899999976]
+      UVSet0_12: [0.600000024, 1]
+      UVSet0_13: [0.600000024, 0.899999976]
+      UVSet0_14: [0.699999988, 1]
+      UVSet0_15: [0.699999988, 0.899999976]
+      UVSet0_16: [0.800000012, 1]
+      UVSet0_17: [0.800000012, 0.899999976]
+      UVSet0_18: [0.900000036, 1]
+      UVSet0_19: [0.900000036, 0.899999976]
+      UVSet0_20: [1, 1]
+      UVSet0_21: [1, 0.899999976]
+      UVSet0_22: [0.100000001, 0.800000012]
+      UVSet0_23: [0, 0.800000012]
+      UVSet0_24: [0.200000003, 0.800000012]
+      UVSet0_25: [0.300000012, 0.800000012]
+      UVSet0_26: [0.400000006, 0.800000012]
+      UVSet0_27: [0.5, 0.800000012]
+      UVSet0_28: [0.600000024, 0.800000012]
+      UVSet0_29: [0.699999988, 0.800000012]
+      UVSet0_30: [0.800000012, 0.800000012]
+      UVSet0_31: [0.900000036, 0.800000012]
+      UVSet0_32: [1, 0.800000012]
+      UVSet0_33: [0.100000001, 0.699999988]
+      UVSet0_34: [0, 0.699999988]
+      UVSet0_35: [0.200000003, 0.699999988]
+      UVSet0_36: [0.300000012, 0.699999988]
+      UVSet0_37: [0.400000006, 0.699999988]
+      UVSet0_38: [0.5, 0.699999988]
+      UVSet0_39: [0.600000024, 0.699999988]
+      UVSet0_40: [0.699999988, 0.699999988]
+      UVSet0_41: [0.800000012, 0.699999988]
+      UVSet0_42: [0.900000036, 0.699999988]
+      UVSet0_43: [1, 0.699999988]
+      UVSet0_44: [0.100000001, 0.600000024]
+      UVSet0_45: [0, 0.600000024]
+      UVSet0_46: [0.200000003, 0.600000024]
+      UVSet0_47: [0.300000012, 0.600000024]
+      UVSet0_48: [0.400000006, 0.600000024]
+      UVSet0_49: [0.5, 0.600000024]
+      UVSet0_50: [0.600000024, 0.600000024]
+      UVSet0_51: [0.699999988, 0.600000024]
+      UVSet0_52: [0.800000012, 0.600000024]
+      UVSet0_53: [0.900000036, 0.600000024]
+      UVSet0_54: [1, 0.600000024]
+      UVSet0_55: [0.100000001, 0.5]
+      UVSet0_56: [0, 0.5]
+      UVSet0_57: [0.200000003, 0.5]
+      UVSet0_58: [0.300000012, 0.5]
+      UVSet0_59: [0.400000006, 0.5]
+      UVSet0_60: [0.5, 0.5]
+      UVSet0_61: [0.600000024, 0.5]
+      UVSet0_62: [0.699999988, 0.5]
+      UVSet0_63: [0.800000012, 0.5]
+      UVSet0_64: [0.900000036, 0.5]
+      UVSet0_65: [1, 0.5]
+      UVSet0_66: [0.100000001, 0.399999976]
+      UVSet0_67: [0, 0.399999976]
+      UVSet0_68: [0.200000003, 0.399999976]
+      UVSet0_69: [0.300000012, 0.399999976]
+      UVSet0_70: [0.400000006, 0.399999976]
+      UVSet0_71: [0.5, 0.399999976]
+      UVSet0_72: [0.600000024, 0.399999976]
+      UVSet0_73: [0.699999988, 0.399999976]
+      UVSet0_74: [0.800000012, 0.399999976]
+      UVSet0_75: [0.900000036, 0.399999976]
+      UVSet0_76: [1, 0.399999976]
+      UVSet0_77: [0.100000001, 0.300000012]
+      UVSet0_78: [0, 0.300000012]
+      UVSet0_79: [0.200000003, 0.300000012]
+      UVSet0_80: [0.300000012, 0.300000012]
+      UVSet0_81: [0.400000006, 0.300000012]
+      UVSet0_82: [0.5, 0.300000012]
+      UVSet0_83: [0.600000024, 0.300000012]
+      UVSet0_84: [0.699999988, 0.300000012]
+      UVSet0_85: [0.800000012, 0.300000012]
+      UVSet0_86: [0.900000036, 0.300000012]
+      UVSet0_87: [1, 0.300000012]
+      UVSet0_88: [0.100000001, 0.199999988]
+      UVSet0_89: [0, 0.199999988]
+      UVSet0_90: [0.200000003, 0.199999988]
+      UVSet0_91: [0.300000012, 0.199999988]
+      UVSet0_92: [0.400000006, 0.199999988]
+      UVSet0_93: [0.5, 0.199999988]
+      UVSet0_94: [0.600000024, 0.199999988]
+      UVSet0_95: [0.699999988, 0.199999988]
+      UVSet0_96: [0.800000012, 0.199999988]
+      UVSet0_97: [0.900000036, 0.199999988]
+      UVSet0_98: [1, 0.199999988]
+      UVSet0_99: [0.100000001, 0.0999999642]
+      UVSet0_100: [0, 0.0999999642]
+      UVSet0_101: [0.200000003, 0.0999999642]
+      UVSet0_102: [0.300000012, 0.0999999642]
+      UVSet0_103: [0.400000006, 0.0999999642]
+      UVSet0_104: [0.5, 0.0999999642]
+      UVSet0_105: [0.600000024, 0.0999999642]
+      UVSet0_106: [0.699999988, 0.0999999642]
+      UVSet0_107: [0.800000012, 0.0999999642]
+      UVSet0_108: [0.900000036, 0.0999999642]
+      UVSet0_109: [1, 0.0999999642]
+      UVSet0_110: [0.100000001, 0]
+      UVSet0_111: [0, 0]
+      UVSet0_112: [0.200000003, 0]
+      UVSet0_113: [0.300000012, 0]
+      UVSet0_114: [0.400000006, 0]
+      UVSet0_115: [0.5, 0]
+      UVSet0_116: [0.600000024, 0]
+      UVSet0_117: [0.699999988, 0]
+      UVSet0_118: [0.800000012, 0]
+      UVSet0_119: [0.900000036, 0]
+      UVSet0_120: [1, 0]
+      VertexUVSetsSize: 121
+      Indice_0: 0
+      Indice_1: 1
+      Indice_2: 2
+      Indice_3: 0
+      Indice_4: 2
+      Indice_5: 3
+      Indice_6: 1
+      Indice_7: 4
+      Indice_8: 5
+      Indice_9: 1
+      Indice_10: 5
+      Indice_11: 2
+      Indice_12: 3
+      Indice_13: 2
+      Indice_14: 22
+      Indice_15: 2
+      Indice_16: 5
+      Indice_17: 24
+      Indice_18: 2
+      Indice_19: 24
+      Indice_20: 22
+      Indice_21: 3
+      Indice_22: 22
+      Indice_23: 23
+      Indice_24: 23
+      Indice_25: 22
+      Indice_26: 33
+      Indice_27: 22
+      Indice_28: 24
+      Indice_29: 35
+      Indice_30: 22
+      Indice_31: 35
+      Indice_32: 33
+      Indice_33: 5
+      Indice_34: 25
+      Indice_35: 24
+      Indice_36: 24
+      Indice_37: 25
+      Indice_38: 36
+      Indice_39: 24
+      Indice_40: 36
+      Indice_41: 35
+      Indice_42: 4
+      Indice_43: 7
+      Indice_44: 5
+      Indice_45: 5
+      Indice_46: 7
+      Indice_47: 25
+      Indice_48: 4
+      Indice_49: 6
+      Indice_50: 7
+      Indice_51: 6
+      Indice_52: 9
+      Indice_53: 7
+      Indice_54: 7
+      Indice_55: 9
+      Indice_56: 26
+      Indice_57: 7
+      Indice_58: 26
+      Indice_59: 25
+      Indice_60: 25
+      Indice_61: 26
+      Indice_62: 37
+      Indice_63: 25
+      Indice_64: 37
+      Indice_65: 36
+      Indice_66: 35
+      Indice_67: 36
+      Indice_68: 47
+      Indice_69: 36
+      Indice_70: 37
+      Indice_71: 48
+      Indice_72: 36
+      Indice_73: 48
+      Indice_74: 47
+      Indice_75: 26
+      Indice_76: 38
+      Indice_77: 37
+      Indice_78: 37
+      Indice_79: 38
+      Indice_80: 49
+      Indice_81: 37
+      Indice_82: 49
+      Indice_83: 48
+      Indice_84: 9
+      Indice_85: 27
+      Indice_86: 26
+      Indice_87: 26
+      Indice_88: 27
+      Indice_89: 38
+      Indice_90: 27
+      Indice_91: 39
+      Indice_92: 38
+      Indice_93: 38
+      Indice_94: 39
+      Indice_95: 50
+      Indice_96: 38
+      Indice_97: 50
+      Indice_98: 49
+      Indice_99: 48
+      Indice_100: 49
+      Indice_101: 60
+      Indice_102: 49
+      Indice_103: 50
+      Indice_104: 61
+      Indice_105: 49
+      Indice_106: 61
+      Indice_107: 60
+      Indice_108: 47
+      Indice_109: 48
+      Indice_110: 59
+      Indice_111: 48
+      Indice_112: 60
+      Indice_113: 59
+      Indice_114: 59
+      Indice_115: 60
+      Indice_116: 71
+      Indice_117: 60
+      Indice_118: 61
+      Indice_119: 72
+      Indice_120: 60
+      Indice_121: 72
+      Indice_122: 71
+      Indice_123: 50
+      Indice_124: 62
+      Indice_125: 61
+      Indice_126: 61
+      Indice_127: 62
+      Indice_128: 73
+      Indice_129: 61
+      Indice_130: 73
+      Indice_131: 72
+      Indice_132: 39
+      Indice_133: 51
+      Indice_134: 50
+      Indice_135: 50
+      Indice_136: 51
+      Indice_137: 62
+      Indice_138: 51
+      Indice_139: 63
+      Indice_140: 62
+      Indice_141: 62
+      Indice_142: 63
+      Indice_143: 74
+      Indice_144: 62
+      Indice_145: 74
+      Indice_146: 73
+      Indice_147: 72
+      Indice_148: 73
+      Indice_149: 84
+      Indice_150: 73
+      Indice_151: 74
+      Indice_152: 85
+      Indice_153: 73
+      Indice_154: 85
+      Indice_155: 84
+      Indice_156: 71
+      Indice_157: 72
+      Indice_158: 83
+      Indice_159: 72
+      Indice_160: 84
+      Indice_161: 83
+      Indice_162: 83
+      Indice_163: 84
+      Indice_164: 95
+      Indice_165: 84
+      Indice_166: 85
+      Indice_167: 96
+      Indice_168: 84
+      Indice_169: 96
+      Indice_170: 95
+      Indice_171: 74
+      Indice_172: 86
+      Indice_173: 85
+      Indice_174: 85
+      Indice_175: 86
+      Indice_176: 97
+      Indice_177: 85
+      Indice_178: 97
+      Indice_179: 96
+      Indice_180: 63
+      Indice_181: 75
+      Indice_182: 74
+      Indice_183: 74
+      Indice_184: 75
+      Indice_185: 86
+      Indice_186: 75
+      Indice_187: 87
+      Indice_188: 86
+      Indice_189: 86
+      Indice_190: 87
+      Indice_191: 98
+      Indice_192: 86
+      Indice_193: 98
+      Indice_194: 97
+      Indice_195: 96
+      Indice_196: 97
+      Indice_197: 108
+      Indice_198: 97
+      Indice_199: 98
+      Indice_200: 109
+      Indice_201: 97
+      Indice_202: 109
+      Indice_203: 108
+      Indice_204: 95
+      Indice_205: 96
+      Indice_206: 107
+      Indice_207: 96
+      Indice_208: 108
+      Indice_209: 107
+      Indice_210: 107
+      Indice_211: 108
+      Indice_212: 119
+      Indice_213: 108
+      Indice_214: 109
+      Indice_215: 120
+      Indice_216: 108
+      Indice_217: 120
+      Indice_218: 119
+      Indice_219: 95
+      Indice_220: 107
+      Indice_221: 106
+      Indice_222: 106
+      Indice_223: 107
+      Indice_224: 118
+      Indice_225: 107
+      Indice_226: 119
+      Indice_227: 118
+      Indice_228: 94
+      Indice_229: 95
+      Indice_230: 106
+      Indice_231: 94
+      Indice_232: 106
+      Indice_233: 105
+      Indice_234: 105
+      Indice_235: 106
+      Indice_236: 117
+      Indice_237: 106
+      Indice_238: 118
+      Indice_239: 117
+      Indice_240: 82
+      Indice_241: 83
+      Indice_242: 94
+      Indice_243: 82
+      Indice_244: 94
+      Indice_245: 93
+      Indice_246: 83
+      Indice_247: 95
+      Indice_248: 94
+      Indice_249: 93
+      Indice_250: 94
+      Indice_251: 105
+      Indice_252: 93
+      Indice_253: 105
+      Indice_254: 104
+      Indice_255: 104
+      Indice_256: 105
+      Indice_257: 116
+      Indice_258: 105
+      Indice_259: 117
+      Indice_260: 116
+      Indice_261: 81
+      Indice_262: 82
+      Indice_263: 93
+      Indice_264: 81
+      Indice_265: 93
+      Indice_266: 92
+      Indice_267: 92
+      Indice_268: 93
+      Indice_269: 104
+      Indice_270: 92
+      Indice_271: 104
+      Indice_272: 103
+      Indice_273: 103
+      Indice_274: 104
+      Indice_275: 115
+      Indice_276: 104
+      Indice_277: 116
+      Indice_278: 115
+      Indice_279: 80
+      Indice_280: 81
+      Indice_281: 92
+      Indice_282: 80
+      Indice_283: 92
+      Indice_284: 91
+      Indice_285: 91
+      Indice_286: 92
+      Indice_287: 103
+      Indice_288: 69
+      Indice_289: 70
+      Indice_290: 81
+      Indice_291: 69
+      Indice_292: 81
+      Indice_293: 80
+      Indice_294: 70
+      Indice_295: 82
+      Indice_296: 81
+      Indice_297: 68
+      Indice_298: 69
+      Indice_299: 80
+      Indice_300: 68
+      Indice_301: 80
+      Indice_302: 79
+      Indice_303: 79
+      Indice_304: 80
+      Indice_305: 91
+      Indice_306: 79
+      Indice_307: 91
+      Indice_308: 90
+      Indice_309: 90
+      Indice_310: 91
+      Indice_311: 102
+      Indice_312: 91
+      Indice_313: 103
+      Indice_314: 102
+      Indice_315: 66
+      Indice_316: 68
+      Indice_317: 79
+      Indice_318: 66
+      Indice_319: 79
+      Indice_320: 77
+      Indice_321: 77
+      Indice_322: 79
+      Indice_323: 90
+      Indice_324: 55
+      Indice_325: 57
+      Indice_326: 68
+      Indice_327: 55
+      Indice_328: 68
+      Indice_329: 66
+      Indice_330: 57
+      Indice_331: 69
+      Indice_332: 68
+      Indice_333: 56
+      Indice_334: 55
+      Indice_335: 66
+      Indice_336: 56
+      Indice_337: 66
+      Indice_338: 67
+      Indice_339: 67
+      Indice_340: 66
+      Indice_341: 77
+      Indice_342: 67
+      Indice_343: 77
+      Indice_344: 78
+      Indice_345: 78
+      Indice_346: 77
+      Indice_347: 88
+      Indice_348: 77
+      Indice_349: 90
+      Indice_350: 88
+      Indice_351: 78
+      Indice_352: 88
+      Indice_353: 89
+      Indice_354: 89
+      Indice_355: 88
+      Indice_356: 99
+      Indice_357: 88
+      Indice_358: 90
+      Indice_359: 101
+      Indice_360: 88
+      Indice_361: 101
+      Indice_362: 99
+      Indice_363: 89
+      Indice_364: 99
+      Indice_365: 100
+      Indice_366: 100
+      Indice_367: 99
+      Indice_368: 110
+      Indice_369: 99
+      Indice_370: 101
+      Indice_371: 112
+      Indice_372: 99
+      Indice_373: 112
+      Indice_374: 110
+      Indice_375: 90
+      Indice_376: 102
+      Indice_377: 101
+      Indice_378: 101
+      Indice_379: 102
+      Indice_380: 113
+      Indice_381: 101
+      Indice_382: 113
+      Indice_383: 112
+      Indice_384: 102
+      Indice_385: 103
+      Indice_386: 114
+      Indice_387: 102
+      Indice_388: 114
+      Indice_389: 113
+      Indice_390: 103
+      Indice_391: 115
+      Indice_392: 114
+      Indice_393: 100
+      Indice_394: 110
+      Indice_395: 111
+      Indice_396: 45
+      Indice_397: 55
+      Indice_398: 56
+      Indice_399: 34
+      Indice_400: 44
+      Indice_401: 45
+      Indice_402: 45
+      Indice_403: 44
+      Indice_404: 55
+      Indice_405: 44
+      Indice_406: 57
+      Indice_407: 55
+      Indice_408: 34
+      Indice_409: 33
+      Indice_410: 44
+      Indice_411: 33
+      Indice_412: 46
+      Indice_413: 44
+      Indice_414: 44
+      Indice_415: 46
+      Indice_416: 57
+      Indice_417: 23
+      Indice_418: 33
+      Indice_419: 34
+      Indice_420: 33
+      Indice_421: 35
+      Indice_422: 46
+      Indice_423: 35
+      Indice_424: 47
+      Indice_425: 46
+      Indice_426: 46
+      Indice_427: 47
+      Indice_428: 58
+      Indice_429: 46
+      Indice_430: 58
+      Indice_431: 57
+      Indice_432: 57
+      Indice_433: 58
+      Indice_434: 69
+      Indice_435: 47
+      Indice_436: 59
+      Indice_437: 58
+      Indice_438: 58
+      Indice_439: 59
+      Indice_440: 70
+      Indice_441: 58
+      Indice_442: 70
+      Indice_443: 69
+      Indice_444: 59
+      Indice_445: 71
+      Indice_446: 70
+      Indice_447: 70
+      Indice_448: 71
+      Indice_449: 82
+      Indice_450: 71
+      Indice_451: 83
+      Indice_452: 82
+      Indice_453: 75
+      Indice_454: 76
+      Indice_455: 87
+      Indice_456: 63
+      Indice_457: 64
+      Indice_458: 75
+      Indice_459: 64
+      Indice_460: 76
+      Indice_461: 75
+      Indice_462: 64
+      Indice_463: 65
+      Indice_464: 76
+      Indice_465: 52
+      Indice_466: 53
+      Indice_467: 64
+      Indice_468: 52
+      Indice_469: 64
+      Indice_470: 63
+      Indice_471: 53
+      Indice_472: 65
+      Indice_473: 64
+      Indice_474: 51
+      Indice_475: 52
+      Indice_476: 63
+      Indice_477: 40
+      Indice_478: 41
+      Indice_479: 52
+      Indice_480: 40
+      Indice_481: 52
+      Indice_482: 51
+      Indice_483: 41
+      Indice_484: 53
+      Indice_485: 52
+      Indice_486: 41
+      Indice_487: 42
+      Indice_488: 53
+      Indice_489: 42
+      Indice_490: 54
+      Indice_491: 53
+      Indice_492: 53
+      Indice_493: 54
+      Indice_494: 65
+      Indice_495: 29
+      Indice_496: 30
+      Indice_497: 41
+      Indice_498: 29
+      Indice_499: 41
+      Indice_500: 40
+      Indice_501: 30
+      Indice_502: 42
+      Indice_503: 41
+      Indice_504: 28
+      Indice_505: 29
+      Indice_506: 40
+      Indice_507: 28
+      Indice_508: 40
+      Indice_509: 39
+      Indice_510: 39
+      Indice_511: 40
+      Indice_512: 51
+      Indice_513: 13
+      Indice_514: 15
+      Indice_515: 29
+      Indice_516: 13
+      Indice_517: 29
+      Indice_518: 28
+      Indice_519: 15
+      Indice_520: 30
+      Indice_521: 29
+      Indice_522: 15
+      Indice_523: 17
+      Indice_524: 30
+      Indice_525: 17
+      Indice_526: 31
+      Indice_527: 30
+      Indice_528: 30
+      Indice_529: 31
+      Indice_530: 42
+      Indice_531: 12
+      Indice_532: 14
+      Indice_533: 15
+      Indice_534: 12
+      Indice_535: 15
+      Indice_536: 13
+      Indice_537: 14
+      Indice_538: 17
+      Indice_539: 15
+      Indice_540: 10
+      Indice_541: 12
+      Indice_542: 13
+      Indice_543: 10
+      Indice_544: 13
+      Indice_545: 11
+      Indice_546: 11
+      Indice_547: 13
+      Indice_548: 28
+      Indice_549: 8
+      Indice_550: 10
+      Indice_551: 11
+      Indice_552: 8
+      Indice_553: 11
+      Indice_554: 9
+      Indice_555: 9
+      Indice_556: 11
+      Indice_557: 27
+      Indice_558: 11
+      Indice_559: 28
+      Indice_560: 27
+      Indice_561: 6
+      Indice_562: 8
+      Indice_563: 9
+      Indice_564: 27
+      Indice_565: 28
+      Indice_566: 39
+      Indice_567: 14
+      Indice_568: 16
+      Indice_569: 17
+      Indice_570: 16
+      Indice_571: 19
+      Indice_572: 17
+      Indice_573: 17
+      Indice_574: 19
+      Indice_575: 31
+      Indice_576: 16
+      Indice_577: 18
+      Indice_578: 19
+      Indice_579: 18
+      Indice_580: 21
+      Indice_581: 19
+      Indice_582: 19
+      Indice_583: 21
+      Indice_584: 32
+      Indice_585: 19
+      Indice_586: 32
+      Indice_587: 31
+      Indice_588: 31
+      Indice_589: 32
+      Indice_590: 43
+      Indice_591: 31
+      Indice_592: 43
+      Indice_593: 42
+      Indice_594: 42
+      Indice_595: 43
+      Indice_596: 54
+      Indice_597: 18
+      Indice_598: 20
+      Indice_599: 21
+      IndicesSize: 600
+    MaterialComponent:
+      BaseColor: [0.400000006, 0.400000006, 0.400000006, 1]
+      Roughness: 0.850000024
+      Metalness: 0.625
+      ColorMapPath: ../Resources/Textures/Default/White.png
+      MetallicMapPath: ../Resources/Textures/Default/White.png
+      RoughnessMapPath: ../Resources/Textures/Default/White.png
+      NormalMapPath: ../Resources/Textures/Default/White.png
+  - Entity: 31323
+    NameComponent:
+      Name: MetallicCube
+    TransformComponent:
+      Translation: [-1.43055975, 0.699999988, -2.83509517]
+      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+  - Entity: 30424
+    NameComponent:
+      Name: pCube32
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+      ParentEntity: 31323
+    MeshComponent:
+      VertexPosition_0: [-0.5, -0.5, -0.5]
+      VertexPosition_1: [0, -0.5, -0.5]
+      VertexPosition_2: [0, 0, -0.5]
+      VertexPosition_3: [-0.5, 0, -0.5]
+      VertexPosition_4: [0.5, -0.5, -0.5]
+      VertexPosition_5: [0.5, 0, -0.5]
+      VertexPosition_6: [0, 0.5, -0.5]
+      VertexPosition_7: [-0.5, 0.5, -0.5]
+      VertexPosition_8: [0.5, 0.5, -0.5]
+      VertexPosition_9: [-0.5, 0.5, -0.5]
+      VertexPosition_10: [0, 0.5, -0.5]
+      VertexPosition_11: [0, 0.5, -0]
+      VertexPosition_12: [-0.5, 0.5, -0]
+      VertexPosition_13: [0.5, 0.5, -0.5]
+      VertexPosition_14: [0.5, 0.5, -0]
+      VertexPosition_15: [0, 0.5, 0.5]
+      VertexPosition_16: [-0.5, 0.5, 0.5]
+      VertexPosition_17: [0.5, 0.5, 0.5]
+      VertexPosition_18: [-0.5, 0.5, 0.5]
+      VertexPosition_19: [0, 0.5, 0.5]
+      VertexPosition_20: [0, 0, 0.5]
+      VertexPosition_21: [-0.5, 0, 0.5]
+      VertexPosition_22: [0.5, 0.5, 0.5]
+      VertexPosition_23: [0.5, 0, 0.5]
+      VertexPosition_24: [0, -0.5, 0.5]
+      VertexPosition_25: [-0.5, -0.5, 0.5]
+      VertexPosition_26: [0.5, -0.5, 0.5]
+      VertexPosition_27: [-0.5, -0.5, 0.5]
+      VertexPosition_28: [0, -0.5, 0.5]
+      VertexPosition_29: [0, -0.5, -0]
+      VertexPosition_30: [-0.5, -0.5, -0]
+      VertexPosition_31: [0.5, -0.5, 0.5]
+      VertexPosition_32: [0.5, -0.5, -0]
+      VertexPosition_33: [0, -0.5, -0.5]
+      VertexPosition_34: [-0.5, -0.5, -0.5]
+      VertexPosition_35: [0.5, -0.5, -0.5]
+      VertexPosition_36: [0.5, -0.5, -0]
+      VertexPosition_37: [0.5, -0.5, 0.5]
+      VertexPosition_38: [0.5, 0, 0.5]
+      VertexPosition_39: [0.5, 0, -0]
+      VertexPosition_40: [0.5, -0.5, -0.5]
+      VertexPosition_41: [0.5, 0, -0.5]
+      VertexPosition_42: [0.5, 0.5, 0.5]
+      VertexPosition_43: [0.5, 0.5, -0]
+      VertexPosition_44: [0.5, 0.5, -0.5]
+      VertexPosition_45: [-0.5, -0.5, 0.5]
+      VertexPosition_46: [-0.5, -0.5, -0]
+      VertexPosition_47: [-0.5, 0, -0]
+      VertexPosition_48: [-0.5, 0, 0.5]
+      VertexPosition_49: [-0.5, -0.5, -0.5]
+      VertexPosition_50: [-0.5, 0, -0.5]
+      VertexPosition_51: [-0.5, 0.5, -0]
+      VertexPosition_52: [-0.5, 0.5, 0.5]
+      VertexPosition_53: [-0.5, 0.5, -0.5]
+      VertexPositionsSize: 54
+      VertexNormal_0: [0, 0, -1]
+      VertexNormal_1: [0, 0, -1]
+      VertexNormal_2: [0, 0, -1]
+      VertexNormal_3: [0, 0, -1]
+      VertexNormal_4: [0, 0, -1]
+      VertexNormal_5: [0, 0, -1]
+      VertexNormal_6: [0, 0, -1]
+      VertexNormal_7: [0, 0, -1]
+      VertexNormal_8: [0, 0, -1]
+      VertexNormal_9: [0, 1, -0]
+      VertexNormal_10: [0, 1, -0]
+      VertexNormal_11: [0, 1, -0]
+      VertexNormal_12: [0, 1, -0]
+      VertexNormal_13: [0, 1, -0]
+      VertexNormal_14: [0, 1, -0]
+      VertexNormal_15: [0, 1, -0]
+      VertexNormal_16: [0, 1, -0]
+      VertexNormal_17: [0, 1, -0]
+      VertexNormal_18: [0, 0, 1]
+      VertexNormal_19: [0, 0, 1]
+      VertexNormal_20: [0, 0, 1]
+      VertexNormal_21: [0, 0, 1]
+      VertexNormal_22: [0, 0, 1]
+      VertexNormal_23: [0, 0, 1]
+      VertexNormal_24: [0, 0, 1]
+      VertexNormal_25: [0, 0, 1]
+      VertexNormal_26: [0, 0, 1]
+      VertexNormal_27: [0, -1, -0]
+      VertexNormal_28: [0, -1, -0]
+      VertexNormal_29: [0, -1, -0]
+      VertexNormal_30: [0, -1, -0]
+      VertexNormal_31: [0, -1, -0]
+      VertexNormal_32: [0, -1, -0]
+      VertexNormal_33: [0, -1, -0]
+      VertexNormal_34: [0, -1, -0]
+      VertexNormal_35: [0, -1, -0]
+      VertexNormal_36: [1, 0, -0]
+      VertexNormal_37: [1, 0, -0]
+      VertexNormal_38: [1, 0, -0]
+      VertexNormal_39: [1, 0, -0]
+      VertexNormal_40: [1, 0, -0]
+      VertexNormal_41: [1, 0, -0]
+      VertexNormal_42: [1, 0, -0]
+      VertexNormal_43: [1, 0, -0]
+      VertexNormal_44: [1, 0, -0]
+      VertexNormal_45: [-1, 0, -0]
+      VertexNormal_46: [-1, 0, -0]
+      VertexNormal_47: [-1, 0, -0]
+      VertexNormal_48: [-1, 0, -0]
+      VertexNormal_49: [-1, 0, -0]
+      VertexNormal_50: [-1, 0, -0]
+      VertexNormal_51: [-1, 0, -0]
+      VertexNormal_52: [-1, 0, -0]
+      VertexNormal_53: [-1, 0, -0]
+      VertexNormalsSize: 54
+      UVSet0_0: [0.375, 1]
+      UVSet0_1: [0.5, 1]
+      UVSet0_2: [0.5, 0.875]
+      UVSet0_3: [0.375, 0.875]
+      UVSet0_4: [0.625, 1]
+      UVSet0_5: [0.625, 0.875]
+      UVSet0_6: [0.5, 0.75]
+      UVSet0_7: [0.375, 0.75]
+      UVSet0_8: [0.625, 0.75]
+      UVSet0_9: [0.375, 0.75]
+      UVSet0_10: [0.5, 0.75]
+      UVSet0_11: [0.5, 0.625]
+      UVSet0_12: [0.375, 0.625]
+      UVSet0_13: [0.625, 0.75]
+      UVSet0_14: [0.625, 0.625]
+      UVSet0_15: [0.5, 0.5]
+      UVSet0_16: [0.375, 0.5]
+      UVSet0_17: [0.625, 0.5]
+      UVSet0_18: [0.375, 0.5]
+      UVSet0_19: [0.5, 0.5]
+      UVSet0_20: [0.5, 0.375]
+      UVSet0_21: [0.375, 0.375]
+      UVSet0_22: [0.625, 0.5]
+      UVSet0_23: [0.625, 0.375]
+      UVSet0_24: [0.5, 0.25]
+      UVSet0_25: [0.375, 0.25]
+      UVSet0_26: [0.625, 0.25]
+      UVSet0_27: [0.375, 0.25]
+      UVSet0_28: [0.5, 0.25]
+      UVSet0_29: [0.5, 0.125]
+      UVSet0_30: [0.375, 0.125]
+      UVSet0_31: [0.625, 0.25]
+      UVSet0_32: [0.625, 0.125]
+      UVSet0_33: [0.5, 0]
+      UVSet0_34: [0.375, 0]
+      UVSet0_35: [0.625, 0]
+      UVSet0_36: [0.75, 1]
+      UVSet0_37: [0.875, 1]
+      UVSet0_38: [0.875, 0.875]
+      UVSet0_39: [0.75, 0.875]
+      UVSet0_40: [0.625, 1]
+      UVSet0_41: [0.625, 0.875]
+      UVSet0_42: [0.875, 0.75]
+      UVSet0_43: [0.75, 0.75]
+      UVSet0_44: [0.625, 0.75]
+      UVSet0_45: [0.125, 1]
+      UVSet0_46: [0.25, 1]
+      UVSet0_47: [0.25, 0.875]
+      UVSet0_48: [0.125, 0.875]
+      UVSet0_49: [0.375, 1]
+      UVSet0_50: [0.375, 0.875]
+      UVSet0_51: [0.25, 0.75]
+      UVSet0_52: [0.125, 0.75]
+      UVSet0_53: [0.375, 0.75]
+      VertexUVSetsSize: 54
+      Indice_0: 0
+      Indice_1: 1
+      Indice_2: 2
+      Indice_3: 0
+      Indice_4: 2
+      Indice_5: 3
+      Indice_6: 1
+      Indice_7: 4
+      Indice_8: 5
+      Indice_9: 1
+      Indice_10: 5
+      Indice_11: 2
+      Indice_12: 3
+      Indice_13: 2
+      Indice_14: 6
+      Indice_15: 2
+      Indice_16: 5
+      Indice_17: 8
+      Indice_18: 2
+      Indice_19: 8
+      Indice_20: 6
+      Indice_21: 3
+      Indice_22: 6
+      Indice_23: 7
+      Indice_24: 9
+      Indice_25: 10
+      Indice_26: 11
+      Indice_27: 9
+      Indice_28: 11
+      Indice_29: 12
+      Indice_30: 10
+      Indice_31: 13
+      Indice_32: 14
+      Indice_33: 10
+      Indice_34: 14
+      Indice_35: 11
+      Indice_36: 12
+      Indice_37: 11
+      Indice_38: 15
+      Indice_39: 11
+      Indice_40: 14
+      Indice_41: 17
+      Indice_42: 11
+      Indice_43: 17
+      Indice_44: 15
+      Indice_45: 12
+      Indice_46: 15
+      Indice_47: 16
+      Indice_48: 18
+      Indice_49: 19
+      Indice_50: 20
+      Indice_51: 18
+      Indice_52: 20
+      Indice_53: 21
+      Indice_54: 19
+      Indice_55: 22
+      Indice_56: 23
+      Indice_57: 19
+      Indice_58: 23
+      Indice_59: 20
+      Indice_60: 21
+      Indice_61: 20
+      Indice_62: 24
+      Indice_63: 20
+      Indice_64: 23
+      Indice_65: 26
+      Indice_66: 20
+      Indice_67: 26
+      Indice_68: 24
+      Indice_69: 21
+      Indice_70: 24
+      Indice_71: 25
+      Indice_72: 27
+      Indice_73: 28
+      Indice_74: 29
+      Indice_75: 27
+      Indice_76: 29
+      Indice_77: 30
+      Indice_78: 28
+      Indice_79: 31
+      Indice_80: 32
+      Indice_81: 28
+      Indice_82: 32
+      Indice_83: 29
+      Indice_84: 30
+      Indice_85: 29
+      Indice_86: 33
+      Indice_87: 29
+      Indice_88: 32
+      Indice_89: 35
+      Indice_90: 29
+      Indice_91: 35
+      Indice_92: 33
+      Indice_93: 30
+      Indice_94: 33
+      Indice_95: 34
+      Indice_96: 36
+      Indice_97: 37
+      Indice_98: 38
+      Indice_99: 36
+      Indice_100: 38
+      Indice_101: 39
+      Indice_102: 40
+      Indice_103: 36
+      Indice_104: 39
+      Indice_105: 39
+      Indice_106: 38
+      Indice_107: 42
+      Indice_108: 40
+      Indice_109: 39
+      Indice_110: 41
+      Indice_111: 39
+      Indice_112: 42
+      Indice_113: 43
+      Indice_114: 41
+      Indice_115: 39
+      Indice_116: 43
+      Indice_117: 41
+      Indice_118: 43
+      Indice_119: 44
+      Indice_120: 45
+      Indice_121: 46
+      Indice_122: 47
+      Indice_123: 45
+      Indice_124: 47
+      Indice_125: 48
+      Indice_126: 46
+      Indice_127: 49
+      Indice_128: 50
+      Indice_129: 46
+      Indice_130: 50
+      Indice_131: 47
+      Indice_132: 48
+      Indice_133: 47
+      Indice_134: 51
+      Indice_135: 47
+      Indice_136: 50
+      Indice_137: 53
+      Indice_138: 47
+      Indice_139: 53
+      Indice_140: 51
+      Indice_141: 48
+      Indice_142: 51
+      Indice_143: 52
+      IndicesSize: 144
+    MaterialComponent:
+      BaseColor: [1, 0.999989986, 0.999989986, 1]
+      Roughness: 0.481999993
+      Metalness: 0.995999992
+      ColorMapPath: D:\1) Github\My Projects\Aurora\Resources\Textures\PBR\rustediron2_basecolor.png
+      MetallicMapPath: D:\1) Github\My Projects\Aurora\Resources\Textures\PBR\rustediron2_metallic.png
+      RoughnessMapPath: D:\1) Github\My Projects\Aurora\Resources\Textures\PBR\rustediron2_roughness.png
+      NormalMapPath: D:\1) Github\My Projects\Aurora\Resources\Textures\PBR\rustediron2_normal.png
+  - Entity: 25510
+    NameComponent:
+      Name: PointLight1
+    TransformComponent:
+      Translation: [-0.662610233, 1.92413497, -4.36874342]
+      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+    LightComponent:
+      LightColor: [0.0565371998, 0.811475396, 0.775526106]
+      LightIntensity: 40
+      CastShadows: false
+  - Entity: 18136
+    NameComponent:
+      Name: PointLight2
+    TransformComponent:
+      Translation: [2.67929459, 2.58202291, -0.587187052]
+      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+    LightComponent:
+      LightColor: [0.762295067, 0.187449604, 0.187449604]
+      LightIntensity: 40
+      CastShadows: false

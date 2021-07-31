@@ -298,6 +298,7 @@ namespace Aurora
 
             AURORA_WARNING("Could not find texture of appropriate type. Binding default texture...");
             material->m_Textures[engineSlotType].m_Resource = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
+            material->m_Textures[engineSlotType].m_FilePath = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture->m_FilePath;
         };
         
         // Engine Texture, Assimp PBR Texture, Assimp Legacy Texture (Fallback)

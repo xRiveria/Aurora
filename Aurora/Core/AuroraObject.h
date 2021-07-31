@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <stdlib.h>
 
 namespace Aurora
 {
@@ -18,13 +19,14 @@ namespace Aurora
         const uint32_t GetObjectID() const { return m_ObjectID; }
 
         void SetObjectID(const uint32_t newID) { m_ObjectID = newID; }
-        static uint32_t GenerateObjectID() { return ++g_ID_Count; }  // Generates and returns an object ID.
+        /// Might need improvement.
+        static uint32_t GenerateObjectID() { return static_cast<uint32_t>(rand()); }  // Generates and returns an object ID. Seeded at the start of each run.
 
         /// Should we track GPU and CPU sizes?
 
         // Execution Context.
         EngineContext* GetEngineContext() const { return m_EngineContext; }
-        
+
     protected:
         std::string m_ObjectName;
         uint32_t m_ObjectID;

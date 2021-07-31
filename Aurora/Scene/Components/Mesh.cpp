@@ -9,6 +9,93 @@ namespace Aurora
 
     }
 
+    void Mesh::Serialize(SerializationStream& outputStream)
+    {
+        outputStream << YAML::Key << "MeshComponent";
+        outputStream << YAML::BeginMap;
+
+        // ==========================================================
+
+        for (int i = 0; i < m_VertexPositions.size(); i++)
+        {
+            outputStream << YAML::Key << "VertexPosition_" + std::to_string(i) << YAML::Value << m_VertexPositions[i];
+        }
+        outputStream << YAML::Key << "VertexPositionsSize" << YAML::Value << m_VertexPositions.size();
+
+        // ==========================================================
+
+        for (int j = 0; j < m_VertexNormals.size(); j++)
+        {
+            outputStream << YAML::Key << "VertexNormal_" + std::to_string(j) << YAML::Value << m_VertexNormals[j];
+        }
+        outputStream << YAML::Key << "VertexNormalsSize" << YAML::Value << m_VertexNormals.size();
+
+        // ==========================================================
+
+        for (int k = 0; k < m_UVSet_0.size(); k++)
+        {
+            outputStream << YAML::Key << "UVSet0_" + std::to_string(k) << YAML::Value << m_UVSet_0[k];
+        }
+        outputStream << YAML::Key << "VertexUVSetsSize" << YAML::Value << m_UVSet_0.size();
+
+        // ==========================================================
+
+        for (int w = 0; w < m_Indices.size(); w++)
+        {
+            outputStream << YAML::Key << "Indice_" + std::to_string(w) << YAML::Value << m_Indices[w];
+        }
+        outputStream << YAML::Key << "IndicesSize" << YAML::Value << m_Indices.size();
+
+        outputStream << YAML::EndMap;
+    }
+
+    void Mesh::Deserialize(SerializationNode& inputNode)
+    {
+        uint32_t vertexPositionsSize = inputNode["VertexPositionsSize"].as<uint32_t>();
+        m_VertexPositions.reserve(vertexPositionsSize);
+
+        for (uint32_t i = 0; i < vertexPositionsSize; i++)
+        {
+            XMFLOAT3 position = inputNode["VertexPosition_" + std::to_string(i)].as<XMFLOAT3>();
+            m_VertexPositions.push_back(position);
+        }
+
+        // ==========================================================
+
+        uint32_t vertexNormalsSize = inputNode["VertexNormalsSize"].as<uint32_t>();
+        m_VertexNormals.reserve(vertexNormalsSize);
+
+        for (uint32_t i = 0; i < vertexNormalsSize; i++)
+        {
+            XMFLOAT3 normal = inputNode["VertexNormal_" + std::to_string(i)].as<XMFLOAT3>();
+            m_VertexNormals.push_back(normal);
+        }
+
+        // ==========================================================
+
+        uint32_t uvSetsSize = inputNode["VertexUVSetsSize"].as<uint32_t>();
+        m_UVSet_0.reserve(uvSetsSize);
+
+        for (uint32_t i = 0; i < uvSetsSize; i++)
+        {
+            XMFLOAT2 uvSet = inputNode["UVSet0_" + std::to_string(i)].as<XMFLOAT2>();
+            m_UVSet_0.push_back(uvSet);
+        }
+
+        // ==========================================================
+
+        uint32_t indicesSize = inputNode["IndicesSize"].as<uint32_t>();
+        m_Indices.reserve(indicesSize);
+
+        for (uint32_t i = 0; i < indicesSize; i++)
+        {
+            uint32_t indice = inputNode["Indice_" + std::to_string(i)].as<uint32_t>();
+            m_Indices.push_back(indice);
+        }
+
+        CreateRenderData();
+    }
+
     void Mesh::CreateRenderData()
     {
         DX11_GraphicsDevice* graphicsDevice = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice.get();
