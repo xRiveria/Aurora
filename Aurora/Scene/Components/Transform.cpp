@@ -18,6 +18,18 @@ namespace Aurora
         UpdateTransform();
     }
 
+    void Transform::Serialize(SerializationStream& outputStream)
+    {
+        outputStream << YAML::Key << "Transform Component";
+        outputStream << YAML::BeginMap;
+
+        outputStream << YAML::Key << "Translation" << YAML::Value << m_TranslationLocal;
+        outputStream << YAML::Key << "Scale" << YAML::Value << m_ScaleLocal;
+        outputStream << YAML::Key << "Rotation" << YAML::Value << m_RotationLocal;
+
+        outputStream << YAML::EndMap;
+    }
+
     void Transform::UpdateTransform()
     {     
         //if (IsDirty())

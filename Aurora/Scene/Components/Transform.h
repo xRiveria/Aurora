@@ -21,6 +21,8 @@ namespace Aurora
         ~Transform() = default;
 
         void Tick(float deltaTime) override;
+        void Serialize(SerializationStream& outputStream) override;
+
         void UpdateTransform();
 
         void SetDirty(bool value = true) { if (value) { m_Flags |= Transform_Flags::Transform_Flag_Dirty; } else { m_Flags &= ~Transform_Flags::Transform_Flag_Dirty; } }

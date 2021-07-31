@@ -19,3 +19,6 @@
 
 // Global Engine Utilities
 #include "EngineUtilities.h"
+
+// Serializations
+#include "../Serializer/SerializerUtilities.h"

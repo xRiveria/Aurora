@@ -33,7 +33,6 @@ namespace Aurora
         // Shenanigans
 
     public:
-        // Bindings
         void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
 
         void UpdateEntityConstantBuffer(Entity* entity);

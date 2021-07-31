@@ -52,7 +52,7 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
     float3 viewDirection = normalize(g_Camera_Position.xyz - pixelWorldPosition);
     
     float3 normal = Texture_NormalMap.SampleLevel(objectSamplerState, input.outTexCoord, 0).rgb * input.outNormal;
-    float3 albedoColor = Texture_BaseColorMap.SampleLevel(objectSamplerState, input.outTexCoord, 0).rgb * g_Material.g_ObjectColor;
+    float3 albedoColor = pow(Texture_BaseColorMap.SampleLevel(objectSamplerState, input.outTexCoord, 0).rgb, 2.2) * g_Material.g_ObjectColor; // Reconvert to linear space.
     float roughness = Texture_RoughnessMap.SampleLevel(objectSamplerState, input.outTexCoord, 0).r * g_Material.g_Roughness;
     float metalness = Texture_MetalnessMap.SampleLevel(objectSamplerState, input.outTexCoord, 0).r * g_Material.g_Metalness;
     
@@ -71,8 +71,8 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
         float3 lightDirection = normalize(g_Light_Position[i].xyz - pixelWorldPosition);
         float3 halfwayVector = normalize(viewDirection + lightDirection);
         float distance = length(g_Light_Position[i].xyz - pixelWorldPosition);
-        float attenuation = 1.0 / (distance * distance);
-        float3 radiance = g_Light_Color[i].xyz * attenuation;
+        float attenuation = 1.0 / (distance * distance); 
+        float3 radiance = (g_Light_Color[i].xyz * g_Light_Color[i].w * 5.0) * attenuation;
 
         // Cook-Torrace BRDF
         float NDF = DistributionGGX(normalVector, halfwayVector, roughness);
@@ -92,7 +92,7 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
         float NDotL = max(dot(normalVector, lightDirection), 0.0); // Scale light by NDotL.
 
         // Add to outgoing radiance Lo.
-        Lo += (kDiffuse * (albedoColor * (g_Light_Color[i].w * 5.0)) * shadowFactor / PI + specular) * radiance * NDotL; // Reflectance Equation.
+        Lo += (kDiffuse * albedoColor * shadowFactor / PI + specular) * radiance * NDotL; // Reflectance Equation.
     }
      
     // Lo *= float3(inverseShadow, inverseShadow, inverseShadow);

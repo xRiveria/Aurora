@@ -38,6 +38,8 @@ namespace Aurora
         // Runs every frame.
         virtual void Tick(float deltaTime) {}
 
+        virtual void Serialize(SerializationStream& outputStream) {}
+
         // Type
         template <typename T>
         static constexpr ComponentType TypeToEnum();

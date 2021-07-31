@@ -12,6 +12,10 @@ namespace Aurora
         Light(EngineContext* engineContext, Entity* entity, uint32_t componentID = 0);
         ~Light();
 
+        void Serialize(SerializationStream& outputStream) override;
+
+        
+
         enum Lighting_Flags
         {
             Empty = 0,

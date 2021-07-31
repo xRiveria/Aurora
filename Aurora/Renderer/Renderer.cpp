@@ -12,6 +12,7 @@
 #include <DirectXMath.h>
 #include "../Graphics/DX11/Skybox.h"
 #include <iostream>
+#include "../Input/Input.h"
 
 namespace Aurora
 {
@@ -395,7 +396,7 @@ namespace Aurora
 
 
         //============== Depth Buffer Pass ==================
-        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_WireThing, 0);
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
         ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_SimpleDepthShaderVS.m_InternalState.get())->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
 

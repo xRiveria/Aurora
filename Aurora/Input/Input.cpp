@@ -51,7 +51,7 @@ namespace Aurora
         if (m_EngineContext->GetSubsystem<WindowContext>()->WindowExistsInMapping(window))
         {
             m_QueryWindow = window;
-            // SetupInputCallbacks();
+            SetupInputCallbacks();
          
             AURORA_INFO("Successfully directed input querying to window.");
             return true;
@@ -76,6 +76,24 @@ namespace Aurora
     // Example of an event based input system. This is where we setup all our callbacks that will ultimately throw input data into our custom data structures.
     void Input::SetupInputCallbacks()
     {
+        glfwSetMouseButtonCallback(static_cast<GLFWwindow*>(m_QueryWindow), [](GLFWwindow* window, int mouseButtonPressed, int action, int mods)
+        {
+            switch (action)
+            {
+                 case GLFW_PRESS:
+                 {
+                     if (mouseButtonPressed == 0)
+                     {
+                         double x, y;
+                         glfwGetCursorPos(window, &x, &y);
+                         MouseButtonPressedEvent mouseButtonPress(x, y); // Mouse click
+                     }
+                 }
+            }
+        });
+
+
+
         glfwSetKeyCallback(static_cast<GLFWwindow*>(m_QueryWindow), [](GLFWwindow* window, int keyPressed, int scanCode, int action, int mods)
         {
             switch (action)

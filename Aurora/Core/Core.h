@@ -12,6 +12,14 @@ if (!(##expression))               \
 #define AURORA_GRAPHICS_DX11
 #define NOMINMAX
 
+// Serializations
+namespace YAML
+{
+    class Emitter;
+}
+
+typedef YAML::Emitter SerializationStream;
+
 // Future Graphics APIs
 // #define AURORA_GRAPHICS_DX11
 // #define AURORA_GRAPHICS_DX11
