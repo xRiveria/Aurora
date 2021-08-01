@@ -1,4 +1,4 @@
-Scene: Unnamed Scene
+Scene: DefaultScene
 Entities:
   - Entity: 1111
     NameComponent:

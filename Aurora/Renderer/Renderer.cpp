@@ -190,6 +190,7 @@ namespace Aurora
         // Our Ortho Projection Matrix for Directional Light Source Modelling
         float nearPlane = 1.0f, farPlane = 50.0f;
 
+        miscConstantBuffer.g_Light_Count = lightEntities.size();
         for (int i = 0; i < lightEntities.size(); i++) // We will update for each as many light entities we have.
         {
             XMFLOAT4 position = { lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.x, lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.y, lightEntities[i]->GetComponent<Transform>()->m_TranslationLocal.z, 1 };

@@ -24,8 +24,8 @@ namespace Aurora
         m_IsInitialized = true;
         AURORA_INFO("Successfully initialized GLFW dependency.");
 
-        // Creates a window by default.
-        Create({ "Aurora Engine", 1280, 720 });
+        // Creates a window by default. This is only for additional windows other than our main render Window.
+        Create({ ENGINE_ARCHITECTURE, 1280, 720 });
         SetCurrentContext(0); // Index 0 is guarenteed to be our render window. Alternatively, use GetRenderWindow().
 
         return true;
@@ -49,7 +49,6 @@ namespace Aurora
         if (!glfwWindowShouldClose(static_cast<GLFWwindow*>(GetRenderWindow())))
         {
             // Window is still opening and ticking.
-
         }
         else
         {
@@ -97,6 +96,12 @@ namespace Aurora
         AURORA_WARNING("Requested window does not exist in the window context mapping. Did you somehow create the window through the API directly? This is not advisable but we will proceed anyway. Manually adding window to mapping.");
         m_Windows[++g_WindowCount] = window;
         glfwMakeContextCurrent(static_cast<GLFWwindow*>(window));
+    }
+
+    void WindowContext::SetCurrentContextTitle_Scene(const std::string& inputSceneName)
+    {
+        std::string engineArchitecture = inputSceneName + " - " + ENGINE_ARCHITECTURE;
+        glfwSetWindowTitle(static_cast<GLFWwindow*>(GetRenderWindow()), engineArchitecture.c_str());
     }
 
     float WindowContext::GetWindowWidth(int windowID)

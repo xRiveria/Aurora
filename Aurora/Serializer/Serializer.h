@@ -9,11 +9,12 @@ namespace Aurora
 {
     class World;
     class Entity;
+    class EngineContext;
 
     class Serializer
     {
     public:
-        Serializer(World* world);
+        Serializer(EngineContext* engineContext, World* world);
 
         void SerializeScene(World* scene);
         bool DeserializeScene(const std::string& filePath);
@@ -23,5 +24,6 @@ namespace Aurora
 
     private:
         World* m_World;
+        EngineContext* m_EngineContext;
     };
 }

@@ -1,4 +1,5 @@
 #include "Aurora.h"
+#include "../Window/WindowContext.h"
 #include "World.h"
 #include "Components/Light.h"
 
@@ -18,6 +19,7 @@ namespace Aurora
 
     bool World::Initialize()
     {
+        SetWorldName(GetWorldName());
         CreateCamera();
         // CreateEnvironment();
         // CreateDirectionalLight();
@@ -28,7 +30,7 @@ namespace Aurora
             entity->Start();
         }
 
-        m_Serializer = std::make_shared<Serializer>(this);
+        m_Serializer = std::make_shared<Serializer>(m_EngineContext, this);
 
         return true;
     }
@@ -149,6 +151,12 @@ namespace Aurora
     void World::DeserializeScene(const std::string& filePath)
     {
         m_Serializer->DeserializeScene(filePath);
+    }
+
+    void World::SetWorldName(const std::string& worldName)
+    {
+        m_WorldName = worldName;
+        m_EngineContext->GetSubsystem<WindowContext>()->SetCurrentContextTitle_Scene(GetWorldName());
     }
 
     void World::CreateDirectionalLight()

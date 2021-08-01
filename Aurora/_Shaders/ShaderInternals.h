@@ -65,7 +65,10 @@ CBUFFER(ConstantBufferData_Frame, CBSLOT_RENDERER_FRAME)
     float4   g_Light_Position[4];
     float4   g_Light_Color[4];
 
-    // float   g_Light_Intensity[4];
+    float   g_Light_Count;
+    float   g_Padding00001;
+    float   g_Padding00002;
+    float   g_Padding00003;
 };
 
 // 32 bit alignment.

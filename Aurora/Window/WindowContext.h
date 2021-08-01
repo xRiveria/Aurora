@@ -29,6 +29,7 @@ namespace Aurora
 
         void SetCurrentContext(int windowID);
         void SetCurrentContext(void* window);
+        void SetCurrentContextTitle_Scene(const std::string& inputSceneName);
         
         bool WindowExistsInMapping(void* window) const;
         bool IsInitialized() const { return m_IsInitialized; }
