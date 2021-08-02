@@ -1,0 +1,336 @@
+Scene: Default.aurora
+Entities:
+  - Entity: 30027
+    NameComponent:
+      Name: Cube
+    TransformComponent:
+      Translation: [0, 0.823590457, 0]
+      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+  - Entity: 4394
+    NameComponent:
+      Name: pCube32
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+      ParentEntity: 30027
+    MeshComponent:
+      VertexPosition_0: [-0.5, -0.5, -0.5]
+      VertexPosition_1: [0, -0.5, -0.5]
+      VertexPosition_2: [0, 0, -0.5]
+      VertexPosition_3: [-0.5, 0, -0.5]
+      VertexPosition_4: [0.5, -0.5, -0.5]
+      VertexPosition_5: [0.5, 0, -0.5]
+      VertexPosition_6: [0, 0.5, -0.5]
+      VertexPosition_7: [-0.5, 0.5, -0.5]
+      VertexPosition_8: [0.5, 0.5, -0.5]
+      VertexPosition_9: [-0.5, 0.5, -0.5]
+      VertexPosition_10: [0, 0.5, -0.5]
+      VertexPosition_11: [0, 0.5, -0]
+      VertexPosition_12: [-0.5, 0.5, -0]
+      VertexPosition_13: [0.5, 0.5, -0.5]
+      VertexPosition_14: [0.5, 0.5, -0]
+      VertexPosition_15: [0, 0.5, 0.5]
+      VertexPosition_16: [-0.5, 0.5, 0.5]
+      VertexPosition_17: [0.5, 0.5, 0.5]
+      VertexPosition_18: [-0.5, 0.5, 0.5]
+      VertexPosition_19: [0, 0.5, 0.5]
+      VertexPosition_20: [0, 0, 0.5]
+      VertexPosition_21: [-0.5, 0, 0.5]
+      VertexPosition_22: [0.5, 0.5, 0.5]
+      VertexPosition_23: [0.5, 0, 0.5]
+      VertexPosition_24: [0, -0.5, 0.5]
+      VertexPosition_25: [-0.5, -0.5, 0.5]
+      VertexPosition_26: [0.5, -0.5, 0.5]
+      VertexPosition_27: [-0.5, -0.5, 0.5]
+      VertexPosition_28: [0, -0.5, 0.5]
+      VertexPosition_29: [0, -0.5, -0]
+      VertexPosition_30: [-0.5, -0.5, -0]
+      VertexPosition_31: [0.5, -0.5, 0.5]
+      VertexPosition_32: [0.5, -0.5, -0]
+      VertexPosition_33: [0, -0.5, -0.5]
+      VertexPosition_34: [-0.5, -0.5, -0.5]
+      VertexPosition_35: [0.5, -0.5, -0.5]
+      VertexPosition_36: [0.5, -0.5, -0]
+      VertexPosition_37: [0.5, -0.5, 0.5]
+      VertexPosition_38: [0.5, 0, 0.5]
+      VertexPosition_39: [0.5, 0, -0]
+      VertexPosition_40: [0.5, -0.5, -0.5]
+      VertexPosition_41: [0.5, 0, -0.5]
+      VertexPosition_42: [0.5, 0.5, 0.5]
+      VertexPosition_43: [0.5, 0.5, -0]
+      VertexPosition_44: [0.5, 0.5, -0.5]
+      VertexPosition_45: [-0.5, -0.5, 0.5]
+      VertexPosition_46: [-0.5, -0.5, -0]
+      VertexPosition_47: [-0.5, 0, -0]
+      VertexPosition_48: [-0.5, 0, 0.5]
+      VertexPosition_49: [-0.5, -0.5, -0.5]
+      VertexPosition_50: [-0.5, 0, -0.5]
+      VertexPosition_51: [-0.5, 0.5, -0]
+      VertexPosition_52: [-0.5, 0.5, 0.5]
+      VertexPosition_53: [-0.5, 0.5, -0.5]
+      VertexPositionsSize: 54
+      VertexNormal_0: [0, 0, -1]
+      VertexNormal_1: [0, 0, -1]
+      VertexNormal_2: [0, 0, -1]
+      VertexNormal_3: [0, 0, -1]
+      VertexNormal_4: [0, 0, -1]
+      VertexNormal_5: [0, 0, -1]
+      VertexNormal_6: [0, 0, -1]
+      VertexNormal_7: [0, 0, -1]
+      VertexNormal_8: [0, 0, -1]
+      VertexNormal_9: [0, 1, -0]
+      VertexNormal_10: [0, 1, -0]
+      VertexNormal_11: [0, 1, -0]
+      VertexNormal_12: [0, 1, -0]
+      VertexNormal_13: [0, 1, -0]
+      VertexNormal_14: [0, 1, -0]
+      VertexNormal_15: [0, 1, -0]
+      VertexNormal_16: [0, 1, -0]
+      VertexNormal_17: [0, 1, -0]
+      VertexNormal_18: [0, 0, 1]
+      VertexNormal_19: [0, 0, 1]
+      VertexNormal_20: [0, 0, 1]
+      VertexNormal_21: [0, 0, 1]
+      VertexNormal_22: [0, 0, 1]
+      VertexNormal_23: [0, 0, 1]
+      VertexNormal_24: [0, 0, 1]
+      VertexNormal_25: [0, 0, 1]
+      VertexNormal_26: [0, 0, 1]
+      VertexNormal_27: [0, -1, -0]
+      VertexNormal_28: [0, -1, -0]
+      VertexNormal_29: [0, -1, -0]
+      VertexNormal_30: [0, -1, -0]
+      VertexNormal_31: [0, -1, -0]
+      VertexNormal_32: [0, -1, -0]
+      VertexNormal_33: [0, -1, -0]
+      VertexNormal_34: [0, -1, -0]
+      VertexNormal_35: [0, -1, -0]
+      VertexNormal_36: [1, 0, -0]
+      VertexNormal_37: [1, 0, -0]
+      VertexNormal_38: [1, 0, -0]
+      VertexNormal_39: [1, 0, -0]
+      VertexNormal_40: [1, 0, -0]
+      VertexNormal_41: [1, 0, -0]
+      VertexNormal_42: [1, 0, -0]
+      VertexNormal_43: [1, 0, -0]
+      VertexNormal_44: [1, 0, -0]
+      VertexNormal_45: [-1, 0, -0]
+      VertexNormal_46: [-1, 0, -0]
+      VertexNormal_47: [-1, 0, -0]
+      VertexNormal_48: [-1, 0, -0]
+      VertexNormal_49: [-1, 0, -0]
+      VertexNormal_50: [-1, 0, -0]
+      VertexNormal_51: [-1, 0, -0]
+      VertexNormal_52: [-1, 0, -0]
+      VertexNormal_53: [-1, 0, -0]
+      VertexNormalsSize: 54
+      UVSet0_0: [0.375, 1]
+      UVSet0_1: [0.5, 1]
+      UVSet0_2: [0.5, 0.875]
+      UVSet0_3: [0.375, 0.875]
+      UVSet0_4: [0.625, 1]
+      UVSet0_5: [0.625, 0.875]
+      UVSet0_6: [0.5, 0.75]
+      UVSet0_7: [0.375, 0.75]
+      UVSet0_8: [0.625, 0.75]
+      UVSet0_9: [0.375, 0.75]
+      UVSet0_10: [0.5, 0.75]
+      UVSet0_11: [0.5, 0.625]
+      UVSet0_12: [0.375, 0.625]
+      UVSet0_13: [0.625, 0.75]
+      UVSet0_14: [0.625, 0.625]
+      UVSet0_15: [0.5, 0.5]
+      UVSet0_16: [0.375, 0.5]
+      UVSet0_17: [0.625, 0.5]
+      UVSet0_18: [0.375, 0.5]
+      UVSet0_19: [0.5, 0.5]
+      UVSet0_20: [0.5, 0.375]
+      UVSet0_21: [0.375, 0.375]
+      UVSet0_22: [0.625, 0.5]
+      UVSet0_23: [0.625, 0.375]
+      UVSet0_24: [0.5, 0.25]
+      UVSet0_25: [0.375, 0.25]
+      UVSet0_26: [0.625, 0.25]
+      UVSet0_27: [0.375, 0.25]
+      UVSet0_28: [0.5, 0.25]
+      UVSet0_29: [0.5, 0.125]
+      UVSet0_30: [0.375, 0.125]
+      UVSet0_31: [0.625, 0.25]
+      UVSet0_32: [0.625, 0.125]
+      UVSet0_33: [0.5, 0]
+      UVSet0_34: [0.375, 0]
+      UVSet0_35: [0.625, 0]
+      UVSet0_36: [0.75, 1]
+      UVSet0_37: [0.875, 1]
+      UVSet0_38: [0.875, 0.875]
+      UVSet0_39: [0.75, 0.875]
+      UVSet0_40: [0.625, 1]
+      UVSet0_41: [0.625, 0.875]
+      UVSet0_42: [0.875, 0.75]
+      UVSet0_43: [0.75, 0.75]
+      UVSet0_44: [0.625, 0.75]
+      UVSet0_45: [0.125, 1]
+      UVSet0_46: [0.25, 1]
+      UVSet0_47: [0.25, 0.875]
+      UVSet0_48: [0.125, 0.875]
+      UVSet0_49: [0.375, 1]
+      UVSet0_50: [0.375, 0.875]
+      UVSet0_51: [0.25, 0.75]
+      UVSet0_52: [0.125, 0.75]
+      UVSet0_53: [0.375, 0.75]
+      VertexUVSetsSize: 54
+      Indice_0: 0
+      Indice_1: 1
+      Indice_2: 2
+      Indice_3: 0
+      Indice_4: 2
+      Indice_5: 3
+      Indice_6: 1
+      Indice_7: 4
+      Indice_8: 5
+      Indice_9: 1
+      Indice_10: 5
+      Indice_11: 2
+      Indice_12: 3
+      Indice_13: 2
+      Indice_14: 6
+      Indice_15: 2
+      Indice_16: 5
+      Indice_17: 8
+      Indice_18: 2
+      Indice_19: 8
+      Indice_20: 6
+      Indice_21: 3
+      Indice_22: 6
+      Indice_23: 7
+      Indice_24: 9
+      Indice_25: 10
+      Indice_26: 11
+      Indice_27: 9
+      Indice_28: 11
+      Indice_29: 12
+      Indice_30: 10
+      Indice_31: 13
+      Indice_32: 14
+      Indice_33: 10
+      Indice_34: 14
+      Indice_35: 11
+      Indice_36: 12
+      Indice_37: 11
+      Indice_38: 15
+      Indice_39: 11
+      Indice_40: 14
+      Indice_41: 17
+      Indice_42: 11
+      Indice_43: 17
+      Indice_44: 15
+      Indice_45: 12
+      Indice_46: 15
+      Indice_47: 16
+      Indice_48: 18
+      Indice_49: 19
+      Indice_50: 20
+      Indice_51: 18
+      Indice_52: 20
+      Indice_53: 21
+      Indice_54: 19
+      Indice_55: 22
+      Indice_56: 23
+      Indice_57: 19
+      Indice_58: 23
+      Indice_59: 20
+      Indice_60: 21
+      Indice_61: 20
+      Indice_62: 24
+      Indice_63: 20
+      Indice_64: 23
+      Indice_65: 26
+      Indice_66: 20
+      Indice_67: 26
+      Indice_68: 24
+      Indice_69: 21
+      Indice_70: 24
+      Indice_71: 25
+      Indice_72: 27
+      Indice_73: 28
+      Indice_74: 29
+      Indice_75: 27
+      Indice_76: 29
+      Indice_77: 30
+      Indice_78: 28
+      Indice_79: 31
+      Indice_80: 32
+      Indice_81: 28
+      Indice_82: 32
+      Indice_83: 29
+      Indice_84: 30
+      Indice_85: 29
+      Indice_86: 33
+      Indice_87: 29
+      Indice_88: 32
+      Indice_89: 35
+      Indice_90: 29
+      Indice_91: 35
+      Indice_92: 33
+      Indice_93: 30
+      Indice_94: 33
+      Indice_95: 34
+      Indice_96: 36
+      Indice_97: 37
+      Indice_98: 38
+      Indice_99: 36
+      Indice_100: 38
+      Indice_101: 39
+      Indice_102: 40
+      Indice_103: 36
+      Indice_104: 39
+      Indice_105: 39
+      Indice_106: 38
+      Indice_107: 42
+      Indice_108: 40
+      Indice_109: 39
+      Indice_110: 41
+      Indice_111: 39
+      Indice_112: 42
+      Indice_113: 43
+      Indice_114: 41
+      Indice_115: 39
+      Indice_116: 43
+      Indice_117: 41
+      Indice_118: 43
+      Indice_119: 44
+      Indice_120: 45
+      Indice_121: 46
+      Indice_122: 47
+      Indice_123: 45
+      Indice_124: 47
+      Indice_125: 48
+      Indice_126: 46
+      Indice_127: 49
+      Indice_128: 50
+      Indice_129: 46
+      Indice_130: 50
+      Indice_131: 47
+      Indice_132: 48
+      Indice_133: 47
+      Indice_134: 51
+      Indice_135: 47
+      Indice_136: 50
+      Indice_137: 53
+      Indice_138: 47
+      Indice_139: 53
+      Indice_140: 51
+      Indice_141: 48
+      Indice_142: 51
+      Indice_143: 52
+      IndicesSize: 144
+    MaterialComponent:
+      BaseColor: [0.400000006, 0.400000006, 0.400000006, 1]
+      Roughness: 0.400000006
+      Metalness: 0.5
+      ColorMapPath: ../Resources/Textures/Default/White.png
+      MetallicMapPath: ../Resources/Textures/Default/White.png
+      RoughnessMapPath: ../Resources/Textures/Default/White.png
+      NormalMapPath: ../Resources/Textures/Default/White.png

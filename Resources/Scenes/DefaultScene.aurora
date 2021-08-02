@@ -1,20 +1,20 @@
-Scene: DefaultScene
+Scene: DefaultScene.aurora
 Entities:
-  - Entity: 1111
+  - Entity: 1394
     NameComponent:
       Name: Plane
     TransformComponent:
-      Translation: [0, 0.200000003, 0]
-      Scale: [12, 1, 12]
+      Translation: [0.0668611601, 1.32110071, -0.211361885]
+      Scale: [7.48000002, 7.48000002, 7.48000002]
       Rotation: [0, 0, 0, 1]
-  - Entity: 17752
+  - Entity: 6460
     NameComponent:
       Name: pPlane1
     TransformComponent:
       Translation: [0, 0, 0]
       Scale: [1, 1, 1]
       Rotation: [0, 0, 0, 1]
-      ParentEntity: 1111
+      ParentEntity: 1394
     MeshComponent:
       VertexPosition_0: [-0.5, 0, -0.5]
       VertexPosition_1: [-0.400000006, 0, -0.5]
@@ -985,27 +985,49 @@ Entities:
       IndicesSize: 600
     MaterialComponent:
       BaseColor: [0.400000006, 0.400000006, 0.400000006, 1]
-      Roughness: 0.850000024
-      Metalness: 0.625
+      Roughness: 0.400000006
+      Metalness: 0.5
       ColorMapPath: ../Resources/Textures/Default/White.png
       MetallicMapPath: ../Resources/Textures/Default/White.png
       RoughnessMapPath: ../Resources/Textures/Default/White.png
       NormalMapPath: ../Resources/Textures/Default/White.png
-  - Entity: 31323
+  - Entity: 2718
     NameComponent:
-      Name: MetallicCube
+      Name: RedLight
     TransformComponent:
-      Translation: [-1.43055975, 0.699999988, -2.83509517]
+      Translation: [-0.302363873, 1.86674559, -2.34507966]
       Scale: [1, 1, 1]
       Rotation: [0, 0, 0, 1]
-  - Entity: 30424
+    LightComponent:
+      LightColor: [0.754098356, 0.0772641748, 0.0772641748]
+      LightIntensity: 40
+      CastShadows: false
+  - Entity: 19028
+    NameComponent:
+      Name: LightBlueLight
+    TransformComponent:
+      Translation: [1.73327279, 2.2213397, 0.827728331]
+      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+    LightComponent:
+      LightColor: [0.119322784, 0.909836054, 0.599277318]
+      LightIntensity: 40
+      CastShadows: false
+  - Entity: 19832
+    NameComponent:
+      Name: Cubeee
+    TransformComponent:
+      Translation: [0.541668177, 2.03567839, -1.26635242]
+      Scale: [1, 1, 1]
+      Rotation: [0, 0, 0, 1]
+  - Entity: 3246
     NameComponent:
       Name: pCube32
     TransformComponent:
       Translation: [0, 0, 0]
       Scale: [1, 1, 1]
       Rotation: [0, 0, 0, 1]
-      ParentEntity: 31323
+      ParentEntity: 19832
     MeshComponent:
       VertexPosition_0: [-0.5, -0.5, -0.5]
       VertexPosition_1: [0, -0.5, -0.5]
@@ -1318,32 +1340,10 @@ Entities:
       Indice_143: 52
       IndicesSize: 144
     MaterialComponent:
-      BaseColor: [1, 0.999989986, 0.999989986, 1]
-      Roughness: 0.481999993
-      Metalness: 0.995999992
-      ColorMapPath: D:\1) Github\My Projects\Aurora\Resources\Textures\PBR\rustediron2_basecolor.png
-      MetallicMapPath: D:\1) Github\My Projects\Aurora\Resources\Textures\PBR\rustediron2_metallic.png
-      RoughnessMapPath: D:\1) Github\My Projects\Aurora\Resources\Textures\PBR\rustediron2_roughness.png
-      NormalMapPath: D:\1) Github\My Projects\Aurora\Resources\Textures\PBR\rustediron2_normal.png
-  - Entity: 25510
-    NameComponent:
-      Name: PointLight1
-    TransformComponent:
-      Translation: [-0.662610233, 1.92413497, -4.36874342]
-      Scale: [1, 1, 1]
-      Rotation: [0, 0, 0, 1]
-    LightComponent:
-      LightColor: [0.0565371998, 0.811475396, 0.775526106]
-      LightIntensity: 40
-      CastShadows: false
-  - Entity: 18136
-    NameComponent:
-      Name: PointLight2
-    TransformComponent:
-      Translation: [2.67929459, 2.58202291, -0.587187052]
-      Scale: [1, 1, 1]
-      Rotation: [0, 0, 0, 1]
-    LightComponent:
-      LightColor: [0.762295067, 0.187449604, 0.187449604]
-      LightIntensity: 40
-      CastShadows: false
+      BaseColor: [0.400000006, 0.400000006, 0.400000006, 1]
+      Roughness: 0.400000006
+      Metalness: 0.5
+      ColorMapPath: ../Resources/Textures/Default/White.png
+      MetallicMapPath: ../Resources/Textures/Default/White.png
+      RoughnessMapPath: ../Resources/Textures/Default/White.png
+      NormalMapPath: ../Resources/Textures/Default/White.png

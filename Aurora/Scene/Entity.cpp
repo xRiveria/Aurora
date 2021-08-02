@@ -21,6 +21,8 @@ namespace Aurora
     Entity::~Entity()
     {
         m_IsActive = false;
+        m_IsVisibleInHierarchy = false;
+        m_Transform = nullptr;
         m_EngineContext = nullptr;
 
         m_ObjectName.clear();

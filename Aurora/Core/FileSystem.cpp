@@ -110,7 +110,7 @@ namespace Aurora
         return GetDirectoryFromFilePath(filePath) + GetFileNameWithoutExtensionFromFilePath(filePath);
     }
 
-    std::string FileSystem::ReplaceExtension(const std::string& filePath, const std::string& fileExtension)
+    std::string FileSystem::ReplaceOrAddExtension(const std::string& filePath, const std::string& fileExtension)
     {
         std::string path = filePath;
         size_t key = path.rfind('.');
@@ -118,6 +118,10 @@ namespace Aurora
         if (key != std::string::npos)
         {
             return (path.substr(0, key + 1) + fileExtension);
+        }
+        else
+        {
+            return (path + fileExtension);
         }
 
         return 0;

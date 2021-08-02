@@ -1,12 +1,12 @@
 #include "Aurora.h"
 #include "Camera.h"
 #include "../Input/Input.h"
+#include "../Entity.h"
 
 namespace Aurora
 {
     Camera::Camera(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
-
     }
 
     Camera::~Camera()

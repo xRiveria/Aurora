@@ -24,6 +24,7 @@ namespace Aurora
         virtual void Shutdown() override;
         void Tick(float deltaTime) override;
         bool IsWindowRunning() const { return m_IsRunning; }
+        void SetWindowRunState(bool value) { m_IsRunning = value; }
         
         void* Create(const WindowDescription& description);
 

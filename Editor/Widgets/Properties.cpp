@@ -212,7 +212,7 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
 
     if (ImGui::Button("Load..."))
     {
-        std::optional<std::string> filePath = EditorExtensions::OpenFilePath("Textures", engineContext);
+        std::optional<std::string> filePath = EditorExtensions::OpenFile("Textures", engineContext);
         if (filePath.has_value())
         {
             std::string path = filePath.value();

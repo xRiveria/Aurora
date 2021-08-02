@@ -47,6 +47,69 @@ namespace Aurora
         {
             entity->Tick(deltaTime);
         }
+
+        if (m_IsSceneDirty)
+        {
+            // Make a copy so we can iterate while remove entities.
+            std::vector<std::shared_ptr<Entity>> entitiesCopied = m_Entities;
+            
+            for (std::shared_ptr<Entity>& entity : entitiesCopied)
+            {
+                if (entity->IsPendingDestruction())
+                {
+                    _EntityRemove(entity);
+                }
+            }
+        }
+
+        m_IsSceneDirty = false;
+    }
+
+    void World::EntityRemove(const std::shared_ptr<Entity>& entity)
+    {
+        if (!entity)
+        {
+            return;
+        }
+
+        // We will simply mark the entity for destruction instead of outright deleting it. This is because the entity might still be in use. We thus remove it at the end of the frame.
+        entity->MarkForDestruction();
+
+        m_IsSceneDirty = true;
+    }
+
+    // Removes an entity and all of its children.
+    void World::_EntityRemove(const std::shared_ptr<Entity>& entity)
+    {
+        // Remove any descendants.
+        std::vector<Transform*> children = entity->GetTransform()->GetChildren();
+        for (const auto& child : children)
+        {
+            EntityRemove(child->GetEntity()->GetPointerShared());
+        }
+
+        // Keep a reference to its parent (in case it has one).
+        Transform* parentEntity = entity->GetTransform()->GetParentTransform();
+
+        // Remove this entity.
+        for (auto it = m_Entities.begin(); it < m_Entities.end();)
+        {
+            const std::shared_ptr<Entity> temporaryReference = *it;
+            if (temporaryReference->GetObjectID() == entity->GetObjectID())
+            {
+                // AURORA_ERROR("Matched! Deleting...");
+                it = m_Entities.erase(it);
+                break;
+            }
+
+            ++it;
+        }
+
+        // If there was a parent, update it.
+        if (parentEntity)
+        {
+            parentEntity->AcquireChildren();
+        }
     }
 
     void World::New()
@@ -56,8 +119,24 @@ namespace Aurora
 
     void World::Clear()
     {
+        AURORA_INFO("%f", static_cast<float>(m_Entities.size()));
+        for (int i = 0; i < m_Entities.size(); i++)
+        {
+            if (m_Entities[i]->m_EntityType == EntityType::Skybox || m_Entities[i]->GetObjectName() == "Directional Light" || m_Entities[i]->GetObjectName() == "Default_Camera") // Skip all of them for now.
+            {
+                continue;
+            }
+            else
+            {
+                m_Entities[i]->MarkForDestruction();
+                EntityRemove(m_Entities[i]);
+            }
+        }
+
         // Clear our entities.
-        m_Entities.clear();
+        // m_Entities.clear();
+
+        m_IsSceneDirty = true;
     }
 
     bool World::IsLoading()
@@ -80,19 +159,6 @@ namespace Aurora
         }
 
         return GetEntityByID(entity->GetObjectID()) != nullptr;
-    }
-
-    void World::EntityRemove(const std::shared_ptr<Entity>& entity)
-    {
-        if (!entity)
-        {
-            return;
-        }
-
-        // We will simply mark the entity for destruction instead of outright deleting it. This is because the entity might still be in use. We thus remove it at the end of the frame.
-        entity->MarkForDestruction();
-
-        /// Fire remove event.
     }
 
     const std::shared_ptr<Entity>& World::GetEntityByName(const std::string& entityName)
@@ -143,9 +209,9 @@ namespace Aurora
         return m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel(m_EngineContext->GetSubsystem<ResourceCache>()->m_DefaultObjects[defaultObjectType]);
     }
 
-    void World::SerializeScene()
+    void World::SerializeScene(const std::string& filePath)
     {
-        m_Serializer->SerializeScene(this);
+        m_Serializer->SerializeScene(filePath);
     }
 
     void World::DeserializeScene(const std::string& filePath)

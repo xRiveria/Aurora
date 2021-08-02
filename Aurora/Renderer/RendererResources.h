@@ -42,7 +42,7 @@ namespace Aurora
 
             std::string sourceDirectory = FileSystem::MakePathAbsolute(RendererGlobals::g_ShaderSourcePath);
             input.m_IncludeDirectories.push_back(sourceDirectory);
-            input.m_ShaderSourceFilePath = FileSystem::ReplaceExtension(sourceDirectory + fileName, "hlsl");
+            input.m_ShaderSourceFilePath = FileSystem::ReplaceOrAddExtension(sourceDirectory + fileName, "hlsl");
 
             ShaderCompiler::CompilerOutput output;
             m_ShaderCompiler.Compile(input, output);

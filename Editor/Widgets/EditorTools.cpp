@@ -21,7 +21,7 @@ void EditorTools::OnTickAlways()
 
 void EditorTools::TickGizmos()
 {
-	if (ImGui::IsWindowFocused())
+	if (ImGui::IsWindowFocused() || ImGui::IsWindowHovered())
 	{
 		if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_E))
 		{

@@ -42,8 +42,10 @@ namespace Aurora
         outputStream << YAML::EndMap; // Entity
     }
 
-    void Serializer::SerializeScene(World* scene)
+    void Serializer::SerializeScene(const std::string& filePath)
     {
+        std::string worldName = FileSystem::GetFileNameFromFilePath(filePath);
+
         YAML::Emitter out;
         // out << "This is a scene save file for Aurora Engine created by Ryan Tan.";
 
@@ -52,15 +54,15 @@ namespace Aurora
 
         // Stores our scene name in the "Scene" key.
         out << YAML::Key << "Scene";
-        out << YAML::Value << m_World->GetWorldName();
+        out << YAML::Value << worldName;
 
         // Stores our entities.
         out << YAML::Key << "Entities";
         out << YAML::Value << YAML::BeginSeq; // Begin a sequence (array?).
 
-        for (int i = 0; i < scene->EntityGetAll().size(); i++)
+        for (int i = 0; i < m_World->EntityGetAll().size(); i++)
         {
-            Entity* entity = scene->EntityGetAll()[i].get();
+            Entity* entity = m_World->EntityGetAll()[i].get();
             if (!entity)
             {
                 return;
@@ -77,20 +79,31 @@ namespace Aurora
         out << YAML::EndSeq; // End Array.
         out << YAML::EndMap;
 
-        std::string saveLocation = "../Resources/Scenes/" + m_World->GetWorldName() + ".aurora";
+        std::string saveLocation = filePath;
+        if (FileSystem::GetExtensionFromFilePath(saveLocation) != ".aurora")
+        {
+            saveLocation = FileSystem::ReplaceOrAddExtension(filePath, ".aurora");
+        }
         std::ofstream fout(saveLocation);
         fout << out.c_str();
-        AURORA_INFO("Scene \"%s\" Successfully Serialized.", m_World->GetWorldName().c_str());
+
+        m_World->SetWorldName(worldName);
+        AURORA_INFO("Scene \"%s\" Successfully Serialized.", worldName.c_str());
     }
 
     bool Serializer::DeserializeScene(const std::string& filePath)
     {
+        // Clear current world.
+        m_World->New();
+
         // Localize file.
         YAML::Node sceneData = YAML::LoadFile(filePath); // sceneData now contains our scene's data as read from the stream.
         if (!sceneData["Scene"]) // Is this really a scene file? If there's no scene node within, we return immediately.
         {
             return false;
         }
+
+        // m_World->Clear();
 
         std::string sceneName = sceneData["Scene"].as<std::string>();
         AURORA_INFO("Deserializing Scene: %s.", sceneName.c_str());
@@ -101,7 +114,7 @@ namespace Aurora
         {
             for (auto entity : entities) // Remember that we serialized them as a sequence. Hence, we are retrieving them via indexing like an array.
             {
-                uint64_t entityID = entity["Entity"].as<uint64_t>();
+                uint32_t entityID = entity["Entity"].as<uint32_t>();
 
                 std::string entityName;
                 YAML::Node nameNode = entity["NameComponent"];

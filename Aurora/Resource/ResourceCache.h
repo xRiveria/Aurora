@@ -17,6 +17,7 @@ namespace Aurora
         DefaultObjectType_Cone,
         DefaultObjectType_Plane,
         DefaultObjectType_Cylinder,
+        DefaultObjectType_PointLight
     };
 
     class AuroraResource;

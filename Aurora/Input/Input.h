@@ -32,7 +32,6 @@ namespace Aurora
             // Now, we want our Z to point forward. With DX11, this is usuallt the positive Z direction. We can ads a W here to allow for a 4D vector.
             float w = 1.0;
             AURORA_INFO("Normalized Window Coordinates: %f, %f, %f, %f", x, y, z, w);
-
         }
     };
 

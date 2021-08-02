@@ -106,7 +106,7 @@ void Editor::Tick()
 		}
 		if (ImGui::Button("Load..."))
 		{
-			std::optional<std::string> filePath = EditorExtensions::OpenFilePath("Textures", m_EngineContext);
+			std::optional<std::string> filePath = EditorExtensions::OpenFile("Textures", m_EngineContext);
 			if (filePath.has_value())
 			{
 				std::string path = filePath.value();

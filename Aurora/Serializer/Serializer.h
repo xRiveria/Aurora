@@ -16,7 +16,7 @@ namespace Aurora
     public:
         Serializer(EngineContext* engineContext, World* world);
 
-        void SerializeScene(World* scene);
+        void SerializeScene(const std::string& filePath);
         bool DeserializeScene(const std::string& filePath);
         
     private:

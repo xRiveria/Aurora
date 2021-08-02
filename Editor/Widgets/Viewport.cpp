@@ -1,6 +1,7 @@
 #include "Viewport.h"
 #include "../Scene/World.h"
 #include "../Input/Input.h"
+#include "../Scene/Components/Light.h"
 #include "../Renderer/Renderer.h"
 #include "../Backend/Utilities/Extensions.h"
 
@@ -43,7 +44,16 @@ void Viewport::OnTickVisible()
     // Handle model dropping.
     if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Entity))
     {
-        m_WorldSubsystem->CreateDefaultObject(std::get<Aurora::DefaultObjectType>(payload->m_Data));
+        if (std::get<Aurora::DefaultObjectType>(payload->m_Data) == Aurora::DefaultObjectType::DefaultObjectType_PointLight)
+        {
+            std::shared_ptr<Aurora::Entity> entity = m_WorldSubsystem->EntityCreate();
+            entity->SetName("DefaultPointLight");
+            entity->AddComponent<Aurora::Light>();
+        }
+        else
+        {
+            m_WorldSubsystem->CreateDefaultObject(std::get<Aurora::DefaultObjectType>(payload->m_Data));
+        }
     }
    
     m_EditorTools->Tick();

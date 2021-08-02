@@ -38,7 +38,7 @@ void ObjectsPanel::OnTickVisible()
 
         if (ImGui::BeginTabItem("Lighting"))
         {
-            ObjectEntry(Aurora::DefaultObjectType::DefaultObjectType_Cone, "Point Light");
+            ObjectEntry(Aurora::DefaultObjectType::DefaultObjectType_PointLight, "Point Light");
 
             ImGui::EndTabItem();
         }

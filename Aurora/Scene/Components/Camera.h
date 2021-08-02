@@ -6,6 +6,8 @@ using namespace DirectX;
 
 namespace Aurora
 {
+    class Transform;
+
     class Camera : public IComponent
     {
     public:

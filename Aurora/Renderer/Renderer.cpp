@@ -52,30 +52,6 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->SetPosition(0.01, 4, 0);
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
 
- /*
-        auto cube = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Plane);
-        cube->GetComponent<Transform>()->Scale({ 12, 1, 12 });
-        cube->GetComponent<Transform>()->Translate({ 0, 0.2, 0 });
-
-        auto cube1 = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Cube);
-        // cube1->GetComponent<Transform>()->Scale({ 5, 1, 5 });
-        cube1->GetComponent<Transform>()->Translate({ 0, 0.7, 0 });
-
-        auto lightEntity4 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        lightEntity4->SetName("PL 22");
-        lightEntity4->AddComponent<Light>();
-        lightEntity4->GetComponent<Light>()->m_Color = { 1, 1, 1 };
-        lightEntity4->m_Transform->Translate({ 0.89, 2.12, -0.99 });
-        lightEntity4->GetComponent<Light>()->m_Intensity = 40;
-
-        auto lightEntity5 = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        lightEntity5->SetName("PL 222");
-        lightEntity5->AddComponent<Light>();
-        lightEntity5->GetComponent<Light>()->m_Color = { 1, 1, 1 };
-        lightEntity5->m_Transform->Translate({ 0.89, 2.12, -0.99 });
-        lightEntity5->GetComponent<Light>()->m_Intensity = 40;
-*/
-
         m_DirectionalLight = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         m_DirectionalLight->SetName("Directional Light");
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
@@ -127,7 +103,10 @@ namespace Aurora
         constantBuffer.g_Material.g_ObjectColor = materialComponent->m_BaseColor;
         constantBuffer.g_Material.g_Roughness = materialComponent->m_Roughness;
         constantBuffer.g_Material.g_Metalness = materialComponent->m_Metalness;
-        XMStoreFloat3(&constantBuffer.g_Camera_Position, m_Camera->GetComponent<Camera>()->m_Position);
+        if (m_Camera != nullptr)
+        {
+            XMStoreFloat3(&constantBuffer.g_Camera_Position, m_Camera->GetComponent<Camera>()->m_Position);
+        }
 
         constantBuffer.g_Texture_BaseColorMap_Index = BindMaterialTexture(TextureSlot::BaseColorMap, materialComponent);
         constantBuffer.g_Texture_NormalMap_Index = BindMaterialTexture(TextureSlot::NormalMap, materialComponent);
@@ -358,7 +337,10 @@ namespace Aurora
             swapchainDescription.m_Height = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHeight(0));
 
             m_GraphicsDevice->CreateSwapChain(&swapchainDescription, &m_SwapChain);
-            m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
+            if (m_Camera != nullptr)
+            {
+                m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
+            }
 
             D3D11_VIEWPORT viewportInfo = { 0, 0, m_RenderWidth, m_RenderHeight, 0.0f, 1.0f };
             m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
@@ -370,7 +352,10 @@ namespace Aurora
         BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
 
         UpdateLightConstantBuffer();
-        UpdateCameraConstantBuffer(m_Camera, 0);
+        if (m_Camera != nullptr)
+        {
+            UpdateCameraConstantBuffer(m_Camera, 0);
+        }
 
         ID3D11SamplerState* samplerState = DX11_Utility::ToInternal(&m_Standard_Texture_Sampler)->m_Resource.Get();
         ID3D11SamplerState* samplerState2 = DX11_Utility::ToInternal(&m_Depth_Texture_Sampler)->m_Resource.Get();

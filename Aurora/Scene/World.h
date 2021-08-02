@@ -35,11 +35,11 @@ namespace Aurora
         std::shared_ptr<Entity> CreateDefaultObject(DefaultObjectType defaultObjectType);
 
         // Serializing
-        void SerializeScene();
+        void SerializeScene(const std::string& filePath);
         void DeserializeScene(const std::string& filePath);
 
         void SetWorldName(const std::string& worldName);
-        std::string GetWorldName() const { return m_WorldName; }
+        std::string GetWorldName() const { return m_WorldName; }  
 
     private:
         void _EntityRemove(const std::shared_ptr<Entity>& entity);
@@ -52,6 +52,8 @@ namespace Aurora
     private:
         std::shared_ptr<Serializer> m_Serializer;
         std::string m_WorldName = "Untitled_Scene";  // Or Scene Name.
+
+        bool m_IsSceneDirty = false;
 
         std::vector<std::shared_ptr<Entity>> m_Entities;
     };
