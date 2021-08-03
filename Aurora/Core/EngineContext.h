@@ -98,6 +98,9 @@ namespace Aurora
             }
         }
 
+        std::vector<_Subsystem>::iterator begin() { return m_Subsystems.begin(); }
+        std::vector<_Subsystem>::iterator end() { return m_Subsystems.end(); }
+
         Engine* GetEngine() { return m_Engine; }
 
     private:

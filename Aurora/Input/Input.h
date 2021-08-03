@@ -1,6 +1,9 @@
 #pragma once
 #include "EngineContext.h"
 #include "../Core/ISubsystem.h"
+#include "InputEvents/KeyEvent.h"
+#include "InputEvents/MouseEvent.h"
+#include "../Input/InputUtilities.h"
 
 /* Personal Notes:
 
@@ -13,28 +16,6 @@
 
 namespace Aurora
 {
-    struct MouseButtonPressedEvent
-    {
-        double xPos;
-        double yPos;
-
-        MouseButtonPressedEvent(double xPoss, double yPoss) : xPos(xPoss), yPos(yPoss)
-        {
-            AURORA_INFO("Raw Window Coordinates: %f, %f", static_cast<float>(xPos), static_cast<float>(yPos));
-
-            // Transform into 3D normalized device coordinates between the ranges x Y Z -1 : 1. We already have an X and Y, so we scale their range and reverse the Y direction.
-            float x = (2.0f * xPos) / 1280.0f - 1.0f;
-            float y = 1.0f - (2.0 * yPos) / 720.0f;
-            float z = -1.0f;
-
-            AURORA_INFO("Normalized Window Coordinates: %f, %f", x, y);
-
-            // Now, we want our Z to point forward. With DX11, this is usuallt the positive Z direction. We can ads a W here to allow for a 4D vector.
-            float w = 1.0;
-            AURORA_INFO("Normalized Window Coordinates: %f, %f, %f, %f", x, y, z, w);
-        }
-    };
-
     class Input : public ISubsystem
     {
     public:
@@ -54,7 +35,6 @@ namespace Aurora
 
         bool IsKeyPressed(int keyCode);
         bool IsMouseButtonPressed(int mouseCode);
-        void SetupInputCallbacks();
 
         bool RegisterShortcut(); /// Should we register shortcuts in a mapping?
 

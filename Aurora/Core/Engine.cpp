@@ -1,11 +1,14 @@
 #include "Aurora.h"
+#include "ISubsystem.h"
+#include "EngineContext.h"
 #include "../Window/WindowContext.h"
 #include "../Time/Timer.h"
 #include "../Input/Input.h"
 #include "../Renderer/Renderer.h"
 #include "../Scene/World.h"
 #include "../Resource/ResourceCache.h"
-#include "EngineContext.h"
+#include "../Input/InputEvents/InputEvent.h"
+
 
 namespace Aurora
 {
@@ -24,6 +27,8 @@ namespace Aurora
 
         // Initialize Subsystem
         m_EngineContext->Initialize();
+
+        m_EngineContext->GetSubsystem<WindowContext>()->SetEventCallback(std::bind(&Engine::OnEvent, this, std::placeholders::_1));
     }
 
     Engine::~Engine()
@@ -37,11 +42,19 @@ namespace Aurora
         // AURORA_INFO("Delta Time (Seconds): %f", deltaTime);
 
         m_EngineContext->Tick(deltaTime);
+    }
 
-        // Shortcut example of a copy function.
-        if (m_EngineContext->GetSubsystem<Input>()->IsKeyPressed(AURORA_KEY_LEFT_CONTROL) && m_EngineContext->GetSubsystem<Input>()->IsKeyPressed(AURORA_KEY_C))
+    void Engine::OnEvent(InputEvent& inputEvent)
+    {
+        // Loop through our systems in reverse.
+        for (auto it = m_EngineContext->end(); it != m_EngineContext->begin();)
         {
-            AURORA_INFO("Copied!");
+            if (inputEvent.IsEventHandled)
+            {
+                break;
+            }
+
+            (*--it).m_Pointer->OnEvent(inputEvent);
         }
     }
 }

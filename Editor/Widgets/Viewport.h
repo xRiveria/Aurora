@@ -25,6 +25,4 @@ private:
     Aurora::Renderer* m_RendererSubsystem = nullptr;
     Aurora::World* m_WorldSubsystem = nullptr;
     Aurora::Input* m_InputSubsystem = nullptr;
-
-    std::shared_ptr<EditorTools> m_EditorTools;
 };

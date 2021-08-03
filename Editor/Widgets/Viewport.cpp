@@ -4,6 +4,7 @@
 #include "../Scene/Components/Light.h"
 #include "../Renderer/Renderer.h"
 #include "../Backend/Utilities/Extensions.h"
+#include "../Backend/Editor.h"
 
 Viewport::Viewport(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
@@ -14,8 +15,6 @@ Viewport::Viewport(Editor* editorContext, Aurora::EngineContext* engineContext) 
     m_WorldSubsystem = m_EngineContext->GetSubsystem<Aurora::World>();
     m_InputSubsystem = m_EngineContext->GetSubsystem<Aurora::Input>();
     m_RendererSubsystem = m_EngineContext->GetSubsystem<Aurora::Renderer>();
-
-    m_EditorTools = std::make_shared<EditorTools>(m_EditorContext, m_EngineContext);
 }
 
 void Viewport::OnTickVisible()
@@ -56,5 +55,5 @@ void Viewport::OnTickVisible()
         }
     }
    
-    m_EditorTools->Tick();
+    m_EditorContext->GetWidget<EditorTools>()->OnTickViewport();
 }

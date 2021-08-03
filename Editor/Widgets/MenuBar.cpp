@@ -17,29 +17,17 @@ void MenuBar::OnTickAlways()
 		{
 			if (ImGui::MenuItem("New Scene", "Ctrl + N"))
 			{
-				m_EngineContext->GetSubsystem<Aurora::World>()->New();
+				NewScene();
 			}
 
 			if (ImGui::MenuItem("Save Scene", "Ctrl + S"))
 			{
-				std::optional<std::string> filePath = EditorExtensions::SaveFile("Aurora Scene (*.aurora)\0*.aurora\0", m_EngineContext);
-				
-				if (filePath.has_value())
-				{
-					AURORA_INFO("%s", filePath.value().c_str());
-					m_EngineContext->GetSubsystem<Aurora::World>()->SerializeScene(filePath.value());
-				}
+				SaveScene();
 			}
 
 			if (ImGui::MenuItem("Open Scene", "Ctrl + O"))
 			{
-				std::optional<std::string> filePath = EditorExtensions::OpenFile("Aurora Scene (*.aurora)\0*.aurora\0", m_EngineContext);
-
-				if (filePath.has_value())
-				{
-					AURORA_INFO("%s", filePath.value().c_str());
-					m_EngineContext->GetSubsystem<Aurora::World>()->DeserializeScene(filePath.value());
-				}
+				LoadScene();
 			}
 
 			ImGui::Separator();
@@ -84,4 +72,69 @@ void MenuBar::OnTickAlways()
 
 		ImGui::EndMainMenuBar();
 	}
+}
+
+void MenuBar::OnEvent(Aurora::InputEvent& inputEvent)
+{
+	Aurora::InputEventDispatcher dispatcher(inputEvent);
+	dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(MenuBar::OnKeyPressed));
+}
+
+bool MenuBar::OnKeyPressed(Aurora::KeyPressedEvent& keyPressedEvent)
+{
+	if (keyPressedEvent.GetRepeatCount() > 0)
+	{
+		return false;
+	}
+
+	bool isControlPressed = m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_LEFT_CONTROL) || m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_RIGHT_CONTROL);
+	bool isShiftPressed = m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_LEFT_SHIFT) || m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_RIGHT_SHIFT);
+
+	switch (keyPressedEvent.GetKeyCode())
+	{
+		case AURORA_KEY_N:
+		{
+			if (isControlPressed) { NewScene(); }
+			break;
+		}
+
+		case AURORA_KEY_L:
+		{
+			if (isControlPressed) { LoadScene(); }
+			break;
+		}
+
+		case AURORA_KEY_S:
+		{
+			if (isControlPressed && isShiftPressed) { SaveScene(); }
+			break;
+		}
+	}
+}
+
+void MenuBar::SaveScene()
+{
+	std::optional<std::string> filePath = EditorExtensions::SaveFile("Aurora Scene (*.aurora)\0*.aurora\0", m_EngineContext);
+
+	if (filePath.has_value())
+	{
+		AURORA_INFO("%s", filePath.value().c_str());
+		m_EngineContext->GetSubsystem<Aurora::World>()->SerializeScene(filePath.value());
+	}
+}
+
+void MenuBar::LoadScene()
+{
+	std::optional<std::string> filePath = EditorExtensions::OpenFile("Aurora Scene (*.aurora)\0*.aurora\0", m_EngineContext);
+
+	if (filePath.has_value())
+	{
+		AURORA_INFO("%s", filePath.value().c_str());
+		m_EngineContext->GetSubsystem<Aurora::World>()->DeserializeScene(filePath.value());
+	}
+}
+
+void MenuBar::NewScene()
+{
+	m_EngineContext->GetSubsystem<Aurora::World>()->New();
 }

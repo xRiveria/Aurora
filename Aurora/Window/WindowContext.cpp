@@ -3,6 +3,8 @@
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32 // For the inclusion of native access handles.
 #include <GLFW/glfw3native.h>
+#include "../Input/InputEvents/MouseEvent.h"
+#include "../Input/InputEvents/KeyEvent.h"
 
 namespace Aurora
 {
@@ -28,7 +30,98 @@ namespace Aurora
         Create({ ENGINE_ARCHITECTURE, 1280, 720 });
         SetCurrentContext(0); // Index 0 is guarenteed to be our render window. Alternatively, use GetRenderWindow().
 
+        // Allows us to associate an arbitrary piece of data relevant to our program with a GLFW window. We will use this to associate event callbacks within the GLFW library with our engine.
+        glfwSetWindowUserPointer(static_cast<GLFWwindow*>(m_Windows[0]), &m_EventCallback);
+        SetWindowCallbacks();
+
         return true;
+    }
+
+    void WindowContext::SetEventCallback(const EventCallbackFunction& inputCallback)
+    {
+        // Sets the callback to be, well, called.
+        m_EventCallback = inputCallback;
+    }
+
+    void WindowContext::SetWindowCallbacks()
+    {
+        // Window Size
+
+        // Window Close
+
+        // Window Key
+        glfwSetKeyCallback(static_cast<GLFWwindow*>(m_Windows[0]), [](GLFWwindow* window, int keyPressed, int scanCode, int action, int mods)
+        {
+            EventCallbackFunction& inputEventData = *(EventCallbackFunction*)glfwGetWindowUserPointer(window);
+            switch (action)
+            {
+                case GLFW_PRESS:
+                {
+                    KeyPressedEvent keyPressedEvent(keyPressed, 0);
+                    inputEventData(keyPressedEvent);
+                    break;
+                }
+                case GLFW_RELEASE:
+                {
+                    KeyReleasedEvent keyReleasedEvent(keyPressed);
+                    inputEventData(keyReleasedEvent);
+                    break;
+                }
+
+                case GLFW_REPEAT:
+                {
+                    KeyPressedEvent keyRepeatedEvent(keyPressed, 1);
+                    inputEventData(keyRepeatedEvent);
+                    break;
+                }
+            }
+        });
+
+        // Window Char
+        glfwSetCharCallback(static_cast<GLFWwindow*>(m_Windows[0]), [](GLFWwindow* window, unsigned int character)
+        {
+            EventCallbackFunction& inputEventData = *(EventCallbackFunction*)glfwGetWindowUserPointer(window);
+            KeyTypedEvent keyTypedEvent(character);
+            inputEventData(keyTypedEvent);
+        });
+
+        // Window Mouse Button
+        glfwSetMouseButtonCallback(static_cast<GLFWwindow*>(m_Windows[0]), [](GLFWwindow* window, int buttonPressed, int action, int mods)
+        {
+            EventCallbackFunction& inputEventData = *(EventCallbackFunction*)glfwGetWindowUserPointer(window);
+            switch (action)
+            {
+                case GLFW_PRESS:
+                {
+                    MouseButtonPressedEvent mousePressedEvent(buttonPressed);
+                    inputEventData(mousePressedEvent);
+                    break;
+                }
+
+                case GLFW_RELEASE:
+                {
+                    MouseButtonReleasedEvent mouseReleasedEvent(buttonPressed);
+                    inputEventData(mouseReleasedEvent);
+                    break;
+                }
+            }
+        });
+
+        // Window Scroll
+        glfwSetScrollCallback(static_cast<GLFWwindow*>(m_Windows[0]), [](GLFWwindow* window, double xPosition, double yPosition)
+        {
+            EventCallbackFunction& inputEventData = *(EventCallbackFunction*)glfwGetWindowUserPointer(window);
+            MouseScrolledEvent mouseScrolledEvent(static_cast<float>(xPosition), static_cast<float>(yPosition));
+            inputEventData(mouseScrolledEvent);
+        });
+
+        // Window Cursor Position
+        glfwSetCursorPosCallback(static_cast<GLFWwindow*>(m_Windows[0]), [](GLFWwindow* window, double xPosition, double yPosition)
+        {
+            EventCallbackFunction& inputEventData = *(EventCallbackFunction*)glfwGetWindowUserPointer(window);
+            MouseMovedEvent mouseMovedEvent(static_cast<float>(xPosition), static_cast<float>(yPosition));
+            inputEventData(mouseMovedEvent);
+        });
     }
 
     void WindowContext::Shutdown()
@@ -48,6 +141,7 @@ namespace Aurora
     {
         if (!glfwWindowShouldClose(static_cast<GLFWwindow*>(GetRenderWindow())))
         {
+            glfwPollEvents();
             // Window is still opening and ticking.
         }
         else

@@ -36,13 +36,33 @@ namespace EditorConfigurations
 	const float g_FontSize = 17.0f;
 }
 
+EditorSubsystem::EditorSubsystem(Aurora::EngineContext* engineContext) : Aurora::ISubsystem(engineContext)
+{
+
+}
+
+void EditorSubsystem::OnEvent(Aurora::InputEvent& inputEvent)
+{
+	// Push events to any widgets that ought to be listening to events.
+	for (int i = 0; i < m_Editor->GetWidgets().size(); i++)
+	{
+		m_Editor->GetWidgets()[i]->OnEvent(inputEvent);
+	}
+}
+
 Editor::Editor()
 {
 	// Create Engine
 	m_Engine = std::make_unique<Aurora::Engine>();
 
 	// Acquire useful engine subsystems.
-	m_EngineContext = m_Engine->GetEngineContext();
+	m_EngineContext = m_Engine->GetEngineContext();;
+
+	// Register event polling.
+	m_EngineContext->RegisterSubsystem<EditorSubsystem>();
+	m_EditorSubsystem = m_EngineContext->GetSubsystem<EditorSubsystem>();
+	m_EditorSubsystem->SetEditorInstance(this);
+
 	InitializeEditor();
 	IconLibrary::GetInstance().Initialize(m_EngineContext, this);
 }
@@ -149,6 +169,7 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<MathPlayground>(this, m_EngineContext)); // For me to play with the Math library.
 	m_Widgets.emplace_back(std::make_shared<Viewport>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Hierarchy>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<EditorTools>(this, m_EngineContext));
 }
 
 void Editor::BeginDockingContext()

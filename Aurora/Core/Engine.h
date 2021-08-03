@@ -6,6 +6,8 @@
 namespace Aurora
 {
     class EngineContext;
+    class InputEvent;
+    class ISubsystem;
 
     class Engine
     {
@@ -14,6 +16,7 @@ namespace Aurora
         ~Engine();
 
         void Tick() const; // Supplies deltaTime from the Time subsystem.
+        void OnEvent(InputEvent& inputEvent);
 
         EngineContext* GetEngineContext() const { return m_EngineContext.get(); }
 

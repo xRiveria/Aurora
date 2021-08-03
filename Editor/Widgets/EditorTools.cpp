@@ -1,6 +1,7 @@
 #define _XM_NO_INTRINSICS_
 #include "EditorTools.h"
 #include "../Backend/Source/ImGuizmo/ImGuizmo.h"
+#include <functional>
 #include "Properties.h"
 #include "../Scene/World.h"
 #include "../Scene/Entity.h"
@@ -14,34 +15,49 @@ EditorTools::EditorTools(Editor* editorContext, Aurora::EngineContext* engineCon
 	m_IsWidgetVisible = false; // Should not be visible.
 }
 
-void EditorTools::OnTickAlways()
+void EditorTools::OnTickViewport()
 {
     TickGizmos();
 }
 
-void EditorTools::TickGizmos()
+void EditorTools::OnEvent(Aurora::InputEvent& inputEvent)
 {
-	if (ImGui::IsWindowFocused() || ImGui::IsWindowHovered())
+	Aurora::InputEventDispatcher dispatcher(inputEvent);
+	dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorTools::OnKeyPressed));
+}
+
+bool EditorTools::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
+{
+	if (inputEvent.GetRepeatCount() > 0)
 	{
-		if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_E))
-		{
-			m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-		}
-		else if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_R))
-		{
-			m_GizmoType = ImGuizmo::OPERATION::SCALE;
-		}
-		else if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_T))
-		{
-			m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-		}
-		else if (m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_Q))
-		{
-			m_GizmoType = -1;
-		}
+		return false;
 	}
 
-	// Gizmo
+	switch (inputEvent.GetKeyCode())
+	{
+		if (ImGui::IsWindowFocused() || ImGui::IsWindowHovered())
+		{
+			case AURORA_KEY_E:
+				m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+				break;
+
+			case AURORA_KEY_R:
+				m_GizmoType = ImGuizmo::OPERATION::SCALE;
+				break;
+
+			case AURORA_KEY_T:
+				m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+				break;
+
+			case AURORA_KEY_Q:
+				m_GizmoType = -1;
+				break;
+		}
+	}
+}
+
+void EditorTools::TickGizmos()
+{
 	if (!Properties::m_InspectedEntity.expired() && m_GizmoType != -1)
 	{
 		ImGuizmo::SetOrthographic(false);

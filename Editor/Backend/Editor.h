@@ -5,6 +5,21 @@
 #include "Widget.h"
 #include <optional>
 #include "../Widgets/EditorTools.h"
+#include "../Backend/Utilities/Extensions.h"
+
+class EditorSubsystem : public Aurora::ISubsystem
+{
+public:
+	EditorSubsystem(Aurora::EngineContext* engineContext);
+	~EditorSubsystem() {}
+
+	void SetEditorInstance(Editor* editor) { m_Editor = editor; }
+
+	void OnEvent(Aurora::InputEvent& inputEvent) override;
+
+private:
+	Editor* m_Editor;
+};
 
 class Editor
 {
@@ -15,6 +30,20 @@ public:
 	void Tick();
 
 	Aurora::EngineContext* GetEngineContext() const { return m_EngineContext; }
+	std::vector<std::shared_ptr<Widget>>& GetWidgets() { return m_Widgets; }
+
+	template<typename T>
+	T* GetWidget() const
+	{
+		for (const auto& widget : m_Widgets)
+		{
+			if (typeid(T) == typeid(*widget))
+			{
+				return static_cast<T*>(widget.get());
+			}	
+		}
+		return nullptr;
+	}
 
 private:
 	void InitializeEditor();
@@ -28,6 +57,7 @@ private:
 	// Engine Contexts
 	std::unique_ptr<Aurora::Engine> m_Engine;
 	Aurora::EngineContext* m_EngineContext = nullptr; // Consists of subsystems.
+	EditorSubsystem* m_EditorSubsystem;
 
 	// Editor Contexts
 	bool m_EditorBegun = false;

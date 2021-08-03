@@ -1,7 +1,9 @@
 #pragma once
+#include <functional>
 #include <unordered_map>
 #include "ISubsystem.h"
 #include "WindowUtilities.h"
+#include "../Input/InputEvents/InputEvent.h"
 
 /* Personal Notes:
 
@@ -18,11 +20,19 @@ namespace Aurora
     class WindowContext : public ISubsystem
     {
     public:
+        using EventCallbackFunction = std::function<void(InputEvent& inputEvent)>;
+
+    public:
         WindowContext(EngineContext* engineContext);
 
         virtual bool Initialize() override;
         virtual void Shutdown() override;
         void Tick(float deltaTime) override;
+        void SetEventCallback(const EventCallbackFunction& inputCallback);
+        void SetWindowCallbacks();
+
+        // ======================================================================
+
         bool IsWindowRunning() const { return m_IsRunning; }
         void SetWindowRunState(bool value) { m_IsRunning = value; }
         
@@ -49,6 +59,8 @@ namespace Aurora
         void* GetRenderWindow();
 
     private:
+        EventCallbackFunction m_EventCallback;
+
         std::unordered_map<uint8_t, void*> m_Windows;
         bool m_IsRunning = true;
         bool m_IsInitialized = false;

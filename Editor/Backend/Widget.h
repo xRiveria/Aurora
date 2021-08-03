@@ -3,8 +3,11 @@
 #include "EngineContext.h"
 #include "../Math/Vector2.h"
 #include "../Backend/Source/imgui.h"
+#include "../Input/Input.h"
+#include "../Input/InputEvents/KeyEvent.h"
 
 class Editor;
+class Aurora::InputEvent;
 class Aurora::EngineContext;
 
 class Widget
@@ -17,6 +20,7 @@ public:
 
     virtual void OnTickAlways()  {}    // Always called for all widgets, regardless of whether its a window or permanent aesthetic.
     virtual void OnTickVisible() {}    // Called only when the widget is visible. Certain widgets can be hidden or closed.
+    virtual void OnEvent(Aurora::InputEvent& inputEvent) {}          // Called when the widget itself listens to specific events, forwarded from the core engine.
 
     // Properties
     void SetWidgetVisibility(bool isVisible) { m_IsWidgetVisible = isVisible; }

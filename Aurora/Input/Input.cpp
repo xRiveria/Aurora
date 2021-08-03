@@ -1,6 +1,5 @@
 #include "Aurora.h"
 #include "Input.h"
-#include "Future/KeyEvent.h"
 #include "../Window/WindowContext.h"
 #include <GLFW/glfw3.h>
 
@@ -71,48 +70,5 @@ namespace Aurora
     {
         int mouseState = glfwGetMouseButton(static_cast<GLFWwindow*>(m_QueryWindow), mouseCode);
         return mouseState == GLFW_PRESS;
-    }
-
-    // Example of an event based input system. This is where we setup all our callbacks that will ultimately throw input data into our custom data structures.
-    void Input::SetupInputCallbacks()
-    {
-        glfwSetMouseButtonCallback(static_cast<GLFWwindow*>(m_QueryWindow), [](GLFWwindow* window, int mouseButtonPressed, int action, int mods)
-        {
-            switch (action)
-            {
-                 case GLFW_PRESS:
-                 {
-                     if (mouseButtonPressed == 0)
-                     {
-                         double x, y;
-                         glfwGetCursorPos(window, &x, &y);
-                         MouseButtonPressedEvent mouseButtonPress(x, y); // Mouse click
-                     }
-                 }
-            }
-        });
-
-
-
-        glfwSetKeyCallback(static_cast<GLFWwindow*>(m_QueryWindow), [](GLFWwindow* window, int keyPressed, int scanCode, int action, int mods)
-        {
-            switch (action)
-            {
-                case GLFW_PRESS:
-                {
-                    KeyPressedEvent keyPressedEvent(keyPressed, 0);
-                    AURORA_INFO(keyPressedEvent.ToString());
-                    
-                    break;
-                }
-
-                case GLFW_REPEAT:
-                {
-                    KeyPressedEvent keyPressedEvent(keyPressed, 1);
-                    AURORA_INFO(keyPressedEvent.ToString());
-                    break;
-                }
-            }
-        });
     }
 }

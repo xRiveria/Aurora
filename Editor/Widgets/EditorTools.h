@@ -8,8 +8,13 @@ class EditorTools : public Widget
 public:
     EditorTools(Editor* editorContext, Aurora::EngineContext* engineContext);
     
-    void OnTickAlways() override;
+    void OnTickViewport();
+    void OnEvent(Aurora::InputEvent& inputEvent) override;
+
     void TickGizmos();
+
+private:
+    bool OnKeyPressed(Aurora::KeyPressedEvent& inputEvent);
 
 private:
     int m_GizmoType = -1;
