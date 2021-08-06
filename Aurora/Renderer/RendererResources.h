@@ -15,11 +15,9 @@ namespace Aurora
         RHI_DepthStencilState g_DepthStencilStates[DS_Types::DS_Count];
         RHI_BlendState        g_BlendStates[BS_Types::BS_Count];
         RHI_RasterizerState   g_RasterizerStates[RS_Types::RS_Count];
-        RHI_GPU_Buffer        g_ConstantBuffers[CB_Types::CB_Count];
         RHI_InputLayout       g_InputLayouts[InputLayout_Types::InputLayout_Count];
 
         // Pipeline States
-        RHI_PipelineState m_PSO_Object_Wire; // Right now we're using this for everything.
         RHI_PipelineState m_PSO_Object_WireThing; // Right now we're using this for everything.
         RHI_PipelineState m_PSO_Object_Debug[DebugRenderer_Count];
 
@@ -234,7 +232,7 @@ namespace Aurora
         RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default] = depthStencilState;
 
         depthStencilState.m_IsStencilEnabled = false;
-        depthStencilState.m_DepthWriteMask = Depth_Write_Mask::Depth_Write_Mask_Zero;
+        depthStencilState.m_DepthWriteMask = Depth_Write_Mask::Depth_Write_Mask_All;
         depthStencilState.m_DepthComparisonFunction = ComparisonFunction::Comparison_Less_Equal;
         
         RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead] = depthStencilState;
@@ -278,23 +276,23 @@ namespace Aurora
         bufferDescription.m_BindFlags = Bind_Flag::Bind_Constant_Buffer;
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Camera);
-        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera]);
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Camera]);
         AURORA_INFO("Successfully created Camera Constant Buffer.");
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Misc);
-        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc]);
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Misc]);
         AURORA_INFO("Successfully created Misc Constant Buffer.");
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Material);
-        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material]);
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Material]);
         AURORA_INFO("Successfully created Material Constant Buffer.");
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Frame);
-        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame]);
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Frame]);
         AURORA_INFO("Successfully created Frame Constant Buffer.");
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Entity);
-        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Entity]);
+        m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Entity]);
         AURORA_INFO("Successfully created Entity Constant Buffer.");
     }
 
@@ -309,7 +307,7 @@ namespace Aurora
         pipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
         pipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
 
-        m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &RendererGlobals::m_PSO_Object_Wire);
+        m_GraphicsDevice->CreatePipelineState(&pipelineDescription, &m_PSO_Object_Wire);
 
        //  ===========================================================
         RHI_PipelineState_Description shadowPassDescription;

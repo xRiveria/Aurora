@@ -13,6 +13,7 @@
 #include "../Graphics/DX11/Skybox.h"
 #include <iostream>
 #include "../Input/Input.h"
+#include "Environment.h"
 
 namespace Aurora
 {
@@ -49,12 +50,16 @@ namespace Aurora
         m_ResourceCache = m_EngineContext->GetSubsystem<ResourceCache>();
 
         m_Camera = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Default_Camera");
-        m_Camera->GetComponent<Camera>()->SetPosition(0.01, 4, 0);
+        m_Camera->GetComponent<Transform>()->Translate({ 0.0f, 4.0f, 0.0f });
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
+        m_Camera->GetComponent<Camera>()->ComputeViewMatrix();
 
         m_DirectionalLight = m_EngineContext->GetSubsystem<World>()->EntityCreate();
         m_DirectionalLight->SetName("Directional Light");
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
+
+        // auto derp = m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Skybox/skybox.obj", "Derp");
+        // derp->GetComponent<Transform>()->Translate({ 0.0f, 4.0f, 0.0f });
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -66,6 +71,10 @@ namespace Aurora
             pRects[i].top = INT32_MIN;
         }
         m_GraphicsDevice->m_DeviceContextImmediate->RSSetScissorRects(8, pRects);
+
+        D3D11_VIEWPORT viewportInfo = { 0, 0, (float)1280.0, (float)1080.0, 0.0f, 1.0f };
+        m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
+       
         m_Skybox = std::make_shared<Skybox>(m_EngineContext);
         m_Skybox->InitializeResources();
         return true;
@@ -105,7 +114,7 @@ namespace Aurora
         constantBuffer.g_Material.g_Metalness = materialComponent->m_Metalness;
         if (m_Camera != nullptr)
         {
-            XMStoreFloat3(&constantBuffer.g_Camera_Position, m_Camera->GetComponent<Camera>()->m_Position);
+            constantBuffer.g_Camera_Position = m_Camera->GetComponent<Transform>()->m_TranslationLocal;
         }
 
         constantBuffer.g_Texture_BaseColorMap_Index = BindMaterialTexture(TextureSlot::BaseColorMap, materialComponent);
@@ -113,18 +122,13 @@ namespace Aurora
         constantBuffer.g_Texture_MetalnessMap_Index = BindMaterialTexture(TextureSlot::MetalnessMap, materialComponent);
         constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(TextureSlot::RoughnessMap, materialComponent);
 
-        if (m_Skybox->m_SkyHDR != nullptr)
-        {
-            constantBuffer.g_Texture_SkyHDRMap_Index = BindSkyboxTexture(m_Skybox->m_SkyboxHDRMappingIndex, &m_Skybox->m_SkyHDR->m_Texture);
-        }
-        if (m_Skybox->m_Cubemap != nullptr)
-        {
-            constantBuffer.g_Texture_TextureCube_Index = BindSkyboxTexture(m_Skybox->m_SkyboxCubemapMappingIndex, m_Skybox->m_Cubemap->GetSRV());
-        }
+        constantBuffer.g_Texture_IrradianceMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_IRRADIANCE, m_Skybox->m_IrradianceMapTexture.m_SRV.Get());
+        constantBuffer.g_Texture_PrefilterMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_PREFILTER, m_Skybox->m_EnvironmentTexture.m_SRV.Get());
+        constantBuffer.g_Texture_BRDFLUT_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_BRDF_LUT, m_Skybox->m_SpecularPrefilterBRDFLUT.m_SRV.Get());
 
         constantBuffer.g_Texture_DepthShadowMap_Index = BindSkyboxTexture(m_DepthShadowMappingIndex, &m_ShadowDepthMap);
 
-        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material], &constantBuffer, 0);
+        m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Material], &constantBuffer, 0);
     }
 
     void Renderer::UpdateEntityConstantBuffer(Entity* entity)
@@ -133,21 +137,24 @@ namespace Aurora
 
         XMStoreFloat4x4(&entityConstantBuffer.g_ModelMatrix, XMLoadFloat4x4(&entity->GetComponent<Transform>()->m_WorldMatrix));
 
-        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Entity], &entityConstantBuffer, 0);
+        m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Entity], &entityConstantBuffer, 0);
     }
 
     void Renderer::UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList)
     {
         ConstantBufferData_Camera constantBuffer;
 
-        XMStoreFloat4x4(&constantBuffer.g_Camera_ViewProjection, camera->GetComponent<Camera>()->GetViewProjectionMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_Camera_View, camera->GetComponent<Camera>()->GetViewMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_Camera_Projection, camera->GetComponent<Camera>()->GetProjectionMatrix());
-        XMStoreFloat4x4(&constantBuffer.g_Camera_InverseViewProjection, XMMatrixInverse(nullptr, camera->GetComponent<Camera>()->GetViewProjectionMatrix()));
+        if (camera != nullptr)
+        {
+            XMStoreFloat4x4(&constantBuffer.g_Camera_ViewProjection, camera->GetComponent<Camera>()->GetViewProjectionMatrix());
+            XMStoreFloat4x4(&constantBuffer.g_Camera_View, camera->GetComponent<Camera>()->GetViewMatrix());
+            XMStoreFloat4x4(&constantBuffer.g_Camera_Projection, camera->GetComponent<Camera>()->GetProjectionMatrix());
+            XMStoreFloat4x4(&constantBuffer.g_Camera_InverseViewProjection, XMMatrixInverse(nullptr, camera->GetComponent<Camera>()->GetViewProjectionMatrix()));
+        }
         constantBuffer.g_Light_Bias = m_LightBias;
         // XMStoreFloat3(&constantBuffer.g_Camera_Position, camera->GetComponent<Camera>()->m_Position);
 
-        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, commandList);
+        m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Camera], &constantBuffer, commandList);
     }
 
     void Renderer::UpdateLightConstantBuffer() // We can only bind up to 16 point lights at this time.
@@ -190,14 +197,14 @@ namespace Aurora
 
         XMStoreFloat4x4(&miscConstantBuffer.g_LightSpaceMatrix, lightSpaceMatrix);
 
-        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame], &miscConstantBuffer, 0);
+        m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Frame], &miscConstantBuffer, 0);
     }
 
     void Renderer::BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList)
     {
-        m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Camera], CB_GETBINDSLOT(ConstantBufferData_Camera), 0);
-        m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Material], CB_GETBINDSLOT(ConstantBufferData_Material), 0);
-        m_GraphicsDevice->BindConstantBuffer(shaderStage, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Frame], CB_GETBINDSLOT(ConstantBufferData_Frame), 0);
+        m_GraphicsDevice->BindConstantBuffer(shaderStage, &g_ConstantBuffers[CB_Types::CB_Camera], CB_GETBINDSLOT(ConstantBufferData_Camera), 0);
+        m_GraphicsDevice->BindConstantBuffer(shaderStage, &g_ConstantBuffers[CB_Types::CB_Material], CB_GETBINDSLOT(ConstantBufferData_Material), 0);
+        m_GraphicsDevice->BindConstantBuffer(shaderStage, &g_ConstantBuffers[CB_Types::CB_Frame], CB_GETBINDSLOT(ConstantBufferData_Frame), 0);
     }
 
     inline void Renderer::ResizeBuffers()
@@ -376,7 +383,7 @@ namespace Aurora
 
 
         //============== Depth Buffer Pass ==================
-        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
+        m_GraphicsDevice->BindPipelineState(&m_PSO_Object_Wire, 0);
         ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_SimpleDepthShaderVS.m_InternalState.get())->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
 
@@ -391,7 +398,6 @@ namespace Aurora
         RenderScene();
 
         // ================ Scene Pass ==================================
-        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Wire, 0);
 
         ID3D11DepthStencilView* ourDepthStencilTexture = DX11_Utility::ToInternal(&m_DepthBuffer_Main)->m_DepthStencilView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(2, renderTargetViews, ourDepthStencilTexture);
@@ -401,9 +407,6 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         ///==============================
-
-        // Bind whatever.
-    
         RenderScene();
         DrawDebugWorld(m_Camera.get());
 
@@ -420,8 +423,9 @@ namespace Aurora
 
     void Renderer::RenderScene()
     {
-        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Entity], CB_GETBINDSLOT(ConstantBufferData_Entity), 0);
+        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Entity], CB_GETBINDSLOT(ConstantBufferData_Entity), 0);
 
+        m_GraphicsDevice->BindPipelineState(&m_PSO_Object_Wire, 0);
         /// Render Queue Feature?
         std::vector<std::shared_ptr<Entity>> sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
         std::vector<Mesh> meshComponents;
@@ -512,9 +516,9 @@ namespace Aurora
         XMStoreFloat4x4(&miscBuffer.g_Transform, camera->GetViewProjectionMatrix());
         miscBuffer.g_Color = float4(1, 1, 1, 1);
 
-        m_GraphicsDevice->UpdateBuffer(&RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
-        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
-        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Pixel_Shader, &RendererGlobals::g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
+        m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
+        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
+        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Pixel_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
 
         uint32_t offset = 0;
         const uint32_t stride = sizeof(XMFLOAT4) + sizeof(XMFLOAT4);

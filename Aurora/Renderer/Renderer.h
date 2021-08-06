@@ -15,7 +15,7 @@ using namespace DirectX;
 namespace Aurora
 {
     class Skybox;
-
+    class Environment;
     class Renderer : public ISubsystem
     {
     public:
@@ -74,12 +74,15 @@ namespace Aurora
     public:
         float m_RenderWidth = 1280;
         float m_RenderHeight = 1080;
-        std::shared_ptr<Skybox> m_Skybox;
         RHI_PipelineState m_PSO_Object_Sky;
         float m_LightBias = 0.025f;
 
     public:
-        
+        RHI_GPU_Buffer        g_ConstantBuffers[CB_Types::CB_Count];
+
+        std::shared_ptr<Environment> m_Environment;
+        std::shared_ptr<Skybox> m_Skybox;
+
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
         RHI_SwapChain m_SwapChain;
@@ -103,5 +106,7 @@ namespace Aurora
 
         // Entities
         std::vector<std::shared_ptr<Entity>> m_SceneEntities;
+
+        RHI_PipelineState m_PSO_Object_Wire; // Right now we're using this for everything.
     };
 }

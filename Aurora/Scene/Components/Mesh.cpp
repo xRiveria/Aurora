@@ -176,7 +176,7 @@ namespace Aurora
                 texCoords = m_UVSet_0[i];
             }
 
-            vertices[i].Populate(position, m_UVSet_0[i], m_VertexNormals[i]);
+            vertices[i].Populate(position, texCoords, m_VertexNormals[i]);
 
             // minimumVector = Aurora::Math::Minimum(minimumVector, position);
             // maximumVector = Aurora::Math::Maximum(maximumVector, position);

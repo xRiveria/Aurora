@@ -43,10 +43,10 @@ CBUFFER(ConstantBufferData_Material, CBSLOT_RENDERER_MATERIAL)
     int g_Texture_MetalnessMap_Index;
     int g_Texture_RoughnessMap_Index;
 
-    int g_Texture_TextureCube_Index;
     int g_Texture_DepthShadowMap_Index;
-    int padding00002;
-    int padding00003;
+    int g_Texture_PrefilterMap_Index;
+    int g_Texture_IrradianceMap_Index;
+    int g_Texture_BRDFLUT_Index;
 };
 
 CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)
@@ -83,6 +83,6 @@ CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
     float g_RenderItem; // 0 skybox.
     float g_Light_Bias;
 
-    float g_Padding2;
+    float g_IBLRoughness;
     float g_Padding3;
 };

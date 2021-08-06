@@ -9,6 +9,7 @@
 // Engine
 #include "Engine.h"
 #include "EngineContext.h"
+#include "Settings.h"
 #include "../Log/Log.h"
 #include "../Input/InputUtilities.h"
 #include "FileSystem.h"

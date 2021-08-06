@@ -38,7 +38,7 @@ namespace Aurora
             - File Data: Pointer to file data, if file was loaded manually (optional).
             - File Size: Size of file data, if file was loaded manually (optional).
         */
-
+        
         std::string GetResourceDirectory() const { return m_ResourceDirectory; }
         std::shared_ptr<AuroraResource> LoadTexture(const std::string& filePath, const std::string& fileName = "", uint32_t loadFlags = 0);
         std::shared_ptr<AuroraResource> LoadTextureHDR(const std::string& filePath, int channels = 4);

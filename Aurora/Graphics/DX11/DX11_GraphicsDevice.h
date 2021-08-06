@@ -67,7 +67,8 @@ namespace Aurora
         void BindSampler(Shader_Stage shaderStage, const RHI_Sampler* sampler, uint32_t slot, RHI_CommandList commandList);
         void BindVertexBuffers(const RHI_GPU_Buffer* const* vertexBuffers, uint32_t slot, uint32_t count, const uint32_t* strides, const uint32_t* offsets, RHI_CommandList commandList);
         void BindIndexBuffer(const RHI_GPU_Buffer* indexBuffer, const IndexBuffer_Format format, uint32_t offset, RHI_CommandList commandList);
-        
+        ID3D11InputLayout* GetInputLayout(const RHI_PipelineState* inputLayout);
+
         void BindConstantBuffer(Shader_Stage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList);
         void BindPipelineState(const RHI_PipelineState* pipelineStateObject, RHI_CommandList commandList);
        

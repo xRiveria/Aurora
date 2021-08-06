@@ -27,7 +27,7 @@ InputPixelType main(InputVertexType input)
     output.outPosition = mul(worldPosition, newView);
     output.outPosition = mul(output.outPosition, g_Camera_Projection);
 
-    output.outPosition = output.outPosition.xyzw;
+    // output.outPosition = output.outPosition.xyzw;
     output.outPosition.z = output.outPosition.w * 0.9999;
 
     return output;

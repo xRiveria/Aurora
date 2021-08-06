@@ -1,5 +1,14 @@
 static const float PI = 3.14159265359;
 
+// Injects a roughness parameter for ambient lighting.
+// We earlier use a halfway vector to determine the Fresnel response, but it doesn't work for IBL (hemisphere) as there's no single halfway vector avaliable.
+// Without it, the surface's reflective ratio will always end up high. It shouldn't be as indirect light follows the properties of direct light and hence, rougher surfaces should reflect less strongly.
+// Hence, without it, the Fresnel reflection strength looks off on non-metal surfaces. We will inject a roughness parameter to allievate the issue.
+float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+{
+    return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
 // Calculates how much the surface reflects light versus how much it refracts light, varying over the angle we're looking at the surface.
 // We make an assumption that dieletrics have a constant F0 of 0.04.
 float3 FresnelSchlick(float cosTheta, float3 F0)

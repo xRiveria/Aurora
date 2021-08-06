@@ -25,7 +25,7 @@ void MenuBar::OnTickAlways()
 				SaveScene();
 			}
 
-			if (ImGui::MenuItem("Open Scene", "Ctrl + O"))
+			if (ImGui::MenuItem("Load Scene", "Ctrl + L"))
 			{
 				LoadScene();
 			}

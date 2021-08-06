@@ -30,6 +30,9 @@
 #include "EngineContext.h"
 #include "../Graphics/DX11/Skybox.h"
 #include "../Widgets/Hierarchy.h"
+#include "../Widgets/ProjectSettings.h"
+#include "../Renderer/Environment.h"
+#include <vector>
 
 namespace EditorConfigurations
 {
@@ -112,6 +115,33 @@ void Editor::Tick()
 		// Sky
 		ImGui::Begin("Sky");
 
+		//Aurora::DX11_Utility::DX11_TexturePackage* textures = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular);
+		ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(600, 600));
+		if (ImGui::Button("Front"))
+		{
+			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
+		}
+		if (ImGui::Button("Back"))
+		{
+			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 270.0f, 0.0f); // back
+		}
+		if (ImGui::Button("Top"))
+		{
+			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(-90.0f, 0.0f, 0.0f); // top
+		}
+		if (ImGui::Button("Bottom"))
+		{
+			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(90.0f, 0.0f, 0.0f); // bottom
+		}
+		if (ImGui::Button("Left"))
+		{
+			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 0.0f, 0.0f); // left
+		}
+		if (ImGui::Button("Right"))
+		{
+			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
+		}
+
 	    Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_ShadowDepthMap);
 	    ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(600, 600));
 
@@ -161,6 +191,7 @@ void Editor::InitializeEditor()
 	ImGuiImplementation_ApplyStyling();
 
 	// Create all ImGui widgets.
+	m_Widgets.emplace_back(std::make_shared<ProjectSettings>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<MenuBar>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));

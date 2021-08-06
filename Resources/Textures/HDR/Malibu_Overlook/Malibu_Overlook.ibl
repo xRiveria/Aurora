@@ -1,0 +1,46 @@
+[Header]
+ICOfile = "Malibu_Overlook_thumb.jpg"
+PREVIEWfile = "Malibu_Overlook_preview.jpg"
+Name = "Malibu Overlook"
+Author = "Blochi"
+Location = "California"
+Comment = "High noon above El Matador Beach, sunny summer day, outdoors"
+GEOlat = 34.0384219999999970
+GEOlong = -118.8753750000000100
+Link = "www.hdrlabs.com/sibl/archive.html"
+Date = "2010:04:14"
+Time = "12:04:00"
+Height = 1.700000
+North = 0.8
+
+[Background]
+BGfile = "Malibu_Overlook_8k.jpg"
+BGmap = 1
+BGu = 0.000000
+BGv = 0.000000
+BGheight = 4096
+
+[Enviroment]
+EVfile = "Malibu_Overlook_Env.hdr"
+EVmap = 1
+EVu = 0.000000
+EVv = 0.000000
+EVheight = 180
+EVmulti = 1.000000
+EVgamma = 2.200000
+
+[Reflection]
+REFfile = "Malibu_Overlook_3k.hdr"
+REFmap = 1
+REFu = 0.000000
+REFv = 0.000000
+REFheight = 1600
+REFmulti = 1.000000
+REFgamma = 1.000000
+
+[Sun]
+SUNcolor = 255,251,232
+SUNmulti = 1.000000
+SUNu = 0.424000
+SUNv = 0.200000
+

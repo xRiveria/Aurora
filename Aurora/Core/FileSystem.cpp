@@ -42,6 +42,23 @@ namespace Aurora
         return buffer;
     }
 
+    bool FileSystem::CreateDirectory_(const std::string& directoryPath)
+    {
+        try
+        {
+            if (std::filesystem::create_directories(directoryPath))
+            {
+                return true;
+            }
+        }
+        catch (std::filesystem::filesystem_error& error)
+        {
+            AURORA_WARNING("%s, %s", error.what(), directoryPath.c_str());
+        }
+
+        return false;
+    }
+
     bool FileSystem::Exists(const std::string& filePath)
     {
         try
@@ -108,6 +125,11 @@ namespace Aurora
     std::string FileSystem::GetFilePathWithoutExtension(const std::string& filePath)
     {
         return GetDirectoryFromFilePath(filePath) + GetFileNameWithoutExtensionFromFilePath(filePath);
+    }
+
+    std::string FileSystem::GetWorkingDirectory()
+    {
+        return std::filesystem::current_path().generic_string();
     }
 
     std::string FileSystem::ReplaceOrAddExtension(const std::string& filePath, const std::string& fileExtension)

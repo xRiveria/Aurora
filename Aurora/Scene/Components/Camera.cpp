@@ -16,8 +16,8 @@ namespace Aurora
 
     void Camera::Initialize()
     {
-        m_Position = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-        m_Rotation = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+        // m_Position = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+        // m_Rotation = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 
         ComputeViewMatrix();
 
@@ -26,49 +26,59 @@ namespace Aurora
 
     void Camera::Tick(float deltaTime)
     {
+        ComputeViewMatrix();
+        //if (m_IsFirstRun)
+       // {
+        //    
+       //     m_IsFirstRun = false;
+       // }
+
         Input* inputSystem = m_EngineContext->GetSubsystem<Input>();
+        XMVECTOR position = GetEntity()->GetComponent<Transform>()->GetPositionVector();
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_W))
         {
-            m_Position = m_Position + GetCurrentForwardVector() * m_Speed * deltaTime;
+            position = position + GetCurrentForwardVector() * m_Speed * deltaTime;
 
             ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_S))
         {
-            m_Position = m_Position + GetCurrentBackwardVector() * m_Speed * deltaTime;
+            position = position + GetCurrentBackwardVector() * m_Speed * deltaTime;
 
             ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_A))
         {
-            m_Position = m_Position + GetCurrentLeftVector() * m_Speed * deltaTime;
+            position = position + GetCurrentLeftVector() * m_Speed * deltaTime;
 
             ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_D))
         {
-            m_Position = m_Position + GetCurrentRightVector() * m_Speed * deltaTime;
+            position = position + GetCurrentRightVector() * m_Speed * deltaTime;
 
             ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_UP))
         {
-            m_Position = m_Position + m_UpVector * m_Speed * deltaTime;
+            position = position + m_UpVector * m_Speed * deltaTime;
 
             ComputeViewMatrix();
         }
 
         if (inputSystem->IsKeyPressed(AURORA_KEY_DOWN))
         {
-            m_Position = m_Position + m_DownVector * m_Speed * deltaTime;
+            position = position + m_DownVector * m_Speed * deltaTime;
 
             ComputeViewMatrix();
         }
+
+        XMStoreFloat3(&GetEntity()->GetComponent<Transform>()->m_TranslationLocal, position);
 
         FPSControl(deltaTime);
     }
@@ -97,7 +107,7 @@ namespace Aurora
 
         if (m_FPS_Control)
         {
-            AdjustRotation((float)inputSystem->GetMousePositionDelta().second * 0.1f * deltaTime, (float)inputSystem->GetMousePositionDelta().first * 0.1f * deltaTime, 0.0f);
+            AdjustRotation((float)inputSystem->GetMousePositionDelta().second * 5.0 * deltaTime, (float)inputSystem->GetMousePositionDelta().first * 5.0 * deltaTime, 0.0f);
             ComputeViewMatrix();
         }
     }
@@ -110,25 +120,24 @@ namespace Aurora
 
     void Camera::ComputeViewMatrix()
     {
-        XMFLOAT3 rotation;
-        XMStoreFloat3(&rotation, m_Rotation);
+        // XMFLOAT3 rotationInDegrees = XMFLOAT3(XMConvertToDegrees(GetEntity()->m_Transform->m_RotationInRadians.x), XMConvertToDegrees(GetEntity()->m_Transform->m_RotationInRadians.y), XMConvertToDegrees(GetEntity()->m_Transform->m_RotationInRadians.z));
 
         // Calculate Rotation Matrix.
-        XMMATRIX cameraRotationMatrix = XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+        XMMATRIX cameraRotationMatrix = XMMatrixRotationRollPitchYaw(GetEntity()->m_Transform->m_RotationInRadians.x, GetEntity()->m_Transform->m_RotationInRadians.y, GetEntity()->m_Transform->m_RotationInRadians.z);
 
         // Calculate unit vector of camera target based on our camera's forward value transformed by the rotation. Direction.
         XMVECTOR cameraTarget = XMVector3TransformCoord(m_ForwardVector, cameraRotationMatrix);
 
         // Adjust camera target to be offset by the camera's current position.
-        cameraTarget += m_Position;
+        cameraTarget += GetEntity()->GetComponent<Transform>()->GetPositionVector();
 
         // Calculate up direction based on current rotation.
         XMVECTOR upDirection = XMVector3TransformCoord(m_UpVector, cameraRotationMatrix);
 
         // Rebuild View Matrix.
-        m_ViewMatrix = XMMatrixLookAtLH(m_Position, cameraTarget, upDirection);
+        m_ViewMatrix = XMMatrixLookAtLH(GetEntity()->GetComponent<Transform>()->GetPositionVector(), cameraTarget, upDirection);
 
-        XMMATRIX vectorRotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, rotation.y, 0.0f);
+        XMMATRIX vectorRotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, GetEntity()->m_Transform->m_RotationInRadians.y, 0.0f);
 
         m_CurrentForwardVector = XMVector3TransformCoord(m_ForwardVector, vectorRotationMatrix);
         m_CurrentBackwardVector = XMVector3TransformCoord(m_BackwardVector, vectorRotationMatrix);
@@ -140,7 +149,7 @@ namespace Aurora
     {
         // Verify that our look at position is not the same as the camera's position.
         XMFLOAT3 currentPosition;
-        XMStoreFloat3(&currentPosition, m_Position);
+        XMStoreFloat3(&currentPosition, GetEntity()->GetComponent<Transform>()->GetPositionVector());
         if (lookAtPosition.x == currentPosition.x && lookAtPosition.y == currentPosition.y && lookAtPosition.z == currentPosition.z)
         {
             return;
@@ -173,26 +182,24 @@ namespace Aurora
     void Camera::SetPosition(float x, float y, float z)
     {
         XMFLOAT3 newPosition = XMFLOAT3(x, y, z);
-        m_Position = XMLoadFloat3(&newPosition);
+        GetEntity()->GetComponent<Transform>()->m_TranslationLocal = newPosition;
         ComputeViewMatrix();
     }
 
     void Camera::SetRotation(float x, float y, float z)
     {
-        XMFLOAT3 newRotation = XMFLOAT3(x, y, z);
-        m_Rotation = XMLoadFloat3(&newRotation);
+        XMFLOAT3 rotationInRadians = XMFLOAT3(XMConvertToRadians(x), XMConvertToRadians(y), XMConvertToRadians(z));
+        GetEntity()->m_Transform->m_RotationInRadians = rotationInRadians;
         ComputeViewMatrix();
     }
 
     void Camera::AdjustRotation(float x, float y, float z)
     {
-        XMFLOAT3 rotation;
-        XMStoreFloat3(&rotation, m_Rotation);
+        XMFLOAT3 rotationInRadians = XMFLOAT3(XMConvertToRadians(x), XMConvertToRadians(y), XMConvertToRadians(z));
 
-        rotation.x += x;
-        rotation.y += y;
-        rotation.z += z;
-        m_Rotation = XMLoadFloat3(&rotation);
+        GetEntity()->m_Transform->m_RotationInRadians.x += rotationInRadians.x;
+        GetEntity()->m_Transform->m_RotationInRadians.y += rotationInRadians.y;
+        GetEntity()->m_Transform->m_RotationInRadians.z += rotationInRadians.z;
 
         ComputeViewMatrix();
     }

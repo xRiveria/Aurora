@@ -80,7 +80,7 @@ namespace Aurora
         XMFLOAT3 m_ScaleLocal = XMFLOAT3(1, 1, 1);
         XMFLOAT4 m_RotationLocal = XMFLOAT4(0.0, 0.0, 0.0, 1.0);    // Quaternion
 
-        XMFLOAT3 m_RotationAngles = XMFLOAT3(0.0f, 0.0f, 0.0f);
+        XMFLOAT3 m_RotationInRadians = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
         // The world matrix can be computed from the local scale, rotation and translation. This can be done through UpdateTransform() or by calling SetDirty() and letting the Tick system handle the updating.
         XMFLOAT4X4 m_WorldMatrix = IdentityMatrix; // World, relative to its parents.

@@ -139,7 +139,7 @@ static void DrawVector3Control(const std::string& label, XMFLOAT3& values, float
     ImGui::PopStyleColor(3);
 
     ImGui::SameLine();
-    ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+    ImGui::DragFloat("##X", &values.x, 0.3f, 0.0f, 0.0f, "%.2f");
     ImGui::PopItemWidth();
     ImGui::SameLine();
 
@@ -157,7 +157,7 @@ static void DrawVector3Control(const std::string& label, XMFLOAT3& values, float
     ImGui::PopStyleColor(3);
 
     ImGui::SameLine();
-    ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+    ImGui::DragFloat("##Y", &values.y, 0.3f, 0.0f, 0.0f, "%.2f");
     ImGui::PopItemWidth();
     ImGui::SameLine();
 
@@ -175,7 +175,7 @@ static void DrawVector3Control(const std::string& label, XMFLOAT3& values, float
     ImGui::PopStyleColor(3);
 
     ImGui::SameLine();
-    ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+    ImGui::DragFloat("##Z", &values.z, 0.3f, 0.0f, 0.0f, "%.2f");
     ImGui::PopItemWidth();
 
     ImGui::PopStyleVar();
@@ -256,7 +256,11 @@ void Properties::ShowTransformProperties(Aurora::Transform* transformComponent) 
     if (ComponentBegin("Transform"))
     {
         DrawVector3Control("Translation", transformComponent->m_TranslationLocal);
-        DrawVector3Control("Rotation", transformComponent->m_RotationAngles, 1.0f);
+        
+        XMFLOAT3 radiansToDegrees = XMFLOAT3(XMConvertToDegrees(transformComponent->m_RotationInRadians.x), XMConvertToDegrees(transformComponent->m_RotationInRadians.y), XMConvertToDegrees(transformComponent->m_RotationInRadians.z));
+        DrawVector3Control("Rotation", radiansToDegrees, 1.0f);
+        transformComponent->m_RotationInRadians = XMFLOAT3(XMConvertToRadians(radiansToDegrees.x), XMConvertToRadians(radiansToDegrees.y), XMConvertToRadians(radiansToDegrees.z));
+        
         DrawVector3Control("Scale", transformComponent->m_ScaleLocal, 1.0f);
         transformComponent->SetDirty(true);
     }

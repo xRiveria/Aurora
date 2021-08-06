@@ -34,9 +34,6 @@ namespace Aurora
         void SetRotation(float x, float y, float z);
         void AdjustRotation(float x, float y, float z);
 
-        const XMVECTOR& GetPosition() const { return m_Position; }
-        const XMVECTOR& GetRotation() const { return m_Rotation; }
-
         const XMVECTOR& GetCurrentForwardVector() { return m_CurrentForwardVector; }
         const XMVECTOR& GetCurrentBackwardVector() { return m_CurrentBackwardVector; }
         const XMVECTOR& GetCurrentLeftVector() { return m_CurrentLeftVector; }
@@ -45,9 +42,6 @@ namespace Aurora
     public:
         XMMATRIX m_ViewMatrix;
         XMMATRIX m_ProjectionMatrix;
-
-        XMVECTOR m_Position;
-        XMVECTOR m_Rotation;
 
         // Camera Properties
         float m_Speed = 3.0f;
@@ -66,5 +60,7 @@ namespace Aurora
         XMVECTOR m_CurrentLeftVector;
         XMVECTOR m_CurrentRightVector;
         XMVECTOR m_CurrentBackwardVector;
+
+        bool m_IsFirstRun = true;
     };
 }

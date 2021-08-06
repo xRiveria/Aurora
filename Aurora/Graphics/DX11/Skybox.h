@@ -2,10 +2,29 @@
 #include "EngineContext.h"
 #include "../RHI_Implementation.h"
 #include "../Renderer/Renderer.h"
-#include "Cubemap.h"
+#include "../Resource/Importers/Importer_Image.h"
+#include "../Resource/Importers/Importer_Model.h"
 
 namespace Aurora
 {
+    struct Texture
+    {
+        ComPtr<ID3D11Texture2D> m_Texture;
+        ComPtr<ID3D11ShaderResourceView> m_SRV;
+        ComPtr<ID3D11UnorderedAccessView> m_UAV;
+        UINT m_Width, m_Height;
+        UINT m_Levels;
+    };
+
+    struct MeshBuffer
+    {
+        ComPtr<ID3D11Buffer> vertexBuffer;
+        ComPtr<ID3D11Buffer> indexBuffer;
+        UINT stride;
+        UINT offset;
+        UINT numElements;
+    };
+
     class Skybox
     {
     public:
@@ -14,26 +33,47 @@ namespace Aurora
 
         bool InitializeResources();
         bool Render() const;
-        bool RenderForResources() const;
+
 
     public:
-        bool CreateCubeMap();
-        void BindMesh() const;
+        template<typename T> 
+        inline static constexpr T roundToPowerOfTwo(T value, int POT)
+        {
+            return (value + POT - 1) & -POT;
+        }
 
-        std::shared_ptr<Entity> m_SkyboxEntity;
+        ComPtr<ID3D11SamplerState> CreateSamplerState(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode) const;
+        Texture CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format, UINT levels = 0) const;
+        Texture CreateTexture(UINT width, UINT height, DXGI_FORMAT format, UINT levels = 0) const;
+        Texture CreateTexture(const std::shared_ptr<ImageDerp>& image, DXGI_FORMAT format, UINT levels) const;
+        void CreateTextureUAV(Texture& texture, UINT mipSlice) const;
+        ComPtr<ID3D11Buffer> CreateConstantBuffer(const void* data, UINT size) const;
+        template<typename T> ComPtr<ID3D11Buffer> CreateConstantBuffer(const T* data = nullptr) const
+        {
+            static_assert(sizeof(T) == roundToPowerOfTwo(sizeof(T), 16));
+            return CreateConstantBuffer(data, sizeof(T));
+        }
 
-        RHI_Shader m_SkyVertexShader;
-        RHI_Shader m_SkyPixelShader;
+        MeshBuffer CreateMeshBuffer(const std::shared_ptr<class MeshDerp>& mesh) const;
 
-        RHI_Shader m_RectToCubemapVSShader;
-        RHI_Shader m_RectToCubemapPSShader;
+        ComPtr<ID3D11InputLayout> m_InputLayout;
+        Texture m_EnvironmentTextureEquirectangular;
+        MeshBuffer m_SkyboxEntity;
+        ComPtr<ID3D11RasterizerState> m_DefaultRasterizerState;
+        ComPtr<ID3D11DepthStencilState> m_SkyboxDepthStencilState;
+        RHI_Shader m_VSSkyboxShader;
+        RHI_Shader m_PSSkyboxShader;
 
-        int m_SkyboxCubemapMappingIndex = TEXSLOT_RENDERER_SKYCUBE_MAP;
-        int m_SkyboxHDRMappingIndex = TEXSLOT_RENDERER_SKYHDR_MAP;
+        Texture m_EnvironmentTexture;
+        Texture m_IrradianceMapTexture;
+        Texture m_SpecularPrefilterBRDFLUT;
 
-        std::shared_ptr<AuroraResource> m_SkyHDR = nullptr;
-        Cubemap* m_Cubemap = nullptr;
+        ComPtr<ID3D11SamplerState> m_ComputeSampler;
+        ComPtr<ID3D11SamplerState> m_DefaultSampler;
+        ComPtr<ID3D11SamplerState> m_SpecularBRDFSampler;
 
+        MeshBuffer m_Skybox;
+      
         EngineContext* m_EngineContext;
         Renderer* m_Renderer;
     };

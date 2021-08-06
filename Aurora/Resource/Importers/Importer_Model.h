@@ -53,3 +53,36 @@ namespace Aurora
         World* m_WorldContext;
     };
 }
+
+class MeshDerp
+{
+public:
+    struct Vertex
+    {
+        XMFLOAT3 position;
+        XMFLOAT3 normal;
+        XMFLOAT3 tangent;
+        XMFLOAT3 bitangent;
+        XMFLOAT2 texcoord;
+    };
+    static_assert(sizeof(Vertex) == 14 * sizeof(float));
+    static const int NumAttributes = 5;
+
+    struct Face
+    {
+        uint32_t v1, v2, v3;
+    };
+    static_assert(sizeof(Face) == 3 * sizeof(uint32_t));
+
+    static std::shared_ptr<MeshDerp> fromFile(const std::string& filename);
+    static std::shared_ptr<MeshDerp> fromString(const std::string& data);
+
+    const std::vector<Vertex>& vertices() const { return m_vertices; }
+    const std::vector<Face>& faces() const { return m_faces; }
+
+private:
+    MeshDerp(const struct aiMesh* mesh);
+
+    std::vector<Vertex> m_vertices;
+    std::vector<Face> m_faces;
+};

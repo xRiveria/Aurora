@@ -14,12 +14,15 @@ namespace Aurora
         static std::string WStringToString(const std::wstring& wString);
 
         // Paths
+        static bool CreateDirectory_(const std::string& directoryPath);
         static bool Exists(const std::string& filePath);
         static std::string GetDirectoryFromFilePath(const std::string& filePath);
         static std::string GetExtensionFromFilePath(const std::string& filePath);
         static std::string GetFileNameFromFilePath(const std::string& filePath);
         static std::string GetFileNameWithoutExtensionFromFilePath(const std::string& filePath);
         static std::string GetFilePathWithoutExtension(const std::string& filePath);
+
+        static std::string GetWorkingDirectory();
         static std::string ReplaceOrAddExtension(const std::string& filePath, const std::string& fileExtension);
         
         // Path Absolute

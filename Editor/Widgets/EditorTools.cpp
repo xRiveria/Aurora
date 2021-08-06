@@ -77,7 +77,7 @@ void EditorTools::TickGizmos()
 
 		DirectX::XMFLOAT4X4 transform;
 		float Ftranslation[3] = { transformComponent->m_TranslationLocal.x, transformComponent->m_TranslationLocal.y, transformComponent->m_TranslationLocal.z };
-		float Frotation[3] = { DirectX::XMConvertToDegrees(transformComponent->m_RotationAngles.x), DirectX::XMConvertToDegrees(transformComponent->m_RotationAngles.y), DirectX::XMConvertToDegrees(transformComponent->m_RotationAngles.z) };
+		float Frotation[3] = { DirectX::XMConvertToDegrees(transformComponent->m_RotationInRadians.x), DirectX::XMConvertToDegrees(transformComponent->m_RotationInRadians.y), DirectX::XMConvertToDegrees(transformComponent->m_RotationInRadians.z) };
 		float Fscale[3] = { transformComponent->m_ScaleLocal.x, transformComponent->m_ScaleLocal.x, transformComponent->m_ScaleLocal.x };
 		ImGuizmo::RecomposeMatrixFromComponents(Ftranslation, Frotation, Fscale, *transform.m);
 
@@ -90,7 +90,7 @@ void EditorTools::TickGizmos()
 			// XMMatrixDecompose(&scaleLocal, &rotationLocal, &translationLocal, XMLoadFloat4x4(&transform));
 
 			transformComponent->m_TranslationLocal = XMFLOAT3(Ftranslation);
-			transformComponent->m_RotationAngles = DirectX::XMFLOAT3(DirectX::XMConvertToRadians(Frotation[0]), DirectX::XMConvertToRadians(Frotation[1]), DirectX::XMConvertToRadians(Frotation[2]));
+			transformComponent->m_RotationInRadians = DirectX::XMFLOAT3(DirectX::XMConvertToRadians(Frotation[0]), DirectX::XMConvertToRadians(Frotation[1]), DirectX::XMConvertToRadians(Frotation[2]));
 			transformComponent->m_ScaleLocal = DirectX::XMFLOAT3(Fscale);
 		}
 	}

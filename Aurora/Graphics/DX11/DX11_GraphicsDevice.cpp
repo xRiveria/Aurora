@@ -1228,6 +1228,19 @@ namespace Aurora
         m_DeviceContextImmediate->IASetIndexBuffer(result, (format == IndexBuffer_Format::Format_16Bit ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT), offset);
     }
 
+    ID3D11InputLayout* DX11_GraphicsDevice::GetInputLayout(const RHI_PipelineState* inputLayout)
+    {
+        const RHI_PipelineState* pipelineStateObject = inputLayout;
+        const RHI_PipelineState_Description& pipelineDescription = pipelineStateObject != nullptr ? pipelineStateObject->GetDescription() : RHI_PipelineState_Description();
+
+        auto internalState = ToInternal(pipelineStateObject);
+
+        ID3D11InputLayout* inputLayoutRetrieved = pipelineDescription.m_InputLayout == nullptr ? nullptr : internalState->m_InputLayout.Get();
+
+        return inputLayoutRetrieved;
+    }
+
+
     void DX11_GraphicsDevice::BindConstantBuffer(Shader_Stage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList)
     {
         ID3D11Buffer* constantBuffer = buffer != nullptr && buffer->IsValid() ? (ID3D11Buffer*)ToInternal(buffer)->m_Resource.Get() : nullptr;

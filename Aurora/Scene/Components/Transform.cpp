@@ -109,9 +109,9 @@ namespace Aurora
 
     void Transform::RotateAngles(const XMFLOAT3& value)
     {
-        m_RotationAngles.x = value.x;
-        m_RotationAngles.y = value.y;
-        m_RotationAngles.z = value.z;
+        m_RotationInRadians.x = value.x;
+        m_RotationInRadians.y = value.y;
+        m_RotationInRadians.z = value.z;
     }
 
     void Transform::Scale(const XMFLOAT3& value)
@@ -170,7 +170,7 @@ namespace Aurora
         XMVECTOR rotationLocal = XMLoadFloat4(&m_RotationLocal);
         XMVECTOR translationLocal = XMLoadFloat3(&m_TranslationLocal);
         
-        return XMMatrixScalingFromVector(scaleLocal) * (XMMatrixRotationX(m_RotationAngles.x) * XMMatrixRotationY(m_RotationAngles.y) * XMMatrixRotationZ(m_RotationAngles.z)) * XMMatrixTranslationFromVector(translationLocal);
+        return XMMatrixScalingFromVector(scaleLocal) * (XMMatrixRotationX(m_RotationInRadians.x) * XMMatrixRotationY(m_RotationInRadians.y) * XMMatrixRotationZ(m_RotationInRadians.z)) * XMMatrixTranslationFromVector(translationLocal);
     }
 
     // ==== Hierarchy ====
