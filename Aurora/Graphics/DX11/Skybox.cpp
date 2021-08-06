@@ -273,7 +273,7 @@ namespace Aurora
 
     ComPtr<ID3D11SamplerState> Skybox::CreateSamplerState(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode) const
     {
-        D3D11_SAMPLER_DESC samplerDescription;
+        D3D11_SAMPLER_DESC samplerDescription = {};
         samplerDescription.Filter = filter;
         samplerDescription.AddressU = addressMode;
         samplerDescription.AddressV = addressMode;

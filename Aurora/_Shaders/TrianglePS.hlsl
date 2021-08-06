@@ -22,6 +22,8 @@ struct PS_Output
 Texture2D bloomBlur : TEXTURE: register(t1);
 SamplerState objectSamplerState : SAMPLER: register(s0);
 SamplerState objectSamplerState2 : SAMPLER: register(s1);
+SamplerState defaultSampler : SAMPLER: register(s3);
+
 SamplerState spBRDFSampler : SAMPLER: register(s4);
 
 
@@ -60,13 +62,15 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
     float3 pixelWorldPosition = input.outWorldSpace;
     float3 viewDirection = normalize(g_Camera_Position.xyz - pixelWorldPosition);
     
-    float3 normal = Texture_NormalMap.SampleLevel(objectSamplerState, input.outTexCoord, 0).rgb * input.outNormal;
-    float3 albedoColor = pow(Texture_BaseColorMap.SampleLevel(objectSamplerState, input.outTexCoord, 0).rgb, 2.2) * g_Material.g_ObjectColor; // Reconvert to linear space.
-    float roughness = Texture_RoughnessMap.SampleLevel(objectSamplerState, input.outTexCoord, 0).r * g_Material.g_Roughness;
-    float metalness = Texture_MetalnessMap.SampleLevel(objectSamplerState, input.outTexCoord, 0).r * g_Material.g_Metalness;
+    float3 normal = Texture_NormalMap.SampleLevel(defaultSampler, input.outTexCoord, 0).rgb * input.outNormal;
+    float3 albedoColor = pow(Texture_BaseColorMap.SampleLevel(defaultSampler, input.outTexCoord, 0).rgb, 2.2) * g_Material.g_ObjectColor; // Reconvert to linear space.
+    float roughness = Texture_RoughnessMap.SampleLevel(defaultSampler, input.outTexCoord, 0).r * g_Material.g_Roughness;
+    float metalness = Texture_MetalnessMap.SampleLevel(defaultSampler, input.outTexCoord, 0).r * g_Material.g_Metalness;
     
     float3 normalVector = normalize(normal);
-    float3 reflectionVector = reflect(-viewDirection, normalVector);
+
+    float cosLo = max(0.0, dot(normalVector, viewDirection));
+    float3 reflectionVector = 2.0 * cosLo * normalVector - viewDirection;
 
     // Reflectance Equation
     float3 F0 = float3(0.04, 0.04, 0.04); // Precompute Freshnel for both dieletrics and conductors so the same Fresnel-Schlick approximation can be used for both. Read!
@@ -111,18 +115,20 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
 
     //==========================================================================================================================
     float3 kSpecular = FresnelSchlickRoughness(max(dot(normalVector, viewDirection), 0.0), F0, roughness);
+
     float3 kDiffuse = 1.0 - kSpecular;
     kDiffuse *= 1.0 - metalness;
-    float3 irradiance = Texture_Irradiance.Sample(objectSamplerState, normalVector).rgb;
+
+    float3 irradiance = Texture_Irradiance.Sample(defaultSampler, normalVector).rgb;
     float3 diffuse = kDiffuse * irradiance * albedoColor;
 
     //==========================================================================================================================
     // Get indirect specular reflections of the surface by sampling pre-filtered environment map using the reflection vector. This is sampled based on the surface roughness.
     uint specularTextureLevels = QuerySpecularTextureLevels();
-    float3 specularIrradiance = Texture_Prefilter.SampleLevel(objectSamplerState, reflectionVector, roughness * specularTextureLevels).rgb;
+    float3 specularIrradiance = Texture_Prefilter.SampleLevel(defaultSampler, reflectionVector, roughness * specularTextureLevels).rgb;
 
     // Sample BRDF lookup texture using material's roughness and the angle between the normal and view vector.
-    float2 environmentBRDF = Texture_BRDFLUT.Sample(spBRDFSampler, float2(max(dot(normalVector, viewDirection), 0.0), roughness)).rg;
+    float2 environmentBRDF = Texture_BRDFLUT.Sample(spBRDFSampler, float2(cosLo, roughness)).rg;
 
     // Total specular IBL contribution.
     float3 specular = specularIrradiance * (kSpecular * environmentBRDF.x + environmentBRDF.y);
@@ -132,6 +138,9 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
 
     /// Final Light - Direct Lighting + Ambient Lighting
     float3 finalColor = ambient + Lo; // Our ambient is currently a constant factor. For IBL, we will take this into account.
+
+
+
 
 
     // Reinhard Tone Mapping
