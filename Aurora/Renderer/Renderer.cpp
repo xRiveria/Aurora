@@ -58,6 +58,8 @@ namespace Aurora
         m_DirectionalLight->SetName("Directional Light");
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
+        m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Doge");
+
         // auto derp = m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Skybox/skybox.obj", "Derp");
         // derp->GetComponent<Transform>()->Translate({ 0.0f, 4.0f, 0.0f });
 
@@ -369,6 +371,7 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(1, 1, &samplerState2);
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(3, 1, m_Skybox->m_DefaultSampler.GetAddressOf());
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(4, 1, m_Skybox->m_SpecularBRDFSampler.GetAddressOf());
 
 
         /// Rendering to Texture

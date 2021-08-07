@@ -14,16 +14,20 @@ namespace Aurora
 
 	enum class LogType
 	{
-		Info,
-		Warning,
-		Error,
+		Info,			// Standard debugging information.
+		Warning,		// Action is passable but unadvised.
+		Error,			// This shouldn't be happening, but we will try and let it proceed if workable.
+		Critical		// This must not happen or something will break. Immediately ends the program execution.
 	};
 
 	enum class LogLayer
 	{
+		Initialization,
 		Engine,
 		Graphics,
-		Physics
+		Physics,
+		Event,
+		Serialization,
 	};
 
 	struct LogPackage

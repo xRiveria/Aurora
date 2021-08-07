@@ -116,25 +116,25 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
     //==========================================================================================================================
     float3 kSpecular = FresnelSchlickRoughness(max(dot(normalVector, viewDirection), 0.0), F0, roughness);
 
-    float3 kDiffuse = 1.0 - kSpecular;
-    kDiffuse *= 1.0 - metalness;
+    float3 kS = kSpecular;
+    float3 kD = 1.0 - kS;
+    kD *= 1.0 - metalness;
 
     float3 irradiance = Texture_Irradiance.Sample(defaultSampler, normalVector).rgb;
-    float3 diffuse = kDiffuse * irradiance * albedoColor;
+    float3 diffuse = irradiance * albedoColor;
 
     //==========================================================================================================================
     // Get indirect specular reflections of the surface by sampling pre-filtered environment map using the reflection vector. This is sampled based on the surface roughness.
     uint specularTextureLevels = QuerySpecularTextureLevels();
-    float3 specularIrradiance = Texture_Prefilter.SampleLevel(defaultSampler, reflectionVector, roughness * specularTextureLevels).rgb;
 
+    float3 specularIrradiance = Texture_Prefilter.SampleLevel(defaultSampler, reflectionVector, roughness * specularTextureLevels).rgb;
     // Sample BRDF lookup texture using material's roughness and the angle between the normal and view vector.
     float2 environmentBRDF = Texture_BRDFLUT.Sample(spBRDFSampler, float2(cosLo, roughness)).rg;
-
     // Total specular IBL contribution.
     float3 specular = specularIrradiance * (kSpecular * environmentBRDF.x + environmentBRDF.y);
 
     // Total ambient light contribution
-    float3 ambient = diffuse + specular;
+    float3 ambient = kD * diffuse + specular;
 
     /// Final Light - Direct Lighting + Ambient Lighting
     float3 finalColor = ambient + Lo; // Our ambient is currently a constant factor. For IBL, we will take this into account.
