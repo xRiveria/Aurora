@@ -31,7 +31,6 @@
 #include "../Graphics/DX11/Skybox.h"
 #include "../Widgets/Hierarchy.h"
 #include "../Widgets/ProjectSettings.h"
-#include "../Renderer/Environment.h"
 #include <vector>
 
 namespace EditorConfigurations

@@ -6,6 +6,7 @@ float g_ColumnWidth = 150.0f;
 ProjectSettings::ProjectSettings(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
     m_SettingsSubsystem = m_EngineContext->GetSubsystem<Aurora::Settings>();
+    m_WidgetName = "Project Settings";
 }
 
 void PropertyInput(const std::string& labelText, std::string& stringValue)

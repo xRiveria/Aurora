@@ -1,4 +1,5 @@
 #pragma once
+#include <Windows.h>
 #include <functional>
 #include <unordered_map>
 #include "ISubsystem.h"

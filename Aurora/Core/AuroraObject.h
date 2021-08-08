@@ -22,7 +22,9 @@ namespace Aurora
         /// Might need improvement.
         static uint32_t GenerateObjectID() { return static_cast<uint32_t>(rand()); }  // Generates and returns an object ID. Seeded at the start of each run.
 
-        /// Should we track GPU and CPU sizes?
+        // CPU & GPU Sizes
+        const uint64_t GetObjectSizeCPU() const { return m_ObjectSizeCPU; }
+        const uint64_t GetObjectSizeGPU() const { return m_ObjectSizeGPU; }
 
         // Execution Context.
         EngineContext* GetEngineContext() const { return m_EngineContext; }
@@ -30,6 +32,10 @@ namespace Aurora
     protected:
         std::string m_ObjectName;
         uint32_t m_ObjectID;
+
+        // ==============================
+        uint64_t m_ObjectSizeCPU;
+        uint64_t m_ObjectSizeGPU;
 
         EngineContext* m_EngineContext = nullptr;
     };

@@ -13,7 +13,6 @@
 #include "../Graphics/DX11/Skybox.h"
 #include <iostream>
 #include "../Input/Input.h"
-#include "Environment.h"
 
 namespace Aurora
 {
@@ -31,6 +30,7 @@ namespace Aurora
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
         m_ShaderCompiler.Initialize();
+        m_DeviceContext = std::make_shared<DX11_Context>(m_GraphicsDevice->m_Device, m_GraphicsDevice->m_DeviceContextImmediate);
 
         LoadShaders();
         LoadStates();
@@ -403,6 +403,7 @@ namespace Aurora
         RenderScene();
 
         // ================ Scene Pass ==================================
+        m_GraphicsDevice->BindPipelineState(&m_PSO_Object_Wire, 0);
 
         ID3D11DepthStencilView* ourDepthStencilTexture = DX11_Utility::ToInternal(&m_DepthBuffer_Main)->m_DepthStencilView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(2, renderTargetViews, ourDepthStencilTexture);
@@ -430,7 +431,6 @@ namespace Aurora
     {
         m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Entity], CB_GETBINDSLOT(ConstantBufferData_Entity), 0);
 
-        m_GraphicsDevice->BindPipelineState(&m_PSO_Object_Wire, 0);
         /// Render Queue Feature?
         std::vector<std::shared_ptr<Entity>> sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
         std::vector<Mesh> meshComponents;

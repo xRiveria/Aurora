@@ -34,36 +34,18 @@ namespace Aurora
         return buffer;
     }
 
-    MeshBuffer Skybox::CreateMeshBuffer(const std::shared_ptr<class MeshDerp>& mesh) const
+    std::shared_ptr<MeshBuffer> Skybox::CreateMeshBuffer(const std::shared_ptr<class MeshDerp>& mesh) const
     {
-        MeshBuffer buffer = {};
-        buffer.stride = sizeof(MeshDerp::Vertex);
-        buffer.numElements = static_cast<UINT>(mesh->faces().size() * 3);
+        std::shared_ptr<MeshBuffer> buffer = std::make_shared<MeshBuffer>();
+        buffer->stride = sizeof(MeshDerp::Vertex);
+        buffer->numElements = static_cast<UINT>(mesh->faces().size() * 3);
 
         const size_t vertexDataSize = mesh->vertices().size() * sizeof(MeshDerp::Vertex);
         const size_t indexDataSize = mesh->faces().size() * sizeof(MeshDerp::Face);
+        buffer->vertexBuffer = m_Renderer->m_DeviceContext->CreateVertexBuffer(RHI_Vertex_Type::VertexType_PositionUVNormal, mesh->m_Vertices);
+        buffer->indexBuffer = m_Renderer->m_DeviceContext->CreateIndexBuffer(mesh->m_Indices);
 
-        {
-            D3D11_BUFFER_DESC desc = {};
-            desc.ByteWidth = (UINT)vertexDataSize;
-            desc.Usage = D3D11_USAGE_IMMUTABLE;
-            desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
-            D3D11_SUBRESOURCE_DATA data = {};
-            data.pSysMem = &mesh->vertices()[0];
-            m_Renderer->m_GraphicsDevice->m_Device->CreateBuffer(&desc, &data, &buffer.vertexBuffer);
-        }
-
-        {
-            D3D11_BUFFER_DESC desc = {};
-            desc.ByteWidth = (UINT)indexDataSize;
-            desc.Usage = D3D11_USAGE_IMMUTABLE;
-            desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-            D3D11_SUBRESOURCE_DATA data = {};
-            data.pSysMem = &mesh->faces()[0];
-            m_Renderer->m_GraphicsDevice->m_Device->CreateBuffer(&desc, &data, &buffer.indexBuffer);
-        }
         return buffer;
     }
 
@@ -239,10 +221,11 @@ namespace Aurora
          //    m_Renderer->UpdateMaterialConstantBuffer(meshComponent->GetEntity()->GetComponent<Material>());
          // }
 
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetInputLayout(m_InputLayout.Get());
+         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetInputLayout(m_InputLayout.Get()); /// ?
          // ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent->m_VertexBuffer_Position)->m_Resource.Get();
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, m_SkyboxEntity.vertexBuffer.GetAddressOf(), &m_SkyboxEntity.stride, &m_SkyboxEntity.offset);
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetIndexBuffer(m_SkyboxEntity.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+         uint32_t stride = m_SkyboxEntity->vertexBuffer->GetStride();
+         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, m_SkyboxEntity->vertexBuffer->GetVertexBuffer(), &m_SkyboxEntity->stride, &m_SkyboxEntity->offset);
+         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetIndexBuffer(m_SkyboxEntity->indexBuffer->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
          ID3D11VertexShader* shaderInternalVS = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VSSkyboxShader.m_InternalState.get())->m_Resource.Get();
          m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(shaderInternalVS, nullptr, 0);
@@ -253,7 +236,7 @@ namespace Aurora
          m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(3, 1, m_DefaultSampler.GetAddressOf());
          m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(4, 1, m_SpecularBRDFSampler.GetAddressOf());
          // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->OMSetDepthStencilState(m_SkyboxDepthStencilState.Get(), 0);
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(m_SkyboxEntity.numElements, 0, 0);
+         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(m_SkyboxEntity->indexBuffer->GetIndexCount(), 0, 0);
 
         return true;
     }

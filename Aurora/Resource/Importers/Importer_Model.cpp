@@ -38,23 +38,45 @@ MeshDerp::MeshDerp(const aiMesh* mesh)
     m_vertices.reserve(mesh->mNumVertices);
     for (size_t i = 0; i < m_vertices.capacity(); ++i) {
         Vertex vertex;
+        Aurora::RHI_Vertex_Position_UV_Normal newVertex;
+
+
         vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+        newVertex.m_Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
         vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+        newVertex.m_Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+
         if (mesh->HasTangentsAndBitangents()) {
             vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
             vertex.bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
         }
         if (mesh->HasTextureCoords(0)) {
             vertex.texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+            newVertex.m_UV = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
         }
         m_vertices.push_back(vertex);
+        m_Vertices.push_back(newVertex);
     }
 
     m_faces.reserve(mesh->mNumFaces);
-    for (size_t i = 0; i < m_faces.capacity(); ++i) {
+    for (size_t i = 0; i < m_faces.capacity(); ++i) 
+    {
         assert(mesh->mFaces[i].mNumIndices == 3);
         m_faces.push_back({ mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] });
     }
+
+    const uint32_t indexCount = mesh->mNumFaces * 3;
+    std::vector<uint32_t> indices = std::vector<uint32_t>(indexCount);
+    for (uint32_t faceIndex = 0; faceIndex < mesh->mNumFaces; faceIndex++)
+    {
+        aiFace& face = mesh->mFaces[faceIndex]; // Each face has 3 vertices.
+        const unsigned int indicesIndex = (faceIndex * 3); // We grab the first index of each face.
+        indices[indicesIndex + 0] = face.mIndices[0];  // Grab its face index.
+        indices[indicesIndex + 1] = face.mIndices[1];  // Grab its face index 2.
+        indices[indicesIndex + 2] = face.mIndices[2];  // Grab its face index 3.
+    }
+
+    m_Indices = indices;
 }
 
 std::shared_ptr<MeshDerp> MeshDerp::fromFile(const std::string& filename)

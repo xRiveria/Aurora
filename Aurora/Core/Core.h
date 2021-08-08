@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "../Utilities/Version.h"
 
 #define AURORA_DEBUG_BREAK() __debugbreak()
 
@@ -18,7 +19,7 @@ if (!(##expression))               \
 // ===== Engine Information ======
 
 #define ENGINE_NAME "Aurora Engine"
-#define ENGINE_BUILD "1.0"
+#define ENGINE_BUILD Aurora::GetVersionString()
 
 // Currently selected Graphics API.
 #define ENGINE_GRAPHICS_API GetGraphicsAPI()
@@ -43,7 +44,7 @@ inline static std::string GetGraphicsAPI()
     #define ENGINE_COMPILATION_TARGET "Windows (x32)"
 #endif
 
-#define ENGINE_ARCHITECTURE std::string(ENGINE_NAME) + " - " + std::string(ENGINE_COMPILATION_TARGET) + " " + std::string(ENGINE_BUILD_TYPE) + " - " + std::string(GetGraphicsAPI())
+#define ENGINE_ARCHITECTURE std::string(ENGINE_NAME) + " " + ENGINE_BUILD + " - " + std::string(ENGINE_COMPILATION_TARGET) + " " + std::string(ENGINE_BUILD_TYPE) + " - " + std::string(GetGraphicsAPI())
 
 // ==========
 

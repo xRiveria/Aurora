@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include "../Graphics/RHI_Vertex.h"
+#include "../Graphics/DX11_Refactored/DX11_IndexBuffer.h"
 
 struct aiNode;
 struct aiMesh;
@@ -79,6 +81,8 @@ public:
 
     const std::vector<Vertex>& vertices() const { return m_vertices; }
     const std::vector<Face>& faces() const { return m_faces; }
+    std::vector<Aurora::RHI_Vertex_Position_UV_Normal> m_Vertices;
+    std::vector<uint32_t> m_Indices;
 
 private:
     MeshDerp(const struct aiMesh* mesh);

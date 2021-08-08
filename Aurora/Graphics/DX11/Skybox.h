@@ -4,6 +4,8 @@
 #include "../Renderer/Renderer.h"
 #include "../Resource/Importers/Importer_Image.h"
 #include "../Resource/Importers/Importer_Model.h"
+#include "../DX11_Refactored/DX11_VertexBuffer.h"
+#include "../DX11_Refactored/DX11_IndexBuffer.h"
 
 namespace Aurora
 {
@@ -18,8 +20,8 @@ namespace Aurora
 
     struct MeshBuffer
     {
-        ComPtr<ID3D11Buffer> vertexBuffer;
-        ComPtr<ID3D11Buffer> indexBuffer;
+        std::shared_ptr<DX11_VertexBuffer> vertexBuffer;
+        std::shared_ptr<DX11_IndexBuffer> indexBuffer;
         UINT stride;
         UINT offset;
         UINT numElements;
@@ -54,11 +56,11 @@ namespace Aurora
             return CreateConstantBuffer(data, sizeof(T));
         }
 
-        MeshBuffer CreateMeshBuffer(const std::shared_ptr<class MeshDerp>& mesh) const;
+        std::shared_ptr<MeshBuffer> CreateMeshBuffer(const std::shared_ptr<class MeshDerp>& mesh) const;
 
         ComPtr<ID3D11InputLayout> m_InputLayout;
         Texture m_EnvironmentTextureEquirectangular;
-        MeshBuffer m_SkyboxEntity;
+        std::shared_ptr<MeshBuffer> m_SkyboxEntity;
         ComPtr<ID3D11RasterizerState> m_DefaultRasterizerState;
         ComPtr<ID3D11DepthStencilState> m_SkyboxDepthStencilState;
         RHI_Shader m_VSSkyboxShader;

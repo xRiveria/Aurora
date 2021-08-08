@@ -9,6 +9,7 @@
 #include "../Resource/Importers/Importer_Model.h"
 #include "../Scene/Components/Material.h"
 #include "../Scene/Components/Mesh.h"
+#include "../Graphics/DX11_Refactored/DX11_Context.h"
 
 using namespace DirectX;
 
@@ -79,6 +80,7 @@ namespace Aurora
 
     public:
         RHI_GPU_Buffer        g_ConstantBuffers[CB_Types::CB_Count];
+        std::shared_ptr<DX11_Context> m_DeviceContext;
 
         std::shared_ptr<Environment> m_Environment;
         std::shared_ptr<Skybox> m_Skybox;
