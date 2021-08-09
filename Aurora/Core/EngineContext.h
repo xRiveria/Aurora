@@ -69,10 +69,10 @@ namespace Aurora
                 if (!m_Subsystems[i].m_Pointer->Initialize())
                 {
                     failedSubsystems.emplace_back(i);
-                    AURORA_ERROR("Failed to initialize %s Subsystem.", typeid(*m_Subsystems[i].m_Pointer).name());
+                    AURORA_ERROR(LogLayer::Engine, "Failed to initialize %s Subsystem.", typeid(*m_Subsystems[i].m_Pointer).name());
                 }
 
-                AURORA_INFO("Successfully initialized %s Subsystem.", typeid(*m_Subsystems[i].m_Pointer).name());
+                AURORA_INFO(LogLayer::Engine, "Successfully initialized %s Subsystem.", typeid(*m_Subsystems[i].m_Pointer).name());
             }
 
             // Remove the systems that failed.

@@ -10,6 +10,6 @@ struct PixelShaderInput
 float4 main(PixelShaderInput input) : SV_Target
 {
     float3 environmentVector = normalize(input.localPosition);
-    return environmentTexture.SampleLevel(defaultSampler, environmentVector, 1);
+    return environmentTexture.SampleLevel(defaultSampler, environmentVector, 0);
     // return float4(1, 1, 1, 1);
 }

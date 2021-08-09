@@ -26,7 +26,7 @@ namespace Aurora
             return m_Importer_Model->Load(filePath, fileName);
         }
 
-        AURORA_ERROR("Requested model file not supported: %s.", filePath.c_str());
+        AURORA_ERROR(LogLayer::Engine, "Requested model file not supported: %s.", filePath.c_str());
         return nullptr;
     }
 
@@ -47,7 +47,7 @@ namespace Aurora
             return m_Importer_Image->LoadTexture(filePath, fileName, loadFlags);
         }
 
-        AURORA_ERROR("Requested image file is not supported: %s.", filePath.c_str());
+        AURORA_ERROR(LogLayer::Engine, "Requested image file is not supported: %s.", filePath.c_str());
         return nullptr;
     }
 

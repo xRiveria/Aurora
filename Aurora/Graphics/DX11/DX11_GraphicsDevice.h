@@ -34,7 +34,7 @@ namespace Aurora
         bool CreateBuffer(const RHI_GPU_Buffer_Description* bufferDescription, const RHI_Subresource_Data* initialData, RHI_GPU_Buffer* buffer) const;
         bool CreateTexture(const RHI_Texture_Description* textureDescription, const RHI_Subresource_Data* initialData, RHI_Texture* texture) const; // Automatically creates the needed views via CreateSubresource.
         bool CreateSampler(const RHI_Sampler_Description* samplerDescription, RHI_Sampler* samplerState) const;
-        bool CreateShader(Shader_Stage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const;
+        bool CreateShader(RHI_Shader_Stage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const;
         bool CreateRenderPass(const RHI_RenderPass_Description* renderPassDescription, RHI_RenderPass* renderPass) const;
         bool CreatePipelineState(const RHI_PipelineState_Description* description, RHI_PipelineState* pipelineStateObject) const;
 
@@ -60,16 +60,16 @@ namespace Aurora
         // Submit all commands that were used with BeginCommandList. This will make every command list to be in "avaliable" state and restarts them.
         void SubmitCommandLists();
 
-        void BindResource(Shader_Stage shaderStage, const RHI_GPU_Resource* resource, uint32_t slot, RHI_CommandList commandList, int subresource = -1);
+        void BindResource(RHI_Shader_Stage shaderStage, const RHI_GPU_Resource* resource, uint32_t slot, RHI_CommandList commandList, int subresource = -1);
         void RenderPassBegin(const RHI_RenderPass* renderPass, RHI_CommandList commandList);
         void RenderPassEnd(RHI_CommandList commandList);
         void BindViewports(uint32_t numberOfViewports, const RHI_Viewport* viewports, RHI_CommandList commandList);
-        void BindSampler(Shader_Stage shaderStage, const RHI_Sampler* sampler, uint32_t slot, RHI_CommandList commandList);
+        void BindSampler(RHI_Shader_Stage shaderStage, const RHI_Sampler* sampler, uint32_t slot, RHI_CommandList commandList);
         void BindVertexBuffers(const RHI_GPU_Buffer* const* vertexBuffers, uint32_t slot, uint32_t count, const uint32_t* strides, const uint32_t* offsets, RHI_CommandList commandList);
         void BindIndexBuffer(const RHI_GPU_Buffer* indexBuffer, const IndexBuffer_Format format, uint32_t offset, RHI_CommandList commandList);
         ID3D11InputLayout* GetInputLayout(const RHI_PipelineState* inputLayout);
 
-        void BindConstantBuffer(Shader_Stage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList);
+        void BindConstantBuffer(RHI_Shader_Stage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList);
         void BindPipelineState(const RHI_PipelineState* pipelineStateObject, RHI_CommandList commandList);
        
         void UpdateBuffer(const RHI_GPU_Buffer* buffer, const void* data, RHI_CommandList commandList, int dataSize = -1);

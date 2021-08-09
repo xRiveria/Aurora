@@ -233,7 +233,7 @@ namespace Aurora
         RenderTarget_And_Viewport_ArrayIndex_Without_GS = 1 << 5
     };
 
-    enum Shader_Stage
+    enum RHI_Shader_Stage
     {
         Vertex_Shader,
         Pixel_Shader,
@@ -579,7 +579,7 @@ namespace Aurora
 
     struct RHI_Shader : public RHI_GraphicsDeviceInternal
     {
-        Shader_Stage m_Stage = Shader_Stage::ShaderStage_Count;
+        RHI_Shader_Stage m_Stage = RHI_Shader_Stage::ShaderStage_Count;
         std::vector<StaticSampler> m_AutoSamplers;  // Ability to set static samplers without explict root signature.
     };
 

@@ -119,7 +119,7 @@ namespace Aurora
 
     void World::Clear()
     {
-        AURORA_INFO("%f", static_cast<float>(m_Entities.size()));
+        AURORA_INFO(LogLayer::ECS, "%f", static_cast<float>(m_Entities.size()));
         for (int i = 0; i < m_Entities.size(); i++)
         {
             if (m_Entities[i]->m_EntityType == EntityType::Skybox || m_Entities[i]->GetObjectName() == "Directional Light" || m_Entities[i]->GetObjectName() == "Default_Camera") // Skip all of them for now.

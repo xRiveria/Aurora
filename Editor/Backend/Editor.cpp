@@ -141,8 +141,8 @@ void Editor::Tick()
 			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
 		}
 
-	    Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_ShadowDepthMap);
-	    ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(600, 600));
+		Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_ShadowDepthMap);
+		ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(600, 600));
 
 		Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
 		ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
@@ -166,7 +166,7 @@ void Editor::Tick()
 		}
 		*/
 		ImGui::End();
-	
+
 		ImGui::End(); // Ends docking context.
 
 		ImGui::Render();
@@ -280,7 +280,7 @@ void Editor::ImGuiImplementation_Initialize(Aurora::EngineContext* engineContext
 	const char* filePath = "../Resources/Fonts/opensans/OpenSans-Bold.ttf";
 	io.Fonts->AddFontFromFileTTF(filePath, EditorConfigurations::g_FontSize);
 	io.FontDefault = io.Fonts->AddFontFromFileTTF("../Resources/Fonts/opensans/OpenSans-Regular.ttf", 17.0f);
-	
+
 	//Setup Platform/Renderer Bindings
 	GLFWwindow* window = static_cast<GLFWwindow*>(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetRenderWindow());
 	ImGui_ImplGlfw_InitForOther(window, true);

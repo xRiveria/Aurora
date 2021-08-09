@@ -39,7 +39,7 @@ namespace Aurora
             m_DriverType = driverTypes[driverTypeIndex];
             if (BreakIfFailed(D3D11CreateDevice(nullptr, m_DriverType, nullptr, deviceCreationFlags, featureLevels, numberOfFeatureLevels, D3D11_SDK_VERSION, &m_Device, &m_FeatureLevel, &m_DeviceContextImmediate)))
             {
-                AURORA_INFO("Successfully created DX11 Device. Device Type: %s, Feature Level: %s.", deviceTypesToString[driverTypeIndex], m_FeatureLevel == D3D_FEATURE_LEVEL_11_1 ? "11_1" : "11_0");
+                AURORA_INFO(LogLayer::Graphics, "Successfully created DX11 Device. Device Type: %s, Feature Level: %s.", deviceTypesToString[driverTypeIndex], m_FeatureLevel == D3D_FEATURE_LEVEL_11_1 ? "11_1" : "11_0");
                 break;
             }
         }
@@ -89,19 +89,19 @@ namespace Aurora
         if (supportedFeatures2.ConservativeRasterizationTier >= D3D11_CONSERVATIVE_RASTERIZATION_TIER_1) // See: https://docs.microsoft.com/en-us/windows/win32/direct3d11/conservative-rasterization
         {
             m_Capabilities |= GraphicsDevice_Capability::Conservative_Rasterization;
-            AURORA_INFO("Conservation Rasterization is supported.");
+            AURORA_INFO(LogLayer::Graphics, "Conservation Rasterization is supported.");
         }
 
         if (supportedFeatures2.ROVsSupported == TRUE) // See: https://docs.microsoft.com/en-us/windows/win32/direct3d11/rasterizer-order-views
         {
             m_Capabilities |= GraphicsDevice_Capability::Rasterizer_Ordered_Views;
-            AURORA_INFO("Rasterizer Order Views are supported.")
+            AURORA_INFO(LogLayer::Graphics, "Rasterizer Order Views are supported.")
         }
 
         if (supportedFeatures2.TypedUAVLoadAdditionalFormats)
         {
             m_Capabilities |= GraphicsDevice_Capability::UAV_Load_Format_Common;
-            AURORA_INFO("Unordered Access View (UAV) Type Load for common formats is supported.");
+            AURORA_INFO(LogLayer::Graphics, "Unordered Access View (UAV) Type Load for common formats is supported.");
 
             D3D11_FEATURE_DATA_FORMAT_SUPPORT2 supportedFormat = {};
             supportedFormat.InFormat = DXGI_FORMAT_R11G11B10_FLOAT;
@@ -110,7 +110,7 @@ namespace Aurora
             if ((supportedFormat.OutFormatSupport2 & D3D11_FORMAT_SUPPORT2_UAV_TYPED_LOAD) != 0)
             {
                 m_Capabilities |= GraphicsDevice_Capability::UAV_Load_Format_R11G11B10_Float;
-                AURORA_INFO("Unordered Access View (UAV) Type Load for format R11G11B10_Float is supported.");
+                AURORA_INFO(LogLayer::Graphics, "Unordered Access View (UAV) Type Load for format R11G11B10_Float is supported.");
             }
         }
 
@@ -120,10 +120,10 @@ namespace Aurora
         if (supportedFeatures3.VPAndRTArrayIndexFromAnyShaderFeedingRasterizer == TRUE)
         {
             m_Capabilities |= GraphicsDevice_Capability::RenderTarget_And_Viewport_ArrayIndex_Without_GS;
-            AURORA_INFO("VPAndRTArrayIndexFromAnyShaderFeedingRasterizer is supported.");
+            AURORA_INFO(LogLayer::Graphics, "VPAndRTArrayIndexFromAnyShaderFeedingRasterizer is supported.");
         }
 
-        AURORA_INFO("Completed querying of device features.");
+        AURORA_INFO(LogLayer::Graphics, "Completed querying of device features.");
     }
 
     bool DX11_GraphicsDevice::CreateSwapChain(const RHI_SwapChain_Description* swapChainDescription, RHI_SwapChain* swapChain) const
@@ -163,11 +163,11 @@ namespace Aurora
 
             if (!BreakIfFailed(m_DXGIFactory->CreateSwapChainForHwnd(m_Device.Get(), m_EngineContext->GetSubsystem<WindowContext>()->GetWindowHWND(0), &swapChainCreationInfo, &fullscreenCreationInfo, nullptr, &internalState->m_SwapChain)))
             {
-                AURORA_ERROR("Failed to create Swapchain.");
+                AURORA_ERROR(LogLayer::Graphics, "Failed to create Swapchain.");
                 return false;
             }
 
-            AURORA_INFO("Successfully created Swapchain.");
+            AURORA_INFO(LogLayer::Graphics, "Successfully created Swapchain.");
         }
         else // Swapchain already exists...
         {
@@ -176,28 +176,28 @@ namespace Aurora
 
             if (!BreakIfFailed(internalState->m_SwapChain->ResizeBuffers(swapChainDescription->m_BufferCount, swapChainDescription->m_Width, swapChainDescription->m_Height, DX11_ConvertFormat(swapChainDescription->m_Format), 0)))
             {
-                AURORA_ERROR("Failed to resize SwapChain.");
+                AURORA_ERROR(LogLayer::Graphics, "Failed to resize SwapChain.");
                 return false;
             }
 
-            AURORA_INFO("Successfully resized SwapChain.");
+            AURORA_INFO(LogLayer::Graphics, "Successfully resized SwapChain.");
         }
 
         if (!BreakIfFailed(internalState->m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &internalState->m_BackBuffer)))
         {
-            AURORA_ERROR("Failed to retrieve SwapChain backbuffer.");
+            AURORA_ERROR(LogLayer::Graphics, "Failed to retrieve SwapChain backbuffer.");
             return false;
         }
 
-        AURORA_INFO("Successfully retrieved SwapChain backbuffer.");
+        AURORA_INFO(LogLayer::Graphics, "Successfully retrieved SwapChain backbuffer.");
 
         if (!BreakIfFailed(m_Device->CreateRenderTargetView(internalState->m_BackBuffer.Get(), nullptr, &internalState->m_RenderTargetView)))
         {
-            AURORA_ERROR("Failed to retrieve SwapChain Render Target View.");
+            AURORA_ERROR(LogLayer::Graphics, "Failed to retrieve SwapChain Render Target View.");
             return false;
         }
 
-        AURORA_INFO("Successfully created SwapChain Render Target View.");
+        AURORA_INFO(LogLayer::Graphics, "Successfully created SwapChain Render Target View.");
 
         return true;
     }
@@ -205,7 +205,7 @@ namespace Aurora
     bool DX11_GraphicsDevice::CreateBuffer(const RHI_GPU_Buffer_Description* bufferDescription, const RHI_Subresource_Data* initialData, RHI_GPU_Buffer* buffer) const
     {
         std::shared_ptr<DX11_ResourcePackage> internalState = std::make_shared<DX11_ResourcePackage>();
-        buffer->m_InternalState = internalState; 
+        buffer->m_InternalState = internalState;
         buffer->m_Type = GPU_Resource_Type::Buffer;
 
         D3D11_BUFFER_DESC bufferCreationInfo = {};
@@ -225,7 +225,7 @@ namespace Aurora
         buffer->m_Description = *bufferDescription;
         if (BreakIfFailed(m_Device->CreateBuffer(&bufferCreationInfo, initialData == nullptr ? nullptr : &data, (ID3D11Buffer**)internalState->m_Resource.ReleaseAndGetAddressOf())))
         {
-            AURORA_INFO("Successfully created Buffer.");
+            AURORA_INFO(LogLayer::Graphics, "Successfully created Buffer.");
 
             // Create resource views if needed.
             if (bufferDescription->m_BindFlags & Bind_Flag::Bind_Shader_Resource)
@@ -241,7 +241,7 @@ namespace Aurora
             return true;
         }
 
-        return false;      
+        return false;
     }
 
     int DX11_GraphicsDevice::CreateSubresource(RHI_GPU_Buffer* gpuBuffer, Subresource_Type type, uint64_t offset, uint64_t size) const
@@ -331,35 +331,35 @@ namespace Aurora
 
         switch (texture->m_Description.m_Type)
         {
-            case Texture_Type::Texture1D:
-            {
-                D3D11_TEXTURE1D_DESC description = DX11_ConvertTextureDescription1D(&texture->m_Description);
-                BreakIfFailed(m_Device->CreateTexture1D(&description, data.data(), (ID3D11Texture1D**)internalState->m_Resource.ReleaseAndGetAddressOf()));
-            }
-            break;
+        case Texture_Type::Texture1D:
+        {
+            D3D11_TEXTURE1D_DESC description = DX11_ConvertTextureDescription1D(&texture->m_Description);
+            BreakIfFailed(m_Device->CreateTexture1D(&description, data.data(), (ID3D11Texture1D**)internalState->m_Resource.ReleaseAndGetAddressOf()));
+        }
+        break;
 
-            case Texture_Type::Texture2D:
-            {
-                D3D11_TEXTURE2D_DESC description = DX11_ConvertTextureDescription2D(&texture->m_Description);
-                BreakIfFailed(m_Device->CreateTexture2D(&description, data.data(), (ID3D11Texture2D**)internalState->m_Resource.ReleaseAndGetAddressOf()));
-            }
-            break;
+        case Texture_Type::Texture2D:
+        {
+            D3D11_TEXTURE2D_DESC description = DX11_ConvertTextureDescription2D(&texture->m_Description);
+            BreakIfFailed(m_Device->CreateTexture2D(&description, data.data(), (ID3D11Texture2D**)internalState->m_Resource.ReleaseAndGetAddressOf()));
+        }
+        break;
 
-            case Texture_Type::Texture3D:
-            {
-                D3D11_TEXTURE3D_DESC description = DX11_ConvertTextureDescription3D(&texture->m_Description);
-                BreakIfFailed(m_Device->CreateTexture3D(&description, data.data(), (ID3D11Texture3D**)internalState->m_Resource.ReleaseAndGetAddressOf()));
-            }
-            break;
+        case Texture_Type::Texture3D:
+        {
+            D3D11_TEXTURE3D_DESC description = DX11_ConvertTextureDescription3D(&texture->m_Description);
+            BreakIfFailed(m_Device->CreateTexture3D(&description, data.data(), (ID3D11Texture3D**)internalState->m_Resource.ReleaseAndGetAddressOf()));
+        }
+        break;
 
-            default:
-            {
-                AURORA_ERROR("Invalid texture type specified.");
-                return false;
-            }
+        default:
+        {
+            AURORA_ERROR(LogLayer::Graphics, "Invalid texture type specified.");
+            return false;
+        }
         }
 
-        AURORA_INFO("Successfully created Texture.");
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Texture.");
 
         if (texture->m_Description.m_MipLevels == 0)
         {
@@ -412,78 +412,78 @@ namespace Aurora
         samplerState->m_Description = *samplerDescription;
         if (BreakIfFailed(m_Device->CreateSamplerState(&samplerCreationDescription, &internalState->m_Resource)))
         {
-            AURORA_INFO("Successfully created Sampler State.");
+            AURORA_INFO(LogLayer::Graphics, "Successfully created Sampler State.");
             return true;
         }
 
-        AURORA_ERROR("Failed to create Sampler State.");
+        AURORA_ERROR(LogLayer::Graphics, "Failed to create Sampler State.");
         return false;
     }
 
-    bool DX11_GraphicsDevice::CreateShader(Shader_Stage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const
+    bool DX11_GraphicsDevice::CreateShader(RHI_Shader_Stage shaderStage, const void* shaderByteCode, size_t byteCodeLength, RHI_Shader* shader) const
     {
         shader->m_Stage = shaderStage;
 
         switch (shaderStage)
         {
-            case Shader_Stage::Vertex_Shader:
-            {
-                std::shared_ptr<DX11_VertexShaderPackage> internalState = std::make_shared<DX11_VertexShaderPackage>();
-                shader->m_InternalState = internalState;
-                internalState->m_ShaderCode.resize(byteCodeLength);
-                std::memcpy(internalState->m_ShaderCode.data(), shaderByteCode, byteCodeLength); // Copy the shader byte code into our package.
+        case RHI_Shader_Stage::Vertex_Shader:
+        {
+            std::shared_ptr<DX11_VertexShaderPackage> internalState = std::make_shared<DX11_VertexShaderPackage>();
+            shader->m_InternalState = internalState;
+            internalState->m_ShaderCode.resize(byteCodeLength);
+            std::memcpy(internalState->m_ShaderCode.data(), shaderByteCode, byteCodeLength); // Copy the shader byte code into our package.
 
-                BreakIfFailed(m_Device->CreateVertexShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
-                AURORA_INFO("Successfully created Vertex Shader.");
-                return true;
-            }
-            break;
+            BreakIfFailed(m_Device->CreateVertexShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
+            AURORA_INFO(LogLayer::Graphics, "Successfully created Vertex Shader.");
+            return true;
+        }
+        break;
 
-            case Shader_Stage::Domain_Shader:
-            {
-                /// Soon.
-                return false;
-            }
-            break;
+        case RHI_Shader_Stage::Domain_Shader:
+        {
+            /// Soon.
+            return false;
+        }
+        break;
 
-            case Shader_Stage::Hull_Shader:
-            {
-                /// Soon.
-                return false;
-            }
-            break;
+        case RHI_Shader_Stage::Hull_Shader:
+        {
+            /// Soon.
+            return false;
+        }
+        break;
 
-            case Shader_Stage::Geometry_Shader:
-            {
-                /// Soon.
-                return false;
-            }
-            break;
+        case RHI_Shader_Stage::Geometry_Shader:
+        {
+            /// Soon.
+            return false;
+        }
+        break;
 
-            case Shader_Stage::Pixel_Shader:
-            {
-                std::shared_ptr<DX11_PixelShaderPackage> internalState = std::make_shared<DX11_PixelShaderPackage>();
-                shader->m_InternalState = internalState;
+        case RHI_Shader_Stage::Pixel_Shader:
+        {
+            std::shared_ptr<DX11_PixelShaderPackage> internalState = std::make_shared<DX11_PixelShaderPackage>();
+            shader->m_InternalState = internalState;
 
-                BreakIfFailed(m_Device->CreatePixelShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
-                AURORA_INFO("Successfully created Pixel Shader.");
-                return true;
-            }
-            break;
+            BreakIfFailed(m_Device->CreatePixelShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
+            AURORA_INFO(LogLayer::Graphics, "Successfully created Pixel Shader.");
+            return true;
+        }
+        break;
 
-            case Shader_Stage::Compute_Shader:
-            {
-                std::shared_ptr<DX11_ComputeShaderPackage> internalState = std::make_shared<DX11_ComputeShaderPackage>();
-                shader->m_InternalState = internalState;
-                
-                BreakIfFailed(m_Device->CreateComputeShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
-                AURORA_INFO("Successfully created Compute Shader.");
-                return true;
-            }
-            break;
+        case RHI_Shader_Stage::Compute_Shader:
+        {
+            std::shared_ptr<DX11_ComputeShaderPackage> internalState = std::make_shared<DX11_ComputeShaderPackage>();
+            shader->m_InternalState = internalState;
+
+            BreakIfFailed(m_Device->CreateComputeShader(shaderByteCode, byteCodeLength, nullptr, &internalState->m_Resource));
+            AURORA_INFO(LogLayer::Graphics, "Successfully created Compute Shader.");
+            return true;
+        }
+        break;
         }
 
-        AURORA_ERROR("Shader stage not found.");
+        AURORA_ERROR(LogLayer::Graphics, "Shader stage not found.");
         return false;
     }
 
@@ -507,7 +507,7 @@ namespace Aurora
                 if (inputElementDescriptions[i].AlignedByteOffset == RHI_InputLayout::APPEND_ALIGNED_ELEMENT)
                 {
                     inputElementDescriptions[i].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-                }         
+                }
                 inputElementDescriptions[i].InputSlotClass = DX11_ConvertInputClassification(description->m_InputLayout->m_Elements[i].m_InputSlotClass);
                 inputElementDescriptions[i].InstanceDataStepRate = 0;
 
@@ -521,7 +521,7 @@ namespace Aurora
             DX11_VertexShaderPackage* vertexInternal = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(description->m_VertexShader->m_InternalState.get());
             if (BreakIfFailed(m_Device->CreateInputLayout(inputElementDescriptions.data(), (UINT)inputElementDescriptions.size(), vertexInternal->m_ShaderCode.data(), vertexInternal->m_ShaderCode.size(), &internalState->m_InputLayout)))
             {
-                AURORA_INFO("Successfully created Input Layout.");
+                AURORA_INFO(LogLayer::Graphics, "Successfully created Input Layout.");
             }
         }
 
@@ -545,16 +545,16 @@ namespace Aurora
 
             if (BreakIfFailed(m_Device->CreateBlendState(&blendDescription, &internalState->m_BlendState)))
             {
-                AURORA_INFO("Successfully created Blend State.");
+                AURORA_INFO(LogLayer::Graphics, "Successfully created Blend State.");
             }
         }
-        
+
         if (description->m_DepthStencilState != nullptr)
         {
             D3D11_DEPTH_STENCIL_DESC depthStencilDescription = {};
             depthStencilDescription.DepthEnable = description->m_DepthStencilState->m_IsDepthEnabled;
             depthStencilDescription.DepthWriteMask = DX11_ConvertDepthWriteMask(description->m_DepthStencilState->m_DepthWriteMask);
-            depthStencilDescription.DepthFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_DepthComparisonFunction);   
+            depthStencilDescription.DepthFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_DepthComparisonFunction);
             depthStencilDescription.StencilEnable = description->m_DepthStencilState->m_IsStencilEnabled;
             depthStencilDescription.StencilReadMask = description->m_DepthStencilState->m_StencilReadMask;
             depthStencilDescription.StencilWriteMask = description->m_DepthStencilState->m_StencilWriteMask;
@@ -566,13 +566,13 @@ namespace Aurora
             depthStencilDescription.BackFace.StencilFailOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_BackFaceOperation.m_StencilFailOperation);
             depthStencilDescription.BackFace.StencilFunc = DX11_ConvertComparisonFunction(description->m_DepthStencilState->m_BackFaceOperation.m_StencilComparisonFunction);
             depthStencilDescription.BackFace.StencilPassOp = DX11_ConvertStencilOperation(description->m_DepthStencilState->m_BackFaceOperation.m_StencilPassOperation);
-            
+
             if (BreakIfFailed(m_Device->CreateDepthStencilState(&depthStencilDescription, &internalState->m_DepthStencilState)))
             {
-                AURORA_INFO("Successfully created Depth Stencil State.");
+                AURORA_INFO(LogLayer::Graphics, "Successfully created Depth Stencil State.");
             }
         }
-        
+
         if (description->m_RasterizerState != nullptr)
         {
             D3D11_RASTERIZER_DESC rasterizerDescription = {};
@@ -591,13 +591,13 @@ namespace Aurora
             /// Perhaps we can support conservative rasterization in due time.
             if (BreakIfFailed(m_Device->CreateRasterizerState(&rasterizerDescription, &internalState->m_RasterizerState)))
             {
-                AURORA_INFO("Successfully created Rasterizer State.");
+                AURORA_INFO(LogLayer::Graphics, "Successfully created Rasterizer State.");
             }
         }
 
         return true;
     }
-    
+
     void DX11_GraphicsDevice::BindPipelineState(const RHI_PipelineState* pipelineStateObject, RHI_CommandList commandList)
     {
         const RHI_PipelineState_Description& pipelineDescription = pipelineStateObject != nullptr ? pipelineStateObject->GetDescription() : RHI_PipelineState_Description();
@@ -665,364 +665,364 @@ namespace Aurora
 
         switch (type)
         {
-            case Subresource_Type::ShaderResourceView:
+        case Subresource_Type::ShaderResourceView:
+        {
+            D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDescription = {};
+
+            // Try to resolve the resource format.
+            switch (texture->m_Description.m_Format)
             {
-                D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDescription = {};
+            case Format::FORMAT_R16_TYPELESS:
+                shaderResourceViewDescription.Format = DXGI_FORMAT_R16_UNORM;
+                break;
 
-                // Try to resolve the resource format.
-                switch (texture->m_Description.m_Format)
-                {
-                    case Format::FORMAT_R16_TYPELESS:
-                        shaderResourceViewDescription.Format = DXGI_FORMAT_R16_UNORM;
-                        break;
+            case Format::FORMAT_R32_TYPELESS:
+                shaderResourceViewDescription.Format = DXGI_FORMAT_R32_FLOAT;
+                break;
 
-                    case Format::FORMAT_R32_TYPELESS:
-                        shaderResourceViewDescription.Format = DXGI_FORMAT_R32_FLOAT;
-                        break;
+            case Format::FORMAT_R24G8_TYPELESS:
+                shaderResourceViewDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+                break;
 
-                    case Format::FORMAT_R24G8_TYPELESS:
-                        shaderResourceViewDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-                        break;
-
-                    case Format::FORMAT_R32G8X24_TYPELESS:
-                        shaderResourceViewDescription.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-                        break;
-
-                    default:
-                        shaderResourceViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
-                        break;
-                }
-
-                if (texture->m_Description.m_Type == Texture_Type::Texture1D)
-                {
-                    if (texture->m_Description.m_ArraySize > 1)
-                    {
-                        shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1DARRAY;
-                        shaderResourceViewDescription.Texture1DArray.FirstArraySlice = firstSlice;
-                        shaderResourceViewDescription.Texture1DArray.ArraySize = sliceCount;
-                        shaderResourceViewDescription.Texture1DArray.MostDetailedMip = firstMip;
-                        shaderResourceViewDescription.Texture1DArray.MipLevels = mipCount;
-                    }
-                    else
-                    {
-                        shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
-                        shaderResourceViewDescription.Texture1D.MostDetailedMip = firstMip;
-                        shaderResourceViewDescription.Texture1D.MipLevels = mipCount;
-                    }
-                }
-                else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
-                {
-                    if (texture->m_Description.m_ArraySize > 1)
-                    {
-                        if (texture->m_Description.m_MiscFlags & Resource_Misc_Flag::Resource_Misc_TextureCube)
-                        {
-                            if (texture->m_Description.m_ArraySize > 6)
-                            {
-                                shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
-                                shaderResourceViewDescription.TextureCubeArray.First2DArrayFace = firstSlice;
-                                shaderResourceViewDescription.TextureCubeArray.NumCubes = std::min(texture->m_Description.m_ArraySize, sliceCount) / 6; // 6 = 1 Cube
-                                shaderResourceViewDescription.TextureCubeArray.MostDetailedMip = firstMip;
-                                shaderResourceViewDescription.TextureCubeArray.MipLevels = mipCount;
-                            }
-                            else
-                            {
-                                shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-                                shaderResourceViewDescription.TextureCube.MostDetailedMip = firstMip;
-                                shaderResourceViewDescription.TextureCube.MipLevels = mipCount;
-                            }
-                        }
-                        else
-                        {
-                            // Multisample Array
-                        }
-                    }
-                    else
-                    {
-                        if (texture->m_Description.m_SampleCount > 1)
-                        {
-                            shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
-                        }
-                        else
-                        {
-                            shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-                            shaderResourceViewDescription.Texture2D.MostDetailedMip = firstMip;
-                            shaderResourceViewDescription.Texture2D.MipLevels = mipCount;
-                        }
-                    }
-                }
-                else if (texture->m_Description.m_Type == Texture_Type::Texture3D)
-                {
-                    ///
-                }
-
-                ComPtr<ID3D11ShaderResourceView> shaderResourceView;
-                if (BreakIfFailed(m_Device->CreateShaderResourceView(internalState->m_Resource.Get(), &shaderResourceViewDescription, &shaderResourceView))) // Note that the resource here is our texture. We are creating a shader resource view for it.
-                {
-                    AURORA_INFO("Successfully created Shader Resource View.");
-
-                    if (!internalState->m_ShaderResourceView)
-                    {
-                        internalState->m_ShaderResourceView = shaderResourceView;
-                        return -1;
-                    }
-                    internalState->m_Subresources_ShaderResourceView.push_back(shaderResourceView);
-                    return int(internalState->m_Subresources_ShaderResourceView.size() - 1);
-                }
-                else
-                {
-                    AURORA_ERROR("Failed to create Shader Resource View.");
-                    AURORA_ASSERT(0);
-                }
-            }
-            break;
-
-            case Subresource_Type::RenderTargetView:
-            {
-                D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDescription = {};
-
-                // Try to resolve resource format.
-                switch (texture->m_Description.m_Format)
-                {
-                    case FORMAT_R16_TYPELESS:
-                        renderTargetViewDescription.Format = DXGI_FORMAT_R16_UNORM;
-
-                    case Format::FORMAT_R32_TYPELESS:
-                        renderTargetViewDescription.Format = DXGI_FORMAT_R32_FLOAT;
-                        break;
-
-                    case Format::FORMAT_R24G8_TYPELESS:
-                        renderTargetViewDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-                        break;
-
-                    case Format::FORMAT_R32G8X24_TYPELESS:
-                        renderTargetViewDescription.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-                        break;
-
-                    default:
-                        renderTargetViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
-                        break;
-                }
-
-                /// If 1D.
-                if (texture->m_Description.m_Type == Texture_Type::Texture2D)
-                {
-                    /// If array size is more than 1.
-                    /// If sample count is more than 1.
-                    renderTargetViewDescription.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-                    renderTargetViewDescription.Texture2D.MipSlice = firstMip;
-                }
-                /// If 3D.
-                
-                ComPtr<ID3D11RenderTargetView> renderTargetView;
-                if (BreakIfFailed(m_Device->CreateRenderTargetView(internalState->m_Resource.Get(), &renderTargetViewDescription, &renderTargetView)))
-                {
-                    if (!internalState->m_RenderTargetView)
-                    {
-                        internalState->m_RenderTargetView = renderTargetView;
-                        return -1; // Meaning we have only 1 render targer view.
-                    }
-
-                    internalState->m_Subresources_RenderTargetView.push_back(renderTargetView);
-                    return int(internalState->m_Subresources_RenderTargetView.size() - 1);                   
-                }
-                else
-                {
-                    AURORA_ERROR("Failed to create Render Target View.");
-                    AURORA_ASSERT(0);
-                }
-            }
-            break;
-
-            case Subresource_Type::UnorderedAccessView:
-            {
-                D3D11_UNORDERED_ACCESS_VIEW_DESC unorderedAccessViewDescription = {};
-
-                // Try to resolve resource format.
-                switch (texture->m_Description.m_Format)
-                {
-                    case Format::FORMAT_R16_TYPELESS:
-                        unorderedAccessViewDescription.Format = DXGI_FORMAT_R16_UNORM;
-                        break;
-
-                    case Format::FORMAT_R32_TYPELESS:
-                        unorderedAccessViewDescription.Format = DXGI_FORMAT_R32_FLOAT;
-                        break;
-
-                    case Format::FORMAT_R24G8_TYPELESS:
-                        unorderedAccessViewDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-                        break;
-
-                    case Format::FORMAT_R32G8X24_TYPELESS:
-                        unorderedAccessViewDescription.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-                        break;
-
-                    default:
-                        unorderedAccessViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
-                        break;
-                }
-
-                if (texture->m_Description.m_Type == Texture_Type::Texture1D)
-                {
-                    if (texture->m_Description.m_ArraySize > 1)
-                    {
-
-                    }
-                    else
-                    {
-                        unorderedAccessViewDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
-                        unorderedAccessViewDescription.Texture1D.MipSlice = firstMip;
-                    }
-                }
-                else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
-                {
-                    if (texture->m_Description.m_ArraySize > 1)
-                    {
-                        unorderedAccessViewDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-                        unorderedAccessViewDescription.Texture2DArray.FirstArraySlice = firstSlice;
-                        unorderedAccessViewDescription.Texture2DArray.ArraySize = sliceCount;
-                        unorderedAccessViewDescription.Texture2DArray.MipSlice = firstMip;
-                    }
-                    else
-                    {
-                        unorderedAccessViewDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-                        unorderedAccessViewDescription.Texture2D.MipSlice = firstMip;
-                    }
-                }
-                else if (texture->m_Description.m_Type == Texture_Type::Texture3D)
-                {
-
-                }
-
-                ComPtr<ID3D11UnorderedAccessView> unorderedAccessView;
-                if (BreakIfFailed(m_Device->CreateUnorderedAccessView(internalState->m_Resource.Get(), &unorderedAccessViewDescription, &unorderedAccessView)))
-                {
-                    AURORA_INFO("Successfully created Unordered Access View.");
-
-                    if (!internalState->m_UnorderedAccessView)
-                    {
-                        internalState->m_UnorderedAccessView = unorderedAccessView;
-                        return -1;
-                    }
-                    internalState->m_Subresources_UnorderedAccessView.push_back(unorderedAccessView);
-                    return int(internalState->m_Subresources_UnorderedAccessView.size() - 1);
-                }
-                else
-                {
-                    AURORA_ERROR("Failed to create Unordered Access View.");
-                    AURORA_ASSERT(0);
-                }
-            }
-            break;
-
-            case Subresource_Type::ConstantBufferView:
-            {
-            }
-            break;
-
-            case Subresource_Type::DepthStencilView:
-            {
-                D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDescription = {};
-
-                // Try to resolve the resource format.
-                switch (texture->m_Description.m_Format)
-                {
-                    case Format::FORMAT_R16_TYPELESS:
-                        depthStencilViewDescription.Format = DXGI_FORMAT_D16_UNORM;
-                        break;
-                        
-                    case Format::FORMAT_R32_TYPELESS:
-                        depthStencilViewDescription.Format = DXGI_FORMAT_D32_FLOAT;
-                        break;
-
-                    case Format::FORMAT_R24G8_TYPELESS:
-                        depthStencilViewDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-                        break;
-
-                    case Format::FORMAT_R32G8X24_TYPELESS:
-                        depthStencilViewDescription.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-                        break;
-
-                    default:
-                        depthStencilViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
-                        break;
-                }
-
-                if (texture->m_Description.m_Type == Texture_Type::Texture1D)
-                {
-                    if (texture->m_Description.m_ArraySize > 1)
-                    {
-                        depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1DARRAY;
-                        depthStencilViewDescription.Texture1DArray.FirstArraySlice = firstSlice;
-                        depthStencilViewDescription.Texture1DArray.ArraySize = sliceCount;
-                        depthStencilViewDescription.Texture1DArray.MipSlice = firstMip;
-                    }
-                    else
-                    {
-                        depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1D;
-                        depthStencilViewDescription.Texture1D.MipSlice = firstMip;
-                    }
-                }
-                else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
-                {
-                    if (texture->m_Description.m_ArraySize > 1)
-                    {
-                        if (texture->m_Description.m_SampleCount > 1)
-                        {
-                            depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-                            depthStencilViewDescription.Texture2DMSArray.FirstArraySlice = firstSlice;          // MS - Multi-Sampled
-                            depthStencilViewDescription.Texture2DMSArray.ArraySize = sliceCount;
-                        }
-                        else
-                        {
-                            depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-                            depthStencilViewDescription.Texture2DArray.FirstArraySlice = firstSlice;
-                            depthStencilViewDescription.Texture2DArray.ArraySize = sliceCount;
-                            depthStencilViewDescription.Texture2DArray.MipSlice = firstMip;
-
-                        }
-                    }
-                    else
-                    {
-                        if (texture->m_Description.m_SampleCount > 1)
-                        {
-                            depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
-                        }
-                        else
-                        {
-                            depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-                            depthStencilViewDescription.Texture2D.MipSlice = firstMip;
-                        }
-                    }
-                }
-
-                ComPtr<ID3D11DepthStencilView> depthStencilView;
-
-                if (BreakIfFailed(m_Device->CreateDepthStencilView(internalState->m_Resource.Get(), &depthStencilViewDescription, &depthStencilView)))
-                {
-                    AURORA_INFO("Successfully created Depth Stencil View.");
-
-                    if (!internalState->m_DepthStencilView)
-                    {
-                        internalState->m_DepthStencilView = depthStencilView;
-                        return -1;
-                    }
-
-                    internalState->m_Subresources_DepthStencilView.push_back(depthStencilView);
-
-                    return int(internalState->m_Subresources_DepthStencilView.size() - 1);
-                }
-                else
-                {
-                    AURORA_ERROR("Failed to create Depth Stencil View.");
-                    AURORA_ASSERT(0);
-                }
-            }
-            break;
+            case Format::FORMAT_R32G8X24_TYPELESS:
+                shaderResourceViewDescription.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+                break;
 
             default:
-            {
+                shaderResourceViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
                 break;
             }
+
+            if (texture->m_Description.m_Type == Texture_Type::Texture1D)
+            {
+                if (texture->m_Description.m_ArraySize > 1)
+                {
+                    shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1DARRAY;
+                    shaderResourceViewDescription.Texture1DArray.FirstArraySlice = firstSlice;
+                    shaderResourceViewDescription.Texture1DArray.ArraySize = sliceCount;
+                    shaderResourceViewDescription.Texture1DArray.MostDetailedMip = firstMip;
+                    shaderResourceViewDescription.Texture1DArray.MipLevels = mipCount;
+                }
+                else
+                {
+                    shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
+                    shaderResourceViewDescription.Texture1D.MostDetailedMip = firstMip;
+                    shaderResourceViewDescription.Texture1D.MipLevels = mipCount;
+                }
+            }
+            else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
+            {
+                if (texture->m_Description.m_ArraySize > 1)
+                {
+                    if (texture->m_Description.m_MiscFlags & Resource_Misc_Flag::Resource_Misc_TextureCube)
+                    {
+                        if (texture->m_Description.m_ArraySize > 6)
+                        {
+                            shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
+                            shaderResourceViewDescription.TextureCubeArray.First2DArrayFace = firstSlice;
+                            shaderResourceViewDescription.TextureCubeArray.NumCubes = std::min(texture->m_Description.m_ArraySize, sliceCount) / 6; // 6 = 1 Cube
+                            shaderResourceViewDescription.TextureCubeArray.MostDetailedMip = firstMip;
+                            shaderResourceViewDescription.TextureCubeArray.MipLevels = mipCount;
+                        }
+                        else
+                        {
+                            shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+                            shaderResourceViewDescription.TextureCube.MostDetailedMip = firstMip;
+                            shaderResourceViewDescription.TextureCube.MipLevels = mipCount;
+                        }
+                    }
+                    else
+                    {
+                        // Multisample Array
+                    }
+                }
+                else
+                {
+                    if (texture->m_Description.m_SampleCount > 1)
+                    {
+                        shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+                    }
+                    else
+                    {
+                        shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+                        shaderResourceViewDescription.Texture2D.MostDetailedMip = firstMip;
+                        shaderResourceViewDescription.Texture2D.MipLevels = mipCount;
+                    }
+                }
+            }
+            else if (texture->m_Description.m_Type == Texture_Type::Texture3D)
+            {
+                ///
+            }
+
+            ComPtr<ID3D11ShaderResourceView> shaderResourceView;
+            if (BreakIfFailed(m_Device->CreateShaderResourceView(internalState->m_Resource.Get(), &shaderResourceViewDescription, &shaderResourceView))) // Note that the resource here is our texture. We are creating a shader resource view for it.
+            {
+                AURORA_INFO(LogLayer::Graphics, "Successfully created Shader Resource View.");
+
+                if (!internalState->m_ShaderResourceView)
+                {
+                    internalState->m_ShaderResourceView = shaderResourceView;
+                    return -1;
+                }
+                internalState->m_Subresources_ShaderResourceView.push_back(shaderResourceView);
+                return int(internalState->m_Subresources_ShaderResourceView.size() - 1);
+            }
+            else
+            {
+                AURORA_ERROR(LogLayer::Graphics, "Failed to create Shader Resource View.");
+                AURORA_ASSERT(0);
+            }
+        }
+        break;
+
+        case Subresource_Type::RenderTargetView:
+        {
+            D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDescription = {};
+
+            // Try to resolve resource format.
+            switch (texture->m_Description.m_Format)
+            {
+            case FORMAT_R16_TYPELESS:
+                renderTargetViewDescription.Format = DXGI_FORMAT_R16_UNORM;
+
+            case Format::FORMAT_R32_TYPELESS:
+                renderTargetViewDescription.Format = DXGI_FORMAT_R32_FLOAT;
+                break;
+
+            case Format::FORMAT_R24G8_TYPELESS:
+                renderTargetViewDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+                break;
+
+            case Format::FORMAT_R32G8X24_TYPELESS:
+                renderTargetViewDescription.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+                break;
+
+            default:
+                renderTargetViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
+                break;
+            }
+
+            /// If 1D.
+            if (texture->m_Description.m_Type == Texture_Type::Texture2D)
+            {
+                /// If array size is more than 1.
+                /// If sample count is more than 1.
+                renderTargetViewDescription.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+                renderTargetViewDescription.Texture2D.MipSlice = firstMip;
+            }
+            /// If 3D.
+
+            ComPtr<ID3D11RenderTargetView> renderTargetView;
+            if (BreakIfFailed(m_Device->CreateRenderTargetView(internalState->m_Resource.Get(), &renderTargetViewDescription, &renderTargetView)))
+            {
+                if (!internalState->m_RenderTargetView)
+                {
+                    internalState->m_RenderTargetView = renderTargetView;
+                    return -1; // Meaning we have only 1 render targer view.
+                }
+
+                internalState->m_Subresources_RenderTargetView.push_back(renderTargetView);
+                return int(internalState->m_Subresources_RenderTargetView.size() - 1);
+            }
+            else
+            {
+                AURORA_ERROR(LogLayer::Graphics, "Failed to create Render Target View.");
+                AURORA_ASSERT(0);
+            }
+        }
+        break;
+
+        case Subresource_Type::UnorderedAccessView:
+        {
+            D3D11_UNORDERED_ACCESS_VIEW_DESC unorderedAccessViewDescription = {};
+
+            // Try to resolve resource format.
+            switch (texture->m_Description.m_Format)
+            {
+            case Format::FORMAT_R16_TYPELESS:
+                unorderedAccessViewDescription.Format = DXGI_FORMAT_R16_UNORM;
+                break;
+
+            case Format::FORMAT_R32_TYPELESS:
+                unorderedAccessViewDescription.Format = DXGI_FORMAT_R32_FLOAT;
+                break;
+
+            case Format::FORMAT_R24G8_TYPELESS:
+                unorderedAccessViewDescription.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+                break;
+
+            case Format::FORMAT_R32G8X24_TYPELESS:
+                unorderedAccessViewDescription.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+                break;
+
+            default:
+                unorderedAccessViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
+                break;
+            }
+
+            if (texture->m_Description.m_Type == Texture_Type::Texture1D)
+            {
+                if (texture->m_Description.m_ArraySize > 1)
+                {
+
+                }
+                else
+                {
+                    unorderedAccessViewDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
+                    unorderedAccessViewDescription.Texture1D.MipSlice = firstMip;
+                }
+            }
+            else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
+            {
+                if (texture->m_Description.m_ArraySize > 1)
+                {
+                    unorderedAccessViewDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+                    unorderedAccessViewDescription.Texture2DArray.FirstArraySlice = firstSlice;
+                    unorderedAccessViewDescription.Texture2DArray.ArraySize = sliceCount;
+                    unorderedAccessViewDescription.Texture2DArray.MipSlice = firstMip;
+                }
+                else
+                {
+                    unorderedAccessViewDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+                    unorderedAccessViewDescription.Texture2D.MipSlice = firstMip;
+                }
+            }
+            else if (texture->m_Description.m_Type == Texture_Type::Texture3D)
+            {
+
+            }
+
+            ComPtr<ID3D11UnorderedAccessView> unorderedAccessView;
+            if (BreakIfFailed(m_Device->CreateUnorderedAccessView(internalState->m_Resource.Get(), &unorderedAccessViewDescription, &unorderedAccessView)))
+            {
+                AURORA_INFO(LogLayer::Graphics, "Successfully created Unordered Access View.");
+
+                if (!internalState->m_UnorderedAccessView)
+                {
+                    internalState->m_UnorderedAccessView = unorderedAccessView;
+                    return -1;
+                }
+                internalState->m_Subresources_UnorderedAccessView.push_back(unorderedAccessView);
+                return int(internalState->m_Subresources_UnorderedAccessView.size() - 1);
+            }
+            else
+            {
+                AURORA_ERROR(LogLayer::Graphics, "Failed to create Unordered Access View.");
+                AURORA_ASSERT(0);
+            }
+        }
+        break;
+
+        case Subresource_Type::ConstantBufferView:
+        {
+        }
+        break;
+
+        case Subresource_Type::DepthStencilView:
+        {
+            D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDescription = {};
+
+            // Try to resolve the resource format.
+            switch (texture->m_Description.m_Format)
+            {
+            case Format::FORMAT_R16_TYPELESS:
+                depthStencilViewDescription.Format = DXGI_FORMAT_D16_UNORM;
+                break;
+
+            case Format::FORMAT_R32_TYPELESS:
+                depthStencilViewDescription.Format = DXGI_FORMAT_D32_FLOAT;
+                break;
+
+            case Format::FORMAT_R24G8_TYPELESS:
+                depthStencilViewDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+                break;
+
+            case Format::FORMAT_R32G8X24_TYPELESS:
+                depthStencilViewDescription.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+                break;
+
+            default:
+                depthStencilViewDescription.Format = DX11_ConvertFormat(texture->m_Description.m_Format);
+                break;
+            }
+
+            if (texture->m_Description.m_Type == Texture_Type::Texture1D)
+            {
+                if (texture->m_Description.m_ArraySize > 1)
+                {
+                    depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1DARRAY;
+                    depthStencilViewDescription.Texture1DArray.FirstArraySlice = firstSlice;
+                    depthStencilViewDescription.Texture1DArray.ArraySize = sliceCount;
+                    depthStencilViewDescription.Texture1DArray.MipSlice = firstMip;
+                }
+                else
+                {
+                    depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1D;
+                    depthStencilViewDescription.Texture1D.MipSlice = firstMip;
+                }
+            }
+            else if (texture->m_Description.m_Type == Texture_Type::Texture2D)
+            {
+                if (texture->m_Description.m_ArraySize > 1)
+                {
+                    if (texture->m_Description.m_SampleCount > 1)
+                    {
+                        depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+                        depthStencilViewDescription.Texture2DMSArray.FirstArraySlice = firstSlice;          // MS - Multi-Sampled
+                        depthStencilViewDescription.Texture2DMSArray.ArraySize = sliceCount;
+                    }
+                    else
+                    {
+                        depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+                        depthStencilViewDescription.Texture2DArray.FirstArraySlice = firstSlice;
+                        depthStencilViewDescription.Texture2DArray.ArraySize = sliceCount;
+                        depthStencilViewDescription.Texture2DArray.MipSlice = firstMip;
+
+                    }
+                }
+                else
+                {
+                    if (texture->m_Description.m_SampleCount > 1)
+                    {
+                        depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+                    }
+                    else
+                    {
+                        depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+                        depthStencilViewDescription.Texture2D.MipSlice = firstMip;
+                    }
+                }
+            }
+
+            ComPtr<ID3D11DepthStencilView> depthStencilView;
+
+            if (BreakIfFailed(m_Device->CreateDepthStencilView(internalState->m_Resource.Get(), &depthStencilViewDescription, &depthStencilView)))
+            {
+                AURORA_INFO(LogLayer::Graphics, "Successfully created Depth Stencil View.");
+
+                if (!internalState->m_DepthStencilView)
+                {
+                    internalState->m_DepthStencilView = depthStencilView;
+                    return -1;
+                }
+
+                internalState->m_Subresources_DepthStencilView.push_back(depthStencilView);
+
+                return int(internalState->m_Subresources_DepthStencilView.size() - 1);
+            }
+            else
+            {
+                AURORA_ERROR(LogLayer::Graphics, "Failed to create Depth Stencil View.");
+                AURORA_ASSERT(0);
+            }
+        }
+        break;
+
+        default:
+        {
+            break;
+        }
         }
 
         return -1;
@@ -1060,7 +1060,7 @@ namespace Aurora
         }
         else
         {
-            AURORA_ERROR("Failed to map resource.");
+            AURORA_ERROR(LogLayer::Graphics, "Failed to map resource.");
             mapping->m_Data = nullptr;
             mapping->m_RowPitch = 0;
         }
@@ -1081,7 +1081,7 @@ namespace Aurora
     {
     }
 
-    void DX11_GraphicsDevice::BindResource(Shader_Stage shaderStage, const RHI_GPU_Resource* resource, uint32_t slot, RHI_CommandList commandList, int subresource)
+    void DX11_GraphicsDevice::BindResource(RHI_Shader_Stage shaderStage, const RHI_GPU_Resource* resource, uint32_t slot, RHI_CommandList commandList, int subresource)
     {
         if (resource != nullptr && resource->IsValid())
         {
@@ -1100,16 +1100,16 @@ namespace Aurora
 
             switch (shaderStage)
             {
-                case Shader_Stage::Vertex_Shader:
-                    m_DeviceContextImmediate->VSSetShaderResources(slot, 1, &shaderResourceView);
-                    break;
+            case RHI_Shader_Stage::Vertex_Shader:
+                m_DeviceContextImmediate->VSSetShaderResources(slot, 1, &shaderResourceView);
+                break;
 
-                case Shader_Stage::Pixel_Shader:
-                    m_DeviceContextImmediate->PSSetShaderResources(slot, 1, &shaderResourceView);
-                    break;
+            case RHI_Shader_Stage::Pixel_Shader:
+                m_DeviceContextImmediate->PSSetShaderResources(slot, 1, &shaderResourceView);
+                break;
 
-                default:
-                    break;
+            default:
+                break;
             }
         }
     }
@@ -1186,7 +1186,7 @@ namespace Aurora
     {
     }
 
-    void DX11_GraphicsDevice::BindSampler(Shader_Stage shaderStage, const RHI_Sampler* sampler, uint32_t slot, RHI_CommandList commandList)
+    void DX11_GraphicsDevice::BindSampler(RHI_Shader_Stage shaderStage, const RHI_Sampler* sampler, uint32_t slot, RHI_CommandList commandList)
     {
         if (sampler != nullptr && sampler->IsValid())
         {
@@ -1195,16 +1195,16 @@ namespace Aurora
 
             switch (shaderStage)
             {
-                 case Shader_Stage::Vertex_Shader:
-                     m_DeviceContextImmediate->VSSetSamplers(slot, 1, &sampler);
-                     break;
-                 case Shader_Stage::Pixel_Shader:
-                     m_DeviceContextImmediate->PSSetSamplers(slot, 1, &sampler);
-                     break;
+            case RHI_Shader_Stage::Vertex_Shader:
+                m_DeviceContextImmediate->VSSetSamplers(slot, 1, &sampler);
+                break;
+            case RHI_Shader_Stage::Pixel_Shader:
+                m_DeviceContextImmediate->PSSetSamplers(slot, 1, &sampler);
+                break;
 
-                 /// Bind for other shader stages as well.
-                 default:
-                     break;
+                /// Bind for other shader stages as well.
+            default:
+                break;
             }
         }
     }
@@ -1241,24 +1241,24 @@ namespace Aurora
     }
 
 
-    void DX11_GraphicsDevice::BindConstantBuffer(Shader_Stage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList)
+    void DX11_GraphicsDevice::BindConstantBuffer(RHI_Shader_Stage stage, const RHI_GPU_Buffer* buffer, uint32_t slot, RHI_CommandList commandList)
     {
         ID3D11Buffer* constantBuffer = buffer != nullptr && buffer->IsValid() ? (ID3D11Buffer*)ToInternal(buffer)->m_Resource.Get() : nullptr;
 
         // We have to decide which shader type to bind our constant buffer to.
         switch (stage)
         {
-            case Shader_Stage::Vertex_Shader:
-                m_DeviceContextImmediate->VSSetConstantBuffers(slot, 1, &constantBuffer);
-                break;
-                
-            case Shader_Stage::Pixel_Shader:
-                m_DeviceContextImmediate->PSSetConstantBuffers(slot, 1, &constantBuffer);
-                break;
+        case RHI_Shader_Stage::Vertex_Shader:
+            m_DeviceContextImmediate->VSSetConstantBuffers(slot, 1, &constantBuffer);
+            break;
+
+        case RHI_Shader_Stage::Pixel_Shader:
+            m_DeviceContextImmediate->PSSetConstantBuffers(slot, 1, &constantBuffer);
+            break;
 
             /// Bind for other shader stages as well.
-            default:
-                break;
+        default:
+            break;
         }
     }
 
@@ -1275,9 +1275,9 @@ namespace Aurora
         ID3D11VertexShader* vertexShader = pipelineDescription.m_VertexShader == nullptr ? nullptr : static_cast<DX11_VertexShaderPackage*>(pipelineDescription.m_VertexShader->m_InternalState.get())->m_Resource.Get();
         m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
 
-        ID3D11PixelShader* pixelShader = pipelineDescription.m_PixelShader == nullptr ? nullptr : static_cast<DX11_PixelShaderPackage*>(pipelineDescription.m_PixelShader->m_InternalState.get())->m_Resource.Get();    
+        ID3D11PixelShader* pixelShader = pipelineDescription.m_PixelShader == nullptr ? nullptr : static_cast<DX11_PixelShaderPackage*>(pipelineDescription.m_PixelShader->m_InternalState.get())->m_Resource.Get();
         m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
-           
+
         ID3D11BlendState* blendState = pipelineDescription.m_BlendState == nullptr ? nullptr : internalState->m_BlendState.Get();
         const float newBlendFactor[4] = { m_BlendFactor[commandList].x, m_BlendFactor[commandList].y, m_BlendFactor[commandList].z, m_BlendFactor[commandList].w };
         m_DeviceContextImmediate->OMSetBlendState(blendState, newBlendFactor, pipelineDescription.m_SampleMask);
@@ -1287,35 +1287,35 @@ namespace Aurora
 
        // ID3D11DepthStencilState* depthStencilState = pipelineDescription.m_DepthStencilState == nullptr ? nullptr : internalState->m_DepthStencilState.Get();     
        // m_DeviceContextImmediate->OMSetDepthStencilState(depthStencilState, 0); /// 0 for now.
-       
 
-   
+
+
         D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
         switch (pipelineDescription.m_PrimitiveTopology)
         {
-            case Primitive_Topology::TriangleList:
-                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-                break;
-            case Primitive_Topology::TriangleStrip:
-                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-                break;
-            case Primitive_Topology::PointList:
-                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-                break;
-            case Primitive_Topology::LineList:
-                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-                break;
-            case Primitive_Topology::LineStrip:
-                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-                break;
-            case Primitive_Topology::PatchList:
-                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-                break;
-            default:
-                primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-                break;
+        case Primitive_Topology::TriangleList:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+            break;
+        case Primitive_Topology::TriangleStrip:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+            break;
+        case Primitive_Topology::PointList:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+            break;
+        case Primitive_Topology::LineList:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+            break;
+        case Primitive_Topology::LineStrip:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+            break;
+        case Primitive_Topology::PatchList:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+            break;
+        default:
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+            break;
         }
-        
+
         m_DeviceContextImmediate->IASetPrimitiveTopology(primitiveTopology);
     }
 
@@ -1323,19 +1323,19 @@ namespace Aurora
     {
         if (buffer->m_Description.m_Usage == Usage::Immutable)
         {
-            AURORA_ERROR("Immutable GPU Buffers cannot be updated.");
+            AURORA_ERROR(LogLayer::Graphics, "Immutable GPU Buffers cannot be updated.");
             return;
         }
 
         if (!((int)buffer->m_Description.m_ByteWidth >= dataSize) || !(dataSize < 0))
         {
-            AURORA_ERROR("Data size is too big for the buffer.")
-            return;
+            AURORA_ERROR(LogLayer::Graphics, "Data size is too big for the buffer.")
+                return;
         }
 
         if (dataSize == 0)
         {
-            AURORA_ERROR("Requested a buffer update but a data size of 0 was provided. Is this intentional?");
+            AURORA_ERROR(LogLayer::Graphics, "Requested a buffer update but a data size of 0 was provided. Is this intentional?");
         }
 
         DX11_ResourcePackage* internalState = ToInternal(buffer);
@@ -1347,7 +1347,7 @@ namespace Aurora
             D3D11_MAPPED_SUBRESOURCE mappedResource;
             if (!BreakIfFailed(m_DeviceContextImmediate->Map(internalState->m_Resource.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))
             {
-                AURORA_ERROR("Failed to map dynamic resource for access.");
+                AURORA_ERROR(LogLayer::Graphics, "Failed to map dynamic resource for access.");
                 return;
             }
             memcpy(mappedResource.pData, data, (dataSize >= 0 ? dataSize : buffer->m_Description.m_ByteWidth));
@@ -1391,11 +1391,11 @@ namespace Aurora
     {
         switch (format)
         {
-            case FORMAT_R32G8X24_TYPELESS:
-            case FORMAT_D32_FLOAT_S8X24_UINT:
-            case FORMAT_R24G8_TYPELESS:
-            case FORMAT_D24_UNORM_S8_UINT:
-                return true;
+        case FORMAT_R32G8X24_TYPELESS:
+        case FORMAT_D32_FLOAT_S8X24_UINT:
+        case FORMAT_R24G8_TYPELESS:
+        case FORMAT_D24_UNORM_S8_UINT:
+            return true;
         }
 
         return false;

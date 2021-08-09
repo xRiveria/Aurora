@@ -4,11 +4,11 @@
 
 #define AURORA_DEBUG_BREAK() __debugbreak()
 
-#define AURORA_ASSERT(expression)  \
-if (!(##expression))               \
-{                                  \
-    AURORA_ERROR(#expression);     \
-    AURORA_DEBUG_BREAK();          \
+#define AURORA_ASSERT(expression)         \
+if (!(##expression))                      \
+{                                         \
+    AURORA_ASSERT_ERROR(#expression);     \
+    AURORA_DEBUG_BREAK();                 \
 }
 
 #define AURORA_BIND_INPUT_EVENT(function) std::bind(&function, this, std::placeholders::_1)

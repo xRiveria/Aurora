@@ -107,7 +107,7 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
         float NDotL = max(dot(normalVector, lightDirection), 0.0); // Scale light by NDotL.
 
         // Add to outgoing radiance Lo.
-        Lo += (kDiffuse * albedoColor * shadowFactor / PI + specular) * radiance * NDotL; // Reflectance Equation.
+        Lo += (kDiffuse * albedoColor / PI + specular) * shadowFactor * radiance * NDotL; // Reflectance Equation.
     }
      
     // Lo *= float3(inverseShadow, inverseShadow, inverseShadow);
@@ -134,14 +134,12 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
     float3 specular = specularIrradiance * (kSpecular * environmentBRDF.x + environmentBRDF.y);
 
     // Total ambient light contribution
-    float3 ambient = kD * diffuse + specular;
+    float3 ambient = (kD * diffuse + specular) * shadowFactor;
 
     /// Final Light - Direct Lighting + Ambient Lighting
-    float3 finalColor = ambient + Lo; // Our ambient is currently a constant factor. For IBL, we will take this into account.
+    float3 finalColor = (ambient + Lo); // Our ambient is currently a constant factor. For IBL, we will take this into account.
 
-
-
-
+    // =====================================================================================================================================================================
 
     // Reinhard Tone Mapping
     const float gammaCorrectionFactor = 2.2;

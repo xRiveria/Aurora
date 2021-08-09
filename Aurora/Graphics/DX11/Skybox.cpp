@@ -1,10 +1,10 @@
 #include "Aurora.h"
 #include "Skybox.h"
 #include "../Scene/World.h"
-#include "RenderTexture.h"
 #include "../Resource/ResourceCache.h"
 #include "../_Shaders/ShaderInternals.h"
 #include "../Scene/Components/Transform.h"
+#include "../DX11_Refactored/DX11_ConstantBuffer.h"
 
 namespace Aurora
 {
@@ -17,31 +17,12 @@ namespace Aurora
     {
     }
 
-    ComPtr<ID3D11Buffer> Skybox::CreateConstantBuffer(const void* data, UINT size) const
-    {
-        D3D11_BUFFER_DESC desc = {};
-        desc.ByteWidth = static_cast<UINT>(size);
-        desc.Usage = D3D11_USAGE_DEFAULT;
-        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-        D3D11_SUBRESOURCE_DATA bufferData = {};
-        bufferData.pSysMem = data;
-
-        ComPtr<ID3D11Buffer> buffer;
-        const D3D11_SUBRESOURCE_DATA* bufferDataPtr = data ? &bufferData : nullptr;
-        m_Renderer->m_GraphicsDevice->m_Device->CreateBuffer(&desc, bufferDataPtr, &buffer);
-        
-        return buffer;
-    }
 
     std::shared_ptr<MeshBuffer> Skybox::CreateMeshBuffer(const std::shared_ptr<class MeshDerp>& mesh) const
     {
         std::shared_ptr<MeshBuffer> buffer = std::make_shared<MeshBuffer>();
-        buffer->stride = sizeof(MeshDerp::Vertex);
-        buffer->numElements = static_cast<UINT>(mesh->faces().size() * 3);
+        // buffer->stride = sizeof(MeshDerp::Vertex);
 
-        const size_t vertexDataSize = mesh->vertices().size() * sizeof(MeshDerp::Vertex);
-        const size_t indexDataSize = mesh->faces().size() * sizeof(MeshDerp::Face);
         buffer->vertexBuffer = m_Renderer->m_DeviceContext->CreateVertexBuffer(RHI_Vertex_Type::VertexType_PositionUVNormal, mesh->m_Vertices);
         buffer->indexBuffer = m_Renderer->m_DeviceContext->CreateIndexBuffer(mesh->m_Indices);
 
@@ -51,26 +32,7 @@ namespace Aurora
 
     bool Skybox::InitializeResources()
     {
-
-        // Create Cube Entity
-        /*
-        m_SkyboxEntity = m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Cube);
-        m_SkyboxEntity->m_EntityType = EntityType::Skybox;
-        m_SkyboxEntity->SetName("Skybox");
-
-        for (int i = 0; i < m_SkyboxEntity->GetComponent<Transform>()->m_Children.size(); i++)
-        {
-            m_SkyboxEntity->GetComponent<Transform>()->m_Children[i]->GetEntity()->m_EntityType = EntityType::Skybox;
-        }
-        */
-        const std::vector<D3D11_INPUT_ELEMENT_DESC> skyboxInputLayout = {
-            { "POSITION",  0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        };
         m_SkyboxEntity = CreateMeshBuffer(MeshDerp::fromFile("../Resources/Models/Skybox/skybox.obj"));
-
-        // XMFLOAT3 rotationInDegrees = { 180, 0, 0 };
-        // m_SkyboxEntity->m_Transform->m_RotationInRadians = { XMConvertToRadians(rotationInDegrees.x), XMConvertToRadians(rotationInDegrees.y), XMConvertToRadians(rotationInDegrees.z) };
-        
 
         // ===============================================================
         ID3D11UnorderedAccessView* const nullUAV[] = { nullptr }; // Reset.
@@ -88,17 +50,16 @@ namespace Aurora
         depthStencilDescription.DepthFunc = D3D11_COMPARISON_LESS;
         m_Renderer->m_GraphicsDevice->m_Device->CreateDepthStencilState(&depthStencilDescription, &m_SkyboxDepthStencilState);
 
-        m_DefaultSampler = CreateSamplerState(D3D11_FILTER_ANISOTROPIC, D3D11_TEXTURE_ADDRESS_WRAP);
-        m_ComputeSampler = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP);
+        m_DefaultSampler = m_Renderer->m_DeviceContext->CreateSampler(D3D11_FILTER_ANISOTROPIC, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_COMPARISON_NEVER, 0.0f, 1.0f);
+        m_ComputeSampler = m_Renderer->m_DeviceContext->CreateSampler(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_COMPARISON_NEVER, 0.0f, 1.0f);
 
         /// Shader & Input Layout for Skybox
-        m_Renderer->LoadShader(Shader_Stage::Vertex_Shader, m_VSSkyboxShader, "SkyboxVS.hlsl");
-        m_Renderer->LoadShader(Shader_Stage::Pixel_Shader,  m_PSSkyboxShader, "SkyboxPS.hlsl");
+        m_Renderer->LoadShader(RHI_Shader_Stage::Vertex_Shader, m_VSSkyboxShader, "SkyboxVS.hlsl");
+        m_Renderer->LoadShader(RHI_Shader_Stage::Pixel_Shader,  m_PSSkyboxShader, "SkyboxPS.hlsl");
 
         DX11_Utility::DX11_VertexShaderPackage* vertexInternal = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VSSkyboxShader.m_InternalState.get());
-        m_Renderer->m_GraphicsDevice->m_Device->CreateInputLayout(skyboxInputLayout.data(), (UINT)skyboxInputLayout.size(), vertexInternal->m_ShaderCode.data(), vertexInternal->m_ShaderCode.size(), &m_InputLayout);
+        m_InputLayout = m_Renderer->m_DeviceContext->CreateInputLayout(RHI_Vertex_Type::VertexType_Position, vertexInternal->m_ShaderCode);
 
- 
         // Unfiltered environment cubemap (temporary).
         Texture environmentTextureUnfiltered = CreateTextureCube(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
         CreateTextureUAV(environmentTextureUnfiltered, 0);
@@ -106,18 +67,18 @@ namespace Aurora
         // Load and convert equirectangular environment map to a cubemap texture.
         {
             RHI_Shader equirectangularToCubeShader;
-            m_Renderer->LoadShader(Shader_Stage::Compute_Shader, equirectangularToCubeShader, "CSEquirectangular.hlsl");
+            m_Renderer->LoadShader(RHI_Shader_Stage::Compute_Shader, equirectangularToCubeShader, "CSEquirectangular.hlsl");
             ID3D11ComputeShader* shaderInternal = static_cast<DX11_Utility::DX11_ComputeShaderPackage*>(equirectangularToCubeShader.m_InternalState.get())->m_Resource.Get();
 
-            m_EnvironmentTextureEquirectangular = CreateTexture(ImageDerp::fromFile("../Resources/Textures/HDR/environment.hdr"), DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
+            m_EnvironmentTextureEquirectangular = CreateTexture(ImageDerp::fromFile("../Resources/Textures/HDR/Night.hdr"), DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
 
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShaderResources(5, 1, m_EnvironmentTextureEquirectangular.m_SRV.GetAddressOf());
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, environmentTextureUnfiltered.m_UAV.GetAddressOf(), nullptr);
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetSamplers(3, 1, m_ComputeSampler.GetAddressOf());
+            m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Compute_Shader, 3, 1, m_ComputeSampler.get());
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShader(shaderInternal, nullptr, 0);
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(environmentTextureUnfiltered.m_Width / 32, environmentTextureUnfiltered.m_Height / 32, 6);
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-            AURORA_WARNING("Conversion to Equirectangle Map Success!");
+            AURORA_WARNING(LogLayer::Graphics, "Conversion to Equirectangle Map Success!");
         }
 
         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->GenerateMips(environmentTextureUnfiltered.m_SRV.Get());
@@ -129,12 +90,12 @@ namespace Aurora
                 float padding[3];
             };
 
-            ComPtr<ID3D11Buffer> spmapCB = CreateConstantBuffer<SpecularMapFilterSettingsCB>();
+            std::shared_ptr<DX11_ConstantBuffer> constantBuffer = m_Renderer->m_DeviceContext->CreateConstantBuffer("Specular Map Thingy", sizeof(SpecularMapFilterSettingsCB));
 
             // Compute pre-filtered specular environment map.
 
             RHI_Shader specularPrefilterMapShader;
-            m_Renderer->LoadShader(Shader_Stage::Compute_Shader, specularPrefilterMapShader, "CSSpecularPrefilter.hlsl");
+            m_Renderer->LoadShader(RHI_Shader_Stage::Compute_Shader, specularPrefilterMapShader, "CSSpecularPrefilter.hlsl");
             ID3D11ComputeShader* shaderInternal = static_cast<DX11_Utility::DX11_ComputeShaderPackage*>(specularPrefilterMapShader.m_InternalState.get())->m_Resource.Get();
 
             m_EnvironmentTexture = CreateTextureCube(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
@@ -147,7 +108,7 @@ namespace Aurora
             }
 
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShaderResources(5, 1, environmentTextureUnfiltered.m_SRV.GetAddressOf());
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetSamplers(3, 1, m_ComputeSampler.GetAddressOf());
+            m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Compute_Shader, 3, 1, m_ComputeSampler.get());
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShader(shaderInternal, nullptr, 0);
 
             // Pre-filter rest of the mip chain.
@@ -158,28 +119,29 @@ namespace Aurora
                 CreateTextureUAV(m_EnvironmentTexture, level);
 
                 const SpecularMapFilterSettingsCB spmapConstants = { level * deltaRoughness };
-                m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->UpdateSubresource(spmapCB.Get(), 0, nullptr, &spmapConstants, 0, 0);
+                m_Renderer->m_DeviceContext->UpdateConstantBuffer(constantBuffer.get(), &spmapConstants);
 
-                m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetConstantBuffers(7, 1, spmapCB.GetAddressOf());
+                m_Renderer->m_DeviceContext->BindConstantBuffer(RHI_Shader_Stage::Compute_Shader, 7, 1, constantBuffer.get());
+
                 m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, m_EnvironmentTexture.m_UAV.GetAddressOf(), nullptr);
                 m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(numberOfGroups, numberOfGroups, 6);
             }
 
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-            AURORA_WARNING("Specular Map Prefilter Success!");
+            AURORA_WARNING(LogLayer::Graphics, "Specular Map Prefilter Success!");
         }
 
         // Compute Diffuse Irradiance Cubemap
         {
             RHI_Shader diffuseIrradianceShader;
-            m_Renderer->LoadShader(Shader_Stage::Compute_Shader, diffuseIrradianceShader, "CSIrradianceMap.hlsl");
+            m_Renderer->LoadShader(RHI_Shader_Stage::Compute_Shader, diffuseIrradianceShader, "CSIrradianceMap.hlsl");
             ID3D11ComputeShader* shaderInternal = static_cast<DX11_Utility::DX11_ComputeShaderPackage*>(diffuseIrradianceShader.m_InternalState.get())->m_Resource.Get();
 
             m_IrradianceMapTexture = CreateTextureCube(32, 32, DXGI_FORMAT_R16G16B16A16_FLOAT, 1);
             CreateTextureUAV(m_IrradianceMapTexture, 0);
 
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShaderResources(5, 1, m_EnvironmentTexture.m_SRV.GetAddressOf());
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetSamplers(3, 1, m_ComputeSampler.GetAddressOf());
+            m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Compute_Shader, 3, 1, m_ComputeSampler.get());
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, m_IrradianceMapTexture.m_UAV.GetAddressOf(), nullptr);
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShader(shaderInternal, nullptr, 0);
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(m_IrradianceMapTexture.m_Width / 32, m_IrradianceMapTexture.m_Height / 32, 6);
@@ -189,11 +151,11 @@ namespace Aurora
         // Compute Cook-Torrace BRDF 2D LUT for split-sum approximation.
         {
             RHI_Shader specularPrefilterBRDFShader;
-            m_Renderer->LoadShader(Shader_Stage::Compute_Shader, specularPrefilterBRDFShader, "CSSpecularPrefilterBRDF.hlsl");
+            m_Renderer->LoadShader(RHI_Shader_Stage::Compute_Shader, specularPrefilterBRDFShader, "CSSpecularPrefilterBRDF.hlsl");
             ID3D11ComputeShader* shaderInternal = static_cast<DX11_Utility::DX11_ComputeShaderPackage*>(specularPrefilterBRDFShader.m_InternalState.get())->m_Resource.Get();
 
             m_SpecularPrefilterBRDFLUT = CreateTexture(256, 256, DXGI_FORMAT_R16G16_FLOAT, 1);
-            m_SpecularBRDFSampler = CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP);
+            m_SpecularBRDFSampler = m_Renderer->m_DeviceContext->CreateSampler(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_COMPARISON_NEVER, 0.0, 1.0);
             CreateTextureUAV(m_SpecularPrefilterBRDFLUT, 0);
 
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, m_SpecularPrefilterBRDFLUT.m_UAV.GetAddressOf(), nullptr);
@@ -206,37 +168,23 @@ namespace Aurora
     }
 
     bool Skybox::Render() const
-    {        
-         // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-         // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->RSSetState(m_DefaultRasterizerState.Get());
-         
-         // Mesh* meshComponent = m_SkyboxEntity->m_Transform->GetChildByIndex(0)->GetEntity()->GetComponent<Mesh>();
+    {
+        // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->RSSetState(m_DefaultRasterizerState.Get());
+        m_Renderer->m_DeviceContext->BindInputLayout(m_InputLayout.get());
+        m_Renderer->m_DeviceContext->BindVertexBuffer(m_SkyboxEntity->vertexBuffer.get());
+        m_Renderer->m_DeviceContext->BindIndexBuffer(m_SkyboxEntity->indexBuffer.get());
 
-         // UINT offset = 0;
-         // UINT modelStride = 8 * sizeof(float);
+        ID3D11VertexShader* shaderInternalVS = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VSSkyboxShader.m_InternalState.get())->m_Resource.Get();
+        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(shaderInternalVS, nullptr, 0);
+        ID3D11PixelShader* shaderInternalPS = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_PSSkyboxShader.m_InternalState.get())->m_Resource.Get();
+        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(shaderInternalPS, nullptr, 0);
 
-         // Update constant buffer data.
-         // if (meshComponent->GetEntity()->HasComponent<Material>())
-         // {
-         //    m_Renderer->UpdateMaterialConstantBuffer(meshComponent->GetEntity()->GetComponent<Material>());
-         // }
-
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetInputLayout(m_InputLayout.Get()); /// ?
-         // ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent->m_VertexBuffer_Position)->m_Resource.Get();
-         uint32_t stride = m_SkyboxEntity->vertexBuffer->GetStride();
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, m_SkyboxEntity->vertexBuffer->GetVertexBuffer(), &m_SkyboxEntity->stride, &m_SkyboxEntity->offset);
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetIndexBuffer(m_SkyboxEntity->indexBuffer->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-
-         ID3D11VertexShader* shaderInternalVS = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_VSSkyboxShader.m_InternalState.get())->m_Resource.Get();
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(shaderInternalVS, nullptr, 0);
-         ID3D11PixelShader* shaderInternalPS = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_PSSkyboxShader.m_InternalState.get())->m_Resource.Get();
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(shaderInternalPS, nullptr, 0);
-
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(5, 1, m_EnvironmentTexture.m_SRV.GetAddressOf());
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(3, 1, m_DefaultSampler.GetAddressOf());
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(4, 1, m_SpecularBRDFSampler.GetAddressOf());
-         // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->OMSetDepthStencilState(m_SkyboxDepthStencilState.Get(), 0);
-         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(m_SkyboxEntity->indexBuffer->GetIndexCount(), 0, 0);
+        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(5, 1, m_EnvironmentTexture.m_SRV.GetAddressOf());
+        m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Pixel_Shader, 3, 1, m_DefaultSampler.get());
+        m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Pixel_Shader, 4, 1, m_SpecularBRDFSampler.get());
+        // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->OMSetDepthStencilState(m_SkyboxDepthStencilState.Get(), 0);
+        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(m_SkyboxEntity->indexBuffer->GetIndexCount(), 0, 0);
 
         return true;
     }
@@ -251,24 +199,6 @@ namespace Aurora
         }
 
         return levels;
-    }
-
-
-    ComPtr<ID3D11SamplerState> Skybox::CreateSamplerState(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode) const
-    {
-        D3D11_SAMPLER_DESC samplerDescription = {};
-        samplerDescription.Filter = filter;
-        samplerDescription.AddressU = addressMode;
-        samplerDescription.AddressV = addressMode;
-        samplerDescription.AddressW = addressMode;
-        samplerDescription.MaxAnisotropy = (filter == D3D11_FILTER_ANISOTROPIC) ? D3D11_REQ_MAXANISOTROPY : 1;
-        samplerDescription.MinLOD = 0;
-        samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
-
-        ComPtr<ID3D11SamplerState> samplerState;
-        m_Renderer->m_GraphicsDevice->m_Device->CreateSamplerState(&samplerDescription, &samplerState);
-
-        return samplerState;
     }
 
     Texture Skybox::CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format, UINT levels) const

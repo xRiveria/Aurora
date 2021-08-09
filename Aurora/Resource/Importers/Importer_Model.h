@@ -62,13 +62,11 @@ public:
     struct Vertex
     {
         XMFLOAT3 position;
-        XMFLOAT3 normal;
-        XMFLOAT3 tangent;
-        XMFLOAT3 bitangent;
         XMFLOAT2 texcoord;
+        XMFLOAT3 normal;
     };
-    static_assert(sizeof(Vertex) == 14 * sizeof(float));
-    static const int NumAttributes = 5;
+    static_assert(sizeof(Vertex) == 8 * sizeof(float));
+    static const int NumAttributes = 3;
 
     struct Face
     {

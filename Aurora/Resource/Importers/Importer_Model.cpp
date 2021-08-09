@@ -46,10 +46,6 @@ MeshDerp::MeshDerp(const aiMesh* mesh)
         vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
         newVertex.m_Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
 
-        if (mesh->HasTangentsAndBitangents()) {
-            vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
-            vertex.bitangent = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
-        }
         if (mesh->HasTextureCoords(0)) {
             vertex.texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
             newVertex.m_UV = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
@@ -197,7 +193,7 @@ namespace Aurora
         }
         else
         {
-            AURORA_ERROR("Failed to load model at %s", filePath.c_str());
+            AURORA_ERROR(LogLayer::Engine, "Failed to load model at %s", filePath.c_str());
         }
 
         importer.FreeScene();
@@ -301,7 +297,7 @@ namespace Aurora
             }
             else
             {
-                AURORA_ERROR("Object has no normals!");
+                AURORA_ERROR(LogLayer::Graphics, "Object has no normals!");
             }
 
             // Texture Coordinates
@@ -346,7 +342,7 @@ namespace Aurora
     {
         if (!assimpMaterial)
         {
-            AURORA_WARNING("One of the provided materials is null. LoadMaterial cannot be executed.");
+            AURORA_WARNING(LogLayer::Graphics, "One of the provided materials is null. LoadMaterial cannot be executed.");
             return;
         }
 
@@ -395,7 +391,7 @@ namespace Aurora
                 }
             }
 
-            AURORA_WARNING("Could not find texture of appropriate type. Binding default texture...");
+            AURORA_WARNING(LogLayer::Graphics, "Could not find texture of appropriate type. Binding default texture...");
             material->m_Textures[engineSlotType].m_Resource = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
             material->m_Textures[engineSlotType].m_FilePath = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture->m_FilePath;
         };
@@ -443,7 +439,7 @@ namespace Aurora
         // 1) Check if the texture path is valid.
         if (FileSystem::Exists(fullTexturePath))
         {
-            AURORA_INFO("Model Texture Found: %s.", fullTexturePath.c_str());
+            AURORA_INFO(LogLayer::Graphics, "Model Texture Found: %s.", fullTexturePath.c_str());
             return fullTexturePath;
         }
 
@@ -451,7 +447,7 @@ namespace Aurora
         fullTexturePath = TextureTryMultipleExtensions(fullTexturePath);
         if (FileSystem::Exists(fullTexturePath))
         {
-            AURORA_INFO("Model Texture Found: %s.", fullTexturePath.c_str());
+            AURORA_INFO(LogLayer::Graphics, "Model Texture Found: %s.", fullTexturePath.c_str());
             return fullTexturePath;
         }
 
@@ -460,7 +456,7 @@ namespace Aurora
         fullTexturePath = modelDirectory + FileSystem::GetFileNameFromFilePath(fullTexturePath);
         if (FileSystem::Exists(fullTexturePath))
         {
-            AURORA_INFO("Model Texture Found: %s.", fullTexturePath.c_str());
+            AURORA_INFO(LogLayer::Graphics, "Model Texture Found: %s.", fullTexturePath.c_str());
             return fullTexturePath;
         }
 
@@ -468,12 +464,12 @@ namespace Aurora
         fullTexturePath = TextureTryMultipleExtensions(fullTexturePath);
         if (FileSystem::Exists(fullTexturePath))
         {
-            AURORA_INFO("Model Texture Found: %s.", fullTexturePath.c_str());
+            AURORA_INFO(LogLayer::Graphics, "Model Texture Found: %s.", fullTexturePath.c_str());
             return fullTexturePath;
         }
 
         // Give up, no valid texture path was found.
-        AURORA_WARNING("Model Texture could not be found: %s.", fullTexturePath.c_str());
+        AURORA_WARNING(LogLayer::Graphics, "Model Texture could not be found: %s.", fullTexturePath.c_str());
         return "";
     }
 

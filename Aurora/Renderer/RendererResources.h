@@ -4,8 +4,6 @@
 #include "../Graphics/DX11/DX11_Utilities.h"
 #include "../Scene/World.h"
 
-//====
-#include "../Graphics/DX11/RenderTexture.h"
 
 namespace Aurora
 {
@@ -26,7 +24,7 @@ namespace Aurora
     }
 
     // We would load in a binary format usually. For now, we still stick to our default HLSL files and pass it to our compiler.
-    bool Renderer::LoadShader(Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel)
+    bool Renderer::LoadShader(RHI_Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel)
     {
         std::string shaderFileName = RendererGlobals::g_ShaderPath + fileName;
         m_ShaderCompiler.RegisterShader(shaderFileName);
@@ -51,16 +49,16 @@ namespace Aurora
 
                 if (!output.m_ErrorMessage.empty())
                 {
-                    AURORA_WARNING("%s", output.m_ErrorMessage.c_str());
+                    AURORA_WARNING(LogLayer::Graphics, "%s", output.m_ErrorMessage.c_str());
                 }
 
-                AURORA_INFO("Shader Compiled: %s.", shaderFileName.c_str());
+                AURORA_INFO(LogLayer::Graphics, "Shader Compiled: %s.", shaderFileName.c_str());
 
                 return m_GraphicsDevice->CreateShader(shaderStage, output.m_ShaderData, output.m_ShaderSize, &shader);
             }
             else
             {
-                AURORA_WARNING("%s", output.m_ErrorMessage.c_str());
+                AURORA_WARNING(LogLayer::Graphics, "%s", output.m_ErrorMessage.c_str());
                 return false;
             }
         }
@@ -81,8 +79,8 @@ namespace Aurora
 
     void Renderer::LoadShaders()
     {
-        LoadShader(Shader_Stage::Vertex_Shader, m_VertexShader, "TriangleVS.hlsl");
-        LoadShader(Shader_Stage::Pixel_Shader, m_PixelShader, "TrianglePS.hlsl");
+        LoadShader(RHI_Shader_Stage::Vertex_Shader, m_VertexShader, "TriangleVS.hlsl");
+        LoadShader(RHI_Shader_Stage::Pixel_Shader, m_PixelShader, "TrianglePS.hlsl");
 
         // These input layouts are created on pipeline state creation.
         RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle].m_Elements =
@@ -104,11 +102,11 @@ namespace Aurora
             { "POSITION", 0, Format::FORMAT_R32G32B32_FLOAT, 0, 0, Input_Classification::Input_Per_Vertex_Data }
         };
 
-        LoadShader(Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_VertexColor], "VertexColorVS.hlsl");
-        LoadShader(Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_PixelColor], "VertexColorPS.hlsl");   
+        LoadShader(RHI_Shader_Stage::Vertex_Shader, RendererGlobals::g_Shaders[Shader_Types::VS_Type_VertexColor], "VertexColorVS.hlsl");
+        LoadShader(RHI_Shader_Stage::Pixel_Shader, RendererGlobals::g_Shaders[Shader_Types::PS_Type_PixelColor], "VertexColorPS.hlsl");   
 
-        LoadShader(Shader_Stage::Vertex_Shader, m_SimpleDepthShaderVS, "SimpleDepthVS.hlsl");
-        LoadShader(Shader_Stage::Pixel_Shader, m_SimpleDepthShaderPS, "SimpleDepthPS.hlsl");
+        LoadShader(RHI_Shader_Stage::Vertex_Shader, m_SimpleDepthShaderVS, "SimpleDepthVS.hlsl");
+        LoadShader(RHI_Shader_Stage::Pixel_Shader, m_SimpleDepthShaderPS, "SimpleDepthPS.hlsl");
     }
 
     void Renderer::LoadStates()
@@ -277,23 +275,23 @@ namespace Aurora
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Camera);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Camera]);
-        AURORA_INFO("Successfully created Camera Constant Buffer.");
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Camera Constant Buffer.");
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Misc);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Misc]);
-        AURORA_INFO("Successfully created Misc Constant Buffer.");
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Misc Constant Buffer.");
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Material);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Material]);
-        AURORA_INFO("Successfully created Material Constant Buffer.");
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Material Constant Buffer.");
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Frame);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Frame]);
-        AURORA_INFO("Successfully created Frame Constant Buffer.");
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Frame Constant Buffer.");
 
         bufferDescription.m_ByteWidth = sizeof(ConstantBufferData_Entity);
         m_GraphicsDevice->CreateBuffer(&bufferDescription, nullptr, &g_ConstantBuffers[CB_Types::CB_Entity]);
-        AURORA_INFO("Successfully created Entity Constant Buffer.");
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Entity Constant Buffer.");
     }
 
     void Renderer::LoadPipelineStates()

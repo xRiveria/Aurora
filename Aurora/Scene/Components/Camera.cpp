@@ -21,7 +21,7 @@ namespace Aurora
 
         ComputeViewMatrix();
 
-        AURORA_INFO("Initialized Camera.");
+        AURORA_INFO(LogLayer::ECS, "Initialized Camera.");
     }
 
     void Camera::Tick(float deltaTime)

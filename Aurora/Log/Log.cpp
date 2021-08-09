@@ -1,5 +1,4 @@
 #include "Aurora.h"
-#include <iostream>
 
 namespace Aurora
 {
@@ -9,7 +8,7 @@ namespace Aurora
 	bool Log::m_ConsoleLoggingEnabled = true;
 
 	//Everything resolves to this.
-	void Log::WriteLog(const char* logMessage, const LOG_TYPE logType)
+	void Log::WriteLog(LogLayer logLayer, const char* logMessage, const LOG_TYPE logType)
 	{
 		if (!logMessage)
 		{
@@ -27,7 +26,7 @@ namespace Aurora
 	
 		FlushBuffer();
 		
-		LogToConsole(logTextExtracted.c_str(), logType);
+		LogToConsole(logLayer, logTextExtracted.c_str(), logType);
 	}
 
 	void Log::LogString(const char* logMessage, const std::string& logSource, LogType logType)
@@ -39,12 +38,12 @@ namespace Aurora
 		}
 	}
 
-	void Log::LogToConsole(const char* logMessage, LOG_TYPE logType)
+	void Log::LogToConsole(LogLayer logLayer, const char* logMessage, LOG_TYPE logType)
 	{
+		SetLogLayerColor(logLayer);
+
 		Console::Shade::SetColor(logType.second);
-
 		std::cout << logMessage << "\n";
-
 		Console::Shade::Reset();
 	}
 
@@ -68,7 +67,7 @@ namespace Aurora
 		//or if va_end is not called before a function that calls va_start or va_copy returns, the behavior is undefined.
 		va_end(arguments);
 
-		WriteLog(buffer, { LogType::Info, Console::Color::Color_Green });
+		WriteLog(logLayer, buffer, { LogType::Info, Console::Color::Color_Green });
 	}
 
 	void Log::WriteWarningLog(LogLayer logLayer, const char* logMessage, ...)
@@ -80,7 +79,7 @@ namespace Aurora
 		auto w = vsnprintf(buffer, sizeof(buffer), logMessage, arguments);
 		va_end(arguments);
 
-		WriteLog(buffer, { LogType::Warning, Console::Color::Color_LightYellow });
+		WriteLog(logLayer, buffer, { LogType::Warning, Console::Color::Color_LightYellow });
 	}
 
 	void Log::WriteErrorLog(LogLayer logLayer, const char* logMessage, ...)
@@ -92,7 +91,7 @@ namespace Aurora
 		auto w = vsnprintf(buffer, sizeof(buffer), logMessage, arguments);
 		va_end(arguments);
 
-		WriteLog(buffer, { LogType::Error, Console::Color::Color_LightRed });
+		WriteLog(logLayer, buffer, { LogType::Error, Console::Color::Color_LightRed });
 	}
 
 	void Log::WriteCriticalLog(LogLayer logLayer, const char* logMessage, ...)
@@ -113,7 +112,7 @@ namespace Aurora
 		auto w = vsnprintf(buffer, sizeof(buffer), logMessage.c_str(), arguments);
 		va_end(arguments);
 
-		WriteLog(buffer, { LogType::Info, Console::Color::Color_LightGreen });
+		WriteLog(logLayer, buffer, { LogType::Info, Console::Color::Color_LightGreen });
 	}
 
 	void Log::WriteWarningLog(LogLayer logLayer, const std::string logMessage, ...)
@@ -125,7 +124,7 @@ namespace Aurora
 		auto w = vsnprintf(buffer, sizeof(buffer), logMessage.c_str(), arguments);
 		va_end(arguments);
 
-		WriteLog(buffer, { LogType::Warning, Console::Color::Color_LightYellow });
+		WriteLog(logLayer, buffer, { LogType::Warning, Console::Color::Color_LightYellow });
 	}
 
 	void Log::WriteErrorLog(LogLayer logLayer, const std::string logMessage, ...)
@@ -137,7 +136,7 @@ namespace Aurora
 		auto w = vsnprintf(buffer, sizeof(buffer), logMessage.c_str(), arguments);
 		va_end(arguments);
 
-		WriteLog(buffer, { LogType::Error, Console::Color::Color_LightRed });
+		WriteLog(logLayer, buffer, { LogType::Error, Console::Color::Color_LightRed });
 	}
 
 	void Log::WriteCriticalLog(LogLayer logLayer, const std::string logMessage, ...)
@@ -149,7 +148,7 @@ namespace Aurora
 		auto w = vsnprintf(buffer, sizeof(buffer), logMessage.c_str(), arguments);
 		va_end(arguments);
 
-		WriteLog(buffer, { LogType::Critical, Console::Color::Color_Red });
+		WriteLog(logLayer, buffer, { LogType::Critical, Console::Color::Color_Red });
 	}
 
 	void Log::FlushBuffer()

@@ -13,7 +13,7 @@ namespace Aurora::ShaderCompiler
     {
         uint64_t m_Flags = Compiler_Flag::Flag_None;
         Shader_Format m_Format = Shader_Format::ShaderFormat_None;
-        Shader_Stage m_Stage = Shader_Stage::ShaderStage_Count;
+        RHI_Shader_Stage m_Stage = RHI_Shader_Stage::ShaderStage_Count;
         Shader_Model m_MinimumShaderModel = Shader_Model::ShaderModel_5_0; // If the shader relies on a higher shader model feature, it must be declared here. However, the compiler can also choose a higher one internally if needed.
         std::string m_ShaderSourceFilePath;
         std::string m_EntryPoint = "main";

@@ -1,4 +1,5 @@
 #pragma once
+#include "RHI_Implementation.h"
 #include <DirectXMath.h>
 
 /* === RHI Vertex ===
@@ -16,6 +17,27 @@ namespace Aurora
         VertexType_Position,
         VertexType_PositionUV,
         VertexType_PositionUVNormal
+    };
+
+    // To remake into fully RHI attribute.
+    struct VertexAttribute
+    {
+        VertexAttribute(std::string semanticName, UINT semanticIndex, DXGI_FORMAT format, UINT inputSlot, UINT byteOffset, D3D11_INPUT_CLASSIFICATION inputClassification)
+        {
+            this->m_SemanticName = semanticName;
+            this->m_SemanticIndex = semanticIndex;
+            this->m_Format = format;
+            this->m_InputSlot = inputSlot;
+            this->m_ByteOffset = byteOffset;
+            this->m_InputClassification = inputClassification;
+        }
+
+        std::string m_SemanticName;
+        UINT m_SemanticIndex; // Allows us to reuse an existing semantic name.
+        DXGI_FORMAT m_Format;
+        UINT m_InputSlot; // Tells us which bound vertex buffer provides the data for the attribute.
+        UINT m_ByteOffset;
+        D3D11_INPUT_CLASSIFICATION m_InputClassification;
     };
 
     struct RHI_Vertex_Position
@@ -66,5 +88,5 @@ namespace Aurora
         XMFLOAT3 m_Position = { 0, 0, 0 };
         XMFLOAT2 m_UV = { 0, 0 };
         XMFLOAT3 m_Normal = { 0, 0, 0 };
-   };
+    };
 }

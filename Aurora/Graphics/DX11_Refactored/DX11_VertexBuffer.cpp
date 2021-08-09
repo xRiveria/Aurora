@@ -12,8 +12,8 @@ namespace Aurora
     {
         if (m_VertexBuffer != nullptr)
         {
-            m_VertexBuffer->Release();
-            AURORA_INFO("Successfully released Vertex Buffer.");
+            m_VertexBuffer.Reset();
+            AURORA_INFO(LogLayer::Graphics, "Successfully released Vertex Buffer.");
         }
     }
 
@@ -51,11 +51,11 @@ namespace Aurora
 
         if (FAILED(result))
         {
-            AURORA_ERROR("Failed to create Vertex Buffer.");
+            AURORA_ERROR(LogLayer::Graphics, "Failed to create Vertex Buffer.");
             return false;
         }
 
-        AURORA_INFO("Successfully created Vertex Buffer - %f and %f", static_cast<float>(m_Stride), static_cast<float>(m_ObjectSizeGPU));
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Vertex Buffer - %f and %f", static_cast<float>(m_Stride), static_cast<float>(m_ObjectSizeGPU));
         return true;
     }
 
@@ -70,7 +70,7 @@ namespace Aurora
 
         if (FAILED(result))
         {
-            AURORA_ERROR("Failed to map buffer resource.");
+            AURORA_ERROR(LogLayer::Graphics, "Failed to map buffer resource.");
             return nullptr;
         }
 

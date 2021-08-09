@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <iostream>
 #include "../Utilities/Console.h"
 
 namespace Aurora
@@ -20,7 +21,58 @@ namespace Aurora
 		Physics,
 		Event,
 		Serialization,
+		ECS,
+		Assert
 	};
+
+	inline void SetLogLayerColor(LogLayer logLayer)
+	{
+		switch (logLayer)
+		{
+			case LogLayer::Initialization:
+				Console::Shade::SetColor(Console::Color::Color_Blue);
+				std::cout << "[INITIALIZATION] ";
+				break;
+
+			case LogLayer::Event:
+				Console::Shade::SetColor(Console::Color::Color_LightPurple);
+				std::cout << "[EVENT] ";
+				break;
+
+			case LogLayer::Graphics:
+				Console::Shade::SetColor(Console::Color::Color_LightBlue);
+				std::cout << "[GRAPHICS] ";
+				break;
+
+			case LogLayer::Engine:
+				Console::Shade::SetColor(Console::Color::Color_LightAqua);
+				std::cout << "[ENGINE] ";
+				break;
+
+			case LogLayer::Physics:
+				Console::Shade::SetColor(Console::Color::Color_BrightWhite);
+				std::cout << "[PHYSICS] ";
+				break;
+
+			case LogLayer::Serialization:
+				Console::Shade::SetColor(Console::Color::Color_Purple);
+				std::cout << "[SERIALIZATION] ";
+				break;
+
+			case LogLayer::ECS:
+				Console::Shade::SetColor(Console::Color::Color_BrightWhite);
+				std::cout << "[ECS] ";
+				break;
+
+			case LogLayer::Assert:
+				Console::Shade::SetColor(Console::Color::Color_Red);
+				std::cout << "[ASSERT] ";
+				break;
+		}
+
+		Console::Shade::Reset();
+
+	}
 
 	struct LogPackage
 	{

@@ -42,20 +42,20 @@ namespace Aurora::ShaderCompiler
         const char* target = nullptr;
         switch (input.m_Stage)
         {
-            case Shader_Stage::Vertex_Shader:
+            case RHI_Shader_Stage::Vertex_Shader:
                 target = "vs_5_0";
                 break;
 
-            case Shader_Stage::Pixel_Shader:
+            case RHI_Shader_Stage::Pixel_Shader:
                 target = "ps_5_0";
                 break;
 
-            case Shader_Stage::Compute_Shader:
+            case RHI_Shader_Stage::Compute_Shader:
                 target = "cs_5_0";
                 break;
 
             default:
-                AURORA_ERROR("Shader not supported.");
+                AURORA_ERROR(LogLayer::Graphics, "Shader not supported.");
                 break;
         }
 
@@ -138,11 +138,11 @@ namespace Aurora::ShaderCompiler
             D3DCompile = (PFN_D3DCOMPILE)GetProcAddress(d3dCompiler, "D3DCompile");
             if (D3DCompile != nullptr)
             {
-                AURORA_INFO("Successfully loaded d3dCompiler_47.dll");
+                AURORA_INFO(LogLayer::Graphics, "Successfully loaded d3dCompiler_47.dll");
             }
             else
             {
-                AURORA_ERROR("Failed to load d3dCompiler_47.dll");
+                AURORA_ERROR(LogLayer::Graphics, "Failed to load d3dCompiler_47.dll");
             }
         }
     }
@@ -159,7 +159,7 @@ namespace Aurora::ShaderCompiler
                 break;
 
             default:
-                AURORA_ERROR("Shader compiling for requested shader format is invalid. Aborting...");
+                AURORA_ERROR(LogLayer::Graphics, "Shader compiling for requested shader format is invalid. Aborting...");
                 break;
         }
     }

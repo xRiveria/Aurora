@@ -34,7 +34,7 @@ namespace Aurora
         // Shenanigans
 
     public:
-        void BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList);
+        void BindConstantBuffers(RHI_Shader_Stage shaderStage, RHI_CommandList commandList);
 
         void UpdateEntityConstantBuffer(Entity* entity);
         void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
@@ -62,7 +62,7 @@ namespace Aurora
         void LoadStates();
         void LoadBuffers();
         void LoadShaders();
-        bool LoadShader(Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel = Shader_Model::ShaderModel_5_0);
+        bool LoadShader(RHI_Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel = Shader_Model::ShaderModel_5_0);
         void LoadDefaultTextures();
         void LoadSkyPipelineState(RHI_Shader* vertexShader, RHI_Shader* pixelShader);
 

@@ -51,7 +51,7 @@ namespace Aurora
             }
         }
 
-        AURORA_WARNING("Resource type does not exist in directory mapping: \"%s\".", directoryPath);
+        AURORA_WARNING(LogLayer::Engine, "Resource type does not exist in directory mapping: \"%s\".", directoryPath);
     }
 
     std::string Settings::GetResourceDirectory(ResourceDirectory resourceDirectory)

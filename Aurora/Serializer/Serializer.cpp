@@ -88,7 +88,7 @@ namespace Aurora
         fout << out.c_str();
 
         m_World->SetWorldName(worldName);
-        AURORA_INFO("Scene \"%s\" Successfully Serialized.", worldName.c_str());
+        AURORA_INFO(LogLayer::Serialization, "Scene \"%s\" Successfully Serialized.", worldName.c_str());
     }
 
     bool Serializer::DeserializeScene(const std::string& filePath)
@@ -106,7 +106,7 @@ namespace Aurora
         // m_World->Clear();
 
         std::string sceneName = sceneData["Scene"].as<std::string>();
-        AURORA_INFO("Deserializing Scene: %s.", sceneName.c_str());
+        AURORA_INFO(LogLayer::Serialization, "Deserializing Scene: %s.", sceneName.c_str());
         m_World->SetWorldName(sceneName);
 
         YAML::Node entities = sceneData["Entities"];
@@ -123,7 +123,7 @@ namespace Aurora
                     entityName = nameNode["Name"].as<std::string>(); // Retrieve the name value from its Key.
                 }
                 
-                AURORA_INFO("Deserialized Entity \"%s\" with ID: %f", entityName.c_str(), static_cast<float>(entityID));
+                AURORA_INFO(LogLayer::Serialization, "Deserialized Entity \"%s\" with ID: %f", entityName.c_str(), static_cast<float>(entityID));
 
                 // ==== Components ====
 

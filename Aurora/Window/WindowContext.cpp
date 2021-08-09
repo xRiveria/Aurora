@@ -19,12 +19,12 @@ namespace Aurora
     {
         if (!glfwInit())
         {
-            AURORA_ERROR("Failed to initialize window context subsystem.");
+            AURORA_ERROR(LogLayer::Engine, "Failed to initialize window context subsystem.");
             return false;
         }
 
         m_IsInitialized = true;
-        AURORA_INFO("Successfully initialized GLFW dependency.");
+        AURORA_INFO(LogLayer::Engine, "Successfully initialized GLFW dependency.");
 
         // Creates a window by default. This is only for additional windows other than our main render Window.
         Create({ ENGINE_ARCHITECTURE, 1280, 720 });
@@ -129,12 +129,12 @@ namespace Aurora
         for (uint8_t i = 0; i < m_Windows.size(); i++)
         {
             glfwDestroyWindow(static_cast<GLFWwindow*>(m_Windows[i])); // Automatically detaches said window is the current context on the main thread.
-            AURORA_INFO("Successfully destroyed window.");
+            AURORA_INFO(LogLayer::Engine, "Successfully destroyed window.");
         }
 
         m_Windows.clear();
         glfwTerminate();
-        AURORA_INFO("Successfully shutdown GLFW dependency.");
+        AURORA_INFO(LogLayer::Engine, "Successfully shutdown GLFW dependency.");
     }
 
     void WindowContext::Tick(float deltaTime)
@@ -156,11 +156,11 @@ namespace Aurora
 
         if (!newWindow)
         {
-            AURORA_ERROR("Failed to create window.");
+            AURORA_ERROR(LogLayer::Engine, "Failed to create window.");
             return nullptr;
         }
 
-        AURORA_INFO("Successfully created window.");
+        AURORA_INFO(LogLayer::Engine, "Successfully created window.");
         m_Windows[++g_WindowCount] = static_cast<void*>(newWindow);
 
         return m_Windows[g_WindowCount];
@@ -171,11 +171,11 @@ namespace Aurora
         if (m_Windows.find(windowID) != m_Windows.end())
         {
             glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_Windows[windowID]));
-            AURORA_INFO("Window context successfully set.");
+            AURORA_INFO(LogLayer::Engine, "Window context successfully set.");
             return;
         }
 
-        AURORA_WARNING("Window context cannot be set. The requested window ID does not exist.");
+        AURORA_WARNING(LogLayer::Engine, "Window context cannot be set. The requested window ID does not exist.");
     }
 
     void WindowContext::SetCurrentContext(void* window)
@@ -183,11 +183,11 @@ namespace Aurora
         if (WindowExistsInMapping(window))
         {
             glfwMakeContextCurrent(static_cast<GLFWwindow*>(window));
-            AURORA_INFO("Window context successfully set.");
+            AURORA_INFO(LogLayer::Engine, "Window context successfully set.");
             return;
         }
         
-        AURORA_WARNING("Requested window does not exist in the window context mapping. Did you somehow create the window through the API directly? This is not advisable but we will proceed anyway. Manually adding window to mapping.");
+        AURORA_WARNING(LogLayer::Engine, "Requested window does not exist in the window context mapping. Did you somehow create the window through the API directly? This is not advisable but we will proceed anyway. Manually adding window to mapping.");
         m_Windows[++g_WindowCount] = window;
         glfwMakeContextCurrent(static_cast<GLFWwindow*>(window));
     }
@@ -207,7 +207,7 @@ namespace Aurora
             return static_cast<float>(width);
         }
 
-        AURORA_ERROR("Requested window width could not be found. Does the window not exist in the mapping?");
+        AURORA_ERROR(LogLayer::Engine, "Requested window width could not be found. Does the window not exist in the mapping?");
         return 0.0f;
     }
 
@@ -227,7 +227,7 @@ namespace Aurora
             return static_cast<float>(height);
         }
 
-        AURORA_ERROR("Requested window height could not be found. Does the window not exist in the mapping?");
+        AURORA_ERROR(LogLayer::Engine, "Requested window height could not be found. Does the window not exist in the mapping?");
         return 0.0f;
     }
 
@@ -246,7 +246,7 @@ namespace Aurora
             return dpi;
         }
 
-        AURORA_ERROR("Requested window DPI could not be found. Does the window not exist in the mapping?");
+        AURORA_ERROR(LogLayer::Engine, "Requested window DPI could not be found. Does the window not exist in the mapping?");
         return 0.0f;
     }
 
@@ -263,7 +263,7 @@ namespace Aurora
             return glfwGetWin32Window(static_cast<GLFWwindow*>(m_Windows[windowID]));
         }
 
-        AURORA_ERROR("Requested window HWND could not be found. Does the window not exist in the mapping?");
+        AURORA_ERROR(LogLayer::Engine, "Requested window HWND could not be found. Does the window not exist in the mapping?");
         return nullptr;
     }
 
@@ -279,7 +279,7 @@ namespace Aurora
             return m_Windows[0];
         }
 
-        AURORA_ERROR("Render window does not exist. This shouldn't be happening. Did you forget to create one?");
+        AURORA_ERROR(LogLayer::Engine, "Render window does not exist. This shouldn't be happening. Did you forget to create one?");
         return nullptr;
     }
 

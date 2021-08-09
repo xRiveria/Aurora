@@ -53,7 +53,7 @@ namespace Aurora
         }
         catch (std::filesystem::filesystem_error& error)
         {
-            AURORA_WARNING("%s, %s", error.what(), directoryPath.c_str());
+            AURORA_WARNING(LogLayer::Engine, "%s, %s", error.what(), directoryPath.c_str());
         }
 
         return false;
@@ -70,7 +70,7 @@ namespace Aurora
         }
         catch (std::filesystem::filesystem_error& error)
         {
-            AURORA_WARNING("%s, %s", error.what(), filePath.c_str());
+            AURORA_WARNING(LogLayer::Engine, "%s, %s", error.what(), filePath.c_str());
         }
 
         return false;
@@ -98,7 +98,7 @@ namespace Aurora
         }
         catch (std::system_error& error)
         {
-            AURORA_WARNING("Failed. %s.", error.what());
+            AURORA_WARNING(LogLayer::Engine, "Failed. %s.", error.what());
         }
 
         return extension;
@@ -175,7 +175,7 @@ namespace Aurora
             return true;
         }
 
-        AURORA_ERROR("File not found: %s.", fileName.c_str());
+        AURORA_ERROR(LogLayer::Engine, "File not found: %s.", fileName.c_str());
         return false;
     }
 

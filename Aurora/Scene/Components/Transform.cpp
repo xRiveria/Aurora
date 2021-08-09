@@ -284,14 +284,14 @@ namespace Aurora
     {
         if (!HasChildren())
         {
-            AURORA_WARNING("%s has no children.", GetEntityName().c_str());
+            AURORA_WARNING(LogLayer::ECS, "%s has no children.", GetEntityName().c_str());
             return nullptr;
         }
 
         // Prevent an out of vector bounds error.
         if (childIndex >= GetChildrenCount())
         {
-            AURORA_WARNING("There is no child with an index of \"%d\".", childIndex);
+            AURORA_WARNING(LogLayer::ECS, "There is no child with an index of \"%d\".", childIndex);
             return nullptr;
         }
 

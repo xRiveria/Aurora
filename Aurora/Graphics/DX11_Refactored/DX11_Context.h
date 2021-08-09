@@ -1,6 +1,8 @@
 #pragma once
 #include "../RHI_Implementation.h"
+#include "../RHI_Utilities.h"
 #include "../DX11_Refactored/DX11_VertexBuffer.h"
+
 
 /*  == DX11 Context ==
 
@@ -17,6 +19,8 @@ namespace Aurora
     class DX11_ConstantBuffer;
     class DX11_VertexBuffer;
     class DX11_IndexBuffer;
+    class DX11_InputLayout;
+    class DX11_Sampler;
 
     class DX11_Context
     {
@@ -31,10 +35,21 @@ namespace Aurora
            
             return vertexBuffer;
         }
+        void BindVertexBuffer(DX11_VertexBuffer* vertexBuffer);
 
         std::shared_ptr<DX11_IndexBuffer> CreateIndexBuffer(std::vector<uint32_t>& indices);
+        void BindIndexBuffer(DX11_IndexBuffer* indexBuffer);
 
-        bool CreateConstantBuffer(D3D11_BUFFER_DESC* bufferDescription, D3D11_SUBRESOURCE_DATA* initialBufferData);
+        std::shared_ptr<DX11_InputLayout> CreateInputLayout(RHI_Vertex_Type vertexType, std::vector<uint8_t>& vertexShaderBlob);
+        void BindInputLayout(DX11_InputLayout* inputLayout);
+
+        std::shared_ptr<DX11_ConstantBuffer> CreateConstantBuffer(const std::string& bufferName, uint32_t bufferSize);
+        void* UpdateConstantBuffer(DX11_ConstantBuffer* constantBuffer, const void* bufferData);
+        void BindConstantBuffer(RHI_Shader_Stage shaderStage, uint32_t slotNumber, uint32_t slotCount, DX11_ConstantBuffer* constantBuffer);
+
+        // We make the simple assumption that the address mode and border color are the same across all of its respective values.
+        std::shared_ptr<DX11_Sampler> CreateSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, D3D11_COMPARISON_FUNC comparisonFunction, float mipLODBias, float borderColor);
+        void BindSampler(RHI_Shader_Stage shaderStage, uint32_t slotNumber, uint32_t slotCount, DX11_Sampler* sampler);
 
     private:
         std::shared_ptr<DX11_Devices> m_Devices;

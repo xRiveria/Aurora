@@ -58,8 +58,6 @@ namespace Aurora
         m_DirectionalLight->SetName("Directional Light");
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
-        m_ResourceCache->LoadModel("../Resources/Models/Cerberus/source/Cerberus_LP.FBX.fbx", "Doge");
-
         // auto derp = m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Skybox/skybox.obj", "Derp");
         // derp->GetComponent<Transform>()->Translate({ 0.0f, 4.0f, 0.0f });
 
@@ -76,7 +74,7 @@ namespace Aurora
 
         D3D11_VIEWPORT viewportInfo = { 0, 0, (float)1280.0, (float)1080.0, 0.0f, 1.0f };
         m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
-       
+
         m_Skybox = std::make_shared<Skybox>(m_EngineContext);
         m_Skybox->InitializeResources();
         return true;
@@ -202,7 +200,7 @@ namespace Aurora
         m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Frame], &miscConstantBuffer, 0);
     }
 
-    void Renderer::BindConstantBuffers(Shader_Stage shaderStage, RHI_CommandList commandList)
+    void Renderer::BindConstantBuffers(RHI_Shader_Stage shaderStage, RHI_CommandList commandList)
     {
         m_GraphicsDevice->BindConstantBuffer(shaderStage, &g_ConstantBuffers[CB_Types::CB_Camera], CB_GETBINDSLOT(ConstantBufferData_Camera), 0);
         m_GraphicsDevice->BindConstantBuffer(shaderStage, &g_ConstantBuffers[CB_Types::CB_Material], CB_GETBINDSLOT(ConstantBufferData_Material), 0);
@@ -229,14 +227,14 @@ namespace Aurora
             gBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT; // Floating point for tonemapping.
 
             m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
-            AURORA_INFO("GBuffer_Color Texture Creation Success.");
+            AURORA_INFO(LogLayer::Graphics, "GBuffer_Color Texture Creation Success.");
 
             // Normal, Roughness
             gBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
             gBufferDescription.m_Format = Format::FORMAT_R8G8B8A8_UNORM;
 
             m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Normal_Roughness]);
-            AURORA_INFO("GBuffer_Normal_Roughness Texture Creation Success.");
+            AURORA_INFO(LogLayer::Graphics, "GBuffer_Normal_Roughness Texture Creation Success.");
         }
 
         // Render Targets - Bloom
@@ -254,7 +252,7 @@ namespace Aurora
             bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT; // Floating point for tonemapping.
 
             m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
-            AURORA_INFO("GBuffer_Bloom Texture Creation Success.");
+            AURORA_INFO(LogLayer::Graphics, "GBuffer_Bloom Texture Creation Success.");
         }
 
         // Render Targets - PingPong1
@@ -272,7 +270,7 @@ namespace Aurora
             bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT;
 
             m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong1]);
-            AURORA_INFO("GBuffer_PingPong1 Texture Creation Success.");
+            AURORA_INFO(LogLayer::Graphics, "GBuffer_PingPong1 Texture Creation Success.");
         }
 
         // Render Targets - PingPong2
@@ -287,10 +285,10 @@ namespace Aurora
             bloomBufferDescription.m_Width = internalResolution.x;
             bloomBufferDescription.m_Height = internalResolution.y;
             bloomBufferDescription.m_SampleCount = GetMSAASampleCount();
-            bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT; 
+            bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT;
 
             m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong2]);
-            AURORA_INFO("GBuffer_PingPong2 Texture Creation Success.");
+            AURORA_INFO(LogLayer::Graphics, "GBuffer_PingPong2 Texture Creation Success.");
         }
 
         // Depth Buffers
@@ -304,7 +302,7 @@ namespace Aurora
             depthBufferDescription.m_BindFlags = Bind_Flag::Bind_Depth_Stencil | Bind_Flag::Bind_Shader_Resource;
 
             m_GraphicsDevice->CreateTexture(&depthBufferDescription, nullptr, &m_DepthBuffer_Main);
-            AURORA_INFO("DepthBuffer_Main Texture Creation Success.");
+            AURORA_INFO(LogLayer::Graphics, "DepthBuffer_Main Texture Creation Success.");
 
             RHI_Texture_Description shadowDepthBufferDescription;
             shadowDepthBufferDescription.m_Width = internalResolution.x;
@@ -315,7 +313,7 @@ namespace Aurora
             shadowDepthBufferDescription.m_BindFlags = Bind_Flag::Bind_Depth_Stencil | Bind_Flag::Bind_Shader_Resource;
 
             m_GraphicsDevice->CreateTexture(&shadowDepthBufferDescription, nullptr, &m_ShadowDepthMap);
-            AURORA_INFO("Shadow Depth Buffer Texture Creation Success.");
+            AURORA_INFO(LogLayer::Graphics, "Shadow Depth Buffer Texture Creation Success.");
         }
 
         // Render Passes - GBuffer
@@ -330,13 +328,13 @@ namespace Aurora
             renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::DepthStencil(&m_DepthBuffer_Main, RHI_RenderPass_Attachment::LoadOperation_Load, RHI_RenderPass_Attachment::StoreOperation_Store, Image_Layout::Image_Layout_Shader_Resource, Image_Layout::Image_Layout_DepthStencil_ReadOnly, Image_Layout::Image_Layout_DepthStencil_ReadOnly));
 
             m_GraphicsDevice->CreateRenderPass(&renderPassDescription, &m_RenderPass_Main);
-            AURORA_INFO("Main Render Pass Creation Success.");
+            AURORA_INFO(LogLayer::Graphics, "Main Render Pass Creation Success.");
         }
     }
-    
+
     void Renderer::Tick(float deltaTime)
     {
-        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width  != m_RenderWidth ||
+        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width != m_RenderWidth ||
             m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Height != m_RenderHeight)
         {
             ResizeBuffers();
@@ -354,11 +352,11 @@ namespace Aurora
             D3D11_VIEWPORT viewportInfo = { 0, 0, m_RenderWidth, m_RenderHeight, 0.0f, 1.0f };
             m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
 
-            AURORA_INFO("RESIZED");
+            AURORA_INFO(LogLayer::Graphics, "Window Size Resized");
         }
 
-        BindConstantBuffers(Shader_Stage::Vertex_Shader, 0);
-        BindConstantBuffers(Shader_Stage::Pixel_Shader, 0);
+        BindConstantBuffers(RHI_Shader_Stage::Vertex_Shader, 0);
+        BindConstantBuffers(RHI_Shader_Stage::Pixel_Shader, 0);
 
         UpdateLightConstantBuffer();
         if (m_Camera != nullptr)
@@ -370,8 +368,8 @@ namespace Aurora
         ID3D11SamplerState* samplerState2 = DX11_Utility::ToInternal(&m_Depth_Texture_Sampler)->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(0, 1, &samplerState);
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(1, 1, &samplerState2);
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(3, 1, m_Skybox->m_DefaultSampler.GetAddressOf());
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(4, 1, m_Skybox->m_SpecularBRDFSampler.GetAddressOf());
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(3, 1, m_Skybox->m_DefaultSampler->GetSampler().GetAddressOf());
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(4, 1, m_Skybox->m_SpecularBRDFSampler->GetSampler().GetAddressOf());
 
 
         /// Rendering to Texture
@@ -429,7 +427,7 @@ namespace Aurora
 
     void Renderer::RenderScene()
     {
-        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Entity], CB_GETBINDSLOT(ConstantBufferData_Entity), 0);
+        m_GraphicsDevice->BindConstantBuffer(RHI_Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Entity], CB_GETBINDSLOT(ConstantBufferData_Entity), 0);
 
         /// Render Queue Feature?
         std::vector<std::shared_ptr<Entity>> sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
@@ -522,8 +520,8 @@ namespace Aurora
         miscBuffer.g_Color = float4(1, 1, 1, 1);
 
         m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
-        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
-        m_GraphicsDevice->BindConstantBuffer(Shader_Stage::Pixel_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
+        m_GraphicsDevice->BindConstantBuffer(RHI_Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
+        m_GraphicsDevice->BindConstantBuffer(RHI_Shader_Stage::Pixel_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
 
         uint32_t offset = 0;
         const uint32_t stride = sizeof(XMFLOAT4) + sizeof(XMFLOAT4);

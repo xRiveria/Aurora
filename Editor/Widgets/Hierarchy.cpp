@@ -46,6 +46,33 @@ void Hierarchy::OnTickVisible()
     }
 }
 
+void Hierarchy::OnEvent(Aurora::InputEvent& inputEvent)
+{
+    Aurora::InputEventDispatcher dispatcher(inputEvent);
+    dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(Hierarchy::OnKeyPressed));
+}
+
+bool Hierarchy::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
+{
+    if (inputEvent.GetRepeatCount() > 0)
+    {
+        return false;
+    }
+
+    switch (inputEvent.GetKeyCode())
+    {
+        case AURORA_KEY_TAB:
+            if (EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.lock())
+            {
+                if (const Aurora::Mesh* entityWithMesh = EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.lock()->GetComponentInChildren<Aurora::Mesh>())
+                {
+                    Properties::m_InspectedEntity = entityWithMesh->GetEntity()->GetPointerShared();
+                }
+            }
+            break;
+    }
+}
+
 void Hierarchy::ShowEntityTree()
 {
     OnTreeBegin();

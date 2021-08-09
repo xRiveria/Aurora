@@ -118,7 +118,7 @@ void MenuBar::SaveScene()
 
 	if (filePath.has_value())
 	{
-		AURORA_INFO("%s", filePath.value().c_str());
+		AURORA_INFO(Aurora::LogLayer::Serialization, "%s", filePath.value().c_str());
 		m_EngineContext->GetSubsystem<Aurora::World>()->SerializeScene(filePath.value());
 	}
 }
@@ -129,7 +129,7 @@ void MenuBar::LoadScene()
 
 	if (filePath.has_value())
 	{
-		AURORA_INFO("%s", filePath.value().c_str());
+		AURORA_INFO(Aurora::LogLayer::Serialization, "%s", filePath.value().c_str());
 		m_EngineContext->GetSubsystem<Aurora::World>()->DeserializeScene(filePath.value());
 	}
 }

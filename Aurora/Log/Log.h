@@ -15,14 +15,15 @@
 namespace Aurora
 {
 	// Macros for different forms of logging information.
-	#define AURORA_INFO(text, ...)				 { Aurora::Log::WriteInfoLog(Aurora::LogLayer::Engine, std::string(__FUNCTION__)    + ": " + std::string(text), __VA_ARGS__); }
-	#define AURORA_WARNING(text, ...)			 { Aurora::Log::WriteWarningLog(Aurora::LogLayer::Engine, std::string(__FUNCTION__) + ": " + std::string(text), __VA_ARGS__); }
-	#define AURORA_ERROR(text, ...)				 { Aurora::Log::WriteErrorLog(Aurora::LogLayer::Engine, std::string(__FUNCTION__)   + ": " + std::string(text), __VA_ARGS__); } 
+	#define AURORA_INFO(level, text, ...)	     { Aurora::Log::WriteInfoLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__)    + ": " + std::string(text), __VA_ARGS__); }
+	#define AURORA_WARNING(level, text, ...)     { Aurora::Log::WriteWarningLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__) + ": " + std::string(text), __VA_ARGS__); }
+	#define AURORA_ERROR(level, text, ...)	     { Aurora::Log::WriteErrorLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__)   + ": " + std::string(text), __VA_ARGS__); } 
 	#define AURORA_CRITICAL(level, text, ...)    { Aurora::Log::WriteCriticalLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__)   + ": " + std::string(text), __VA_ARGS__); }
 
+	#define AURORA_ASSERT_ERROR(text, ...)	     { Aurora::Log::WriteErrorLog(LogLayer::Engine, std::string(__FUNCTION__)   + ": " + std::string(text), __VA_ARGS__); } 
 	//Standard Errors
 	#define AURORA_ERROR_GENERIC_FAILURE()	    AURORA_ERROR("Failed.");
-	#define AURORA_ERROR_INVALID_PARAMETER()	AURORA_ERROR("Invalid Parameter.");
+	#define AURORA_ERROR_INVALID_PARAMETER()	AURORA_ASSERT_ERROR("Invalid Parameter.");
 	#define AURORA_ERROR_INVALID_INTERNALS()	AURORA_ERROR("Invalid Internals.");
 
 	class Log
@@ -33,7 +34,7 @@ namespace Aurora
 		Log() = default;
 
 		// Alphabetical
-		static void WriteLog(const char* logMessage, const LOG_TYPE logType);
+		static void WriteLog(LogLayer logLayer, const char* logMessage, const LOG_TYPE logType);
 
 		static void WriteInfoLog(LogLayer logLayer, const char* logMessage, ...);
 		static void WriteWarningLog(LogLayer logLayer, const char* logMessage, ...);
@@ -68,7 +69,7 @@ namespace Aurora
 		static void LogString(const char* logMessage, const std::string& logSource, LogType logType);
 
 		// Console
-		static void LogToConsole(const char* logMessage, LOG_TYPE logType);
+		static void LogToConsole(LogLayer logLayer, const char* logMessage, LOG_TYPE logType);
 
 	private:
 		static bool m_ConsoleLoggingEnabled;

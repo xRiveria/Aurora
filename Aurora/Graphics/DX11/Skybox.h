@@ -6,6 +6,8 @@
 #include "../Resource/Importers/Importer_Model.h"
 #include "../DX11_Refactored/DX11_VertexBuffer.h"
 #include "../DX11_Refactored/DX11_IndexBuffer.h"
+#include "../DX11_Refactored/DX11_InputLayout.h"
+#include "../DX11_Refactored/DX11_Sampler.h"
 
 namespace Aurora
 {
@@ -24,7 +26,6 @@ namespace Aurora
         std::shared_ptr<DX11_IndexBuffer> indexBuffer;
         UINT stride;
         UINT offset;
-        UINT numElements;
     };
 
     class Skybox
@@ -44,21 +45,15 @@ namespace Aurora
             return (value + POT - 1) & -POT;
         }
 
-        ComPtr<ID3D11SamplerState> CreateSamplerState(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode) const;
         Texture CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format, UINT levels = 0) const;
         Texture CreateTexture(UINT width, UINT height, DXGI_FORMAT format, UINT levels = 0) const;
         Texture CreateTexture(const std::shared_ptr<ImageDerp>& image, DXGI_FORMAT format, UINT levels) const;
         void CreateTextureUAV(Texture& texture, UINT mipSlice) const;
-        ComPtr<ID3D11Buffer> CreateConstantBuffer(const void* data, UINT size) const;
-        template<typename T> ComPtr<ID3D11Buffer> CreateConstantBuffer(const T* data = nullptr) const
-        {
-            static_assert(sizeof(T) == roundToPowerOfTwo(sizeof(T), 16));
-            return CreateConstantBuffer(data, sizeof(T));
-        }
 
         std::shared_ptr<MeshBuffer> CreateMeshBuffer(const std::shared_ptr<class MeshDerp>& mesh) const;
 
-        ComPtr<ID3D11InputLayout> m_InputLayout;
+        std::shared_ptr<DX11_InputLayout> m_InputLayout;
+        ComPtr<ID3D11InputLayout> m_InputLayout2;
         Texture m_EnvironmentTextureEquirectangular;
         std::shared_ptr<MeshBuffer> m_SkyboxEntity;
         ComPtr<ID3D11RasterizerState> m_DefaultRasterizerState;
@@ -70,9 +65,9 @@ namespace Aurora
         Texture m_IrradianceMapTexture;
         Texture m_SpecularPrefilterBRDFLUT;
 
-        ComPtr<ID3D11SamplerState> m_ComputeSampler;
-        ComPtr<ID3D11SamplerState> m_DefaultSampler;
-        ComPtr<ID3D11SamplerState> m_SpecularBRDFSampler;
+        std::shared_ptr<DX11_Sampler> m_ComputeSampler;
+        std::shared_ptr<DX11_Sampler> m_DefaultSampler;
+        std::shared_ptr<DX11_Sampler> m_SpecularBRDFSampler;
 
         MeshBuffer m_Skybox;
       

@@ -15,7 +15,7 @@ namespace Aurora
         WindowContext* windowContext = m_EngineContext->GetSubsystem<WindowContext>();
         if (!windowContext->IsInitialized())
         {
-            AURORA_ERROR("GLFW has not been initialized. Please include the input system only after the window context has been created.");
+            AURORA_ERROR(LogLayer::Engine, "GLFW has not been initialized. Please include the input system only after the window context has been created.");
             return false;
         }
 
@@ -52,11 +52,11 @@ namespace Aurora
             m_QueryWindow = window;
             // SetupInputCallbacks();
          
-            AURORA_INFO("Successfully directed input querying to window.");
+            AURORA_INFO(LogLayer::Engine, "Successfully directed input querying to window.");
             return true;
         }
 
-        AURORA_ERROR("Requested query window does not exist in mapping. Did you create your window with the engine's window context?");
+        AURORA_ERROR(LogLayer::Engine, "Requested query window does not exist in mapping. Did you create your window with the engine's window context?");
         return false;
     }
 

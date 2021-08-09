@@ -48,7 +48,6 @@ namespace Aurora
 
     void Engine::OnEvent(InputEvent& inputEvent)
     {
-        AURORA_CRITICAL(LogLayer::Engine, "Hello World");
         // Loop through our systems in reverse.
         for (auto it = m_EngineContext->end(); it != m_EngineContext->begin();)
         {

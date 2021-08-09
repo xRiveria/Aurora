@@ -11,6 +11,7 @@ class Hierarchy : public Widget
 public:
     Hierarchy(Editor* editorContext, Aurora::EngineContext* engineContext);
     void OnTickVisible() override;
+    void OnEvent(Aurora::InputEvent& inputEvent) override;
 
 private:
     // Tree
@@ -23,6 +24,7 @@ private:
 
     void HandlePopups();
     void PopupContextMenu();
+    bool OnKeyPressed(Aurora::KeyPressedEvent& inputEvent);
 
 private:
     std::shared_ptr<Aurora::Entity> m_Empty_Entity;

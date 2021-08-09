@@ -13,8 +13,8 @@ namespace Aurora
     {
         if (m_IndexBuffer != nullptr)
         {
-            m_IndexBuffer->Release();
-            AURORA_INFO("Successfully released Index Buffer.");
+            m_IndexBuffer.Reset();
+            AURORA_INFO(LogLayer::Graphics, "Successfully released Index Buffer.");
         }
     }
 
@@ -49,11 +49,11 @@ namespace Aurora
 
         if (FAILED(result))
         {
-            AURORA_ERROR("Failed to create Index Buffer.");
+            AURORA_ERROR(LogLayer::Graphics, "Failed to create Index Buffer.");
             return false;
         }
 
-        AURORA_INFO("Successfully created Vertex Buffer - %f and %f", static_cast<float>(m_Stride), static_cast<float>(m_ObjectSizeGPU));
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Vertex Buffer - %f and %f", static_cast<float>(m_Stride), static_cast<float>(m_ObjectSizeGPU));
         return true;
     }
 

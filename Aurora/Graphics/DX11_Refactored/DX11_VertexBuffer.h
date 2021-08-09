@@ -17,8 +17,9 @@ namespace Aurora
         bool Unmap();
 
         uint32_t GetStride() const { return m_Stride; }
+        uint32_t GetOffset() const { return m_Offset; }
         uint32_t GetVertexCount() const { return m_VertexCount; }
-        ID3D11Buffer** GetVertexBuffer() const { return (ID3D11Buffer**)m_VertexBuffer.GetAddressOf(); }
+        ComPtr<ID3D11Resource> GetVertexBuffer() const { return m_VertexBuffer; }
 
     private:
         void _DestroyBuffer();
@@ -26,6 +27,7 @@ namespace Aurora
     private:
         uint32_t m_Stride = 0;
         uint32_t m_VertexCount = 0;
+        uint32_t m_Offset = 0;
         RHI_Vertex_Type m_VertexType = RHI_Vertex_Type::VertexType_Unknown;
 
         // API Specific

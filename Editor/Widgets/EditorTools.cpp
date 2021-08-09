@@ -39,19 +39,19 @@ bool EditorTools::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
 		{
 			case AURORA_KEY_E:
 				m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-				break;
+				return true;
 
 			case AURORA_KEY_R:
 				m_GizmoType = ImGuizmo::OPERATION::SCALE;
-				break;
+				return true;
 
 			case AURORA_KEY_T:
 				m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-				break;
+				return true;
 
 			case AURORA_KEY_Q:
 				m_GizmoType = -1;
-				break;
+				return true;
 		}
 	}
 }

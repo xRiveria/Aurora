@@ -60,7 +60,7 @@ namespace Aurora
 
         if (data != nullptr)
         {
-            AURORA_INFO("Successfully loaded Texture with path: %s.", filePath.c_str());
+            AURORA_INFO(LogLayer::Graphics, "Successfully loaded Texture with path: %s.", filePath.c_str());
 
             RHI_Texture_Description textureDescription;
             textureDescription.m_Width = (uint32_t)width;
@@ -106,7 +106,7 @@ namespace Aurora
 
         else
         {
-            AURORA_ERROR("Failed to load texture with path: %s.", filePath.c_str());
+            AURORA_ERROR(LogLayer::Engine, "Failed to load texture with path: %s.", filePath.c_str());
             return nullptr;
         }
 
@@ -146,7 +146,7 @@ namespace Aurora
                 m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice->CreateTexture(&textureDescription, &initializationData, &resource->m_Texture);
                 m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice->CreateSubresource(&resource->m_Texture, Subresource_Type::ShaderResourceView, 0, 1, 0, 1);
 
-                AURORA_INFO("Successfully created HDR texture: %s.", filePath.c_str());
+                AURORA_INFO(LogLayer::Engine, "Successfully created HDR texture: %s.", filePath.c_str());
                 return resource;
             }
         }

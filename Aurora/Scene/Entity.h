@@ -113,6 +113,30 @@ namespace Aurora
             return components;
         }
 
+        // Returns the first component of type T found in children.
+        template<typename T>
+        T* GetComponentInChildren()
+        {
+            const ComponentType type = IComponent::TypeToEnum<T>();
+
+            std::vector<Transform*> descendants;
+            m_Transform->GetDescendants(&descendants);
+
+            for (int i = 0; i < descendants.size(); i++)
+            {
+                if (!descendants[i]->GetEntity()->HasComponent(type))
+                {
+                    continue;
+                }
+                else
+                {
+                    return descendants[i]->GetEntity()->GetComponent<T>();
+                }
+            }
+
+            return nullptr;
+        }
+
         // Checks if a component exists.
         constexpr bool HasComponent(const ComponentType componentType) { return m_ComponentMask & GetComponentMask(componentType); }
 
