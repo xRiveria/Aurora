@@ -58,8 +58,7 @@ namespace Aurora
         m_DirectionalLight->SetName("Directional Light");
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
-        // auto derp = m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Skybox/skybox.obj", "Derp");
-        // derp->GetComponent<Transform>()->Translate({ 0.0f, 4.0f, 0.0f });
+        m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Sphere);
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -214,101 +213,11 @@ namespace Aurora
         float resolutionScale = 1.0f;
         XMUINT2 internalResolution = XMUINT2(m_RenderWidth, m_RenderHeight);
 
-        // Render Targets - GBuffers
-        {
-            // Color
-            RHI_Texture_Description gBufferDescription;
-            gBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
-            if (GetMSAASampleCount() == 1)
-            {
-                gBufferDescription.m_BindFlags |= Bind_Flag::Bind_Unordered_Access;
-            }
-            gBufferDescription.m_Width = internalResolution.x;
-            gBufferDescription.m_Height = internalResolution.y;
-            gBufferDescription.m_SampleCount = GetMSAASampleCount();
-            gBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT; // Floating point for tonemapping.
-
-            m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
-            AURORA_INFO(LogLayer::Graphics, "GBuffer_Color Texture Creation Success.");
-
-
-
-
-            // Normal, Roughness
-            gBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
-            gBufferDescription.m_Format = Format::FORMAT_R8G8B8A8_UNORM;
-
-            m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Normal_Roughness]);
-            AURORA_INFO(LogLayer::Graphics, "GBuffer_Normal_Roughness Texture Creation Success.");
-        }
-
-        // Render Targets - Bloom
-        {
-            // Bloom
-            RHI_Texture_Description bloomBufferDescription;
-            bloomBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
-            if (GetMSAASampleCount() == 1)
-            {
-                bloomBufferDescription.m_BindFlags |= Bind_Flag::Bind_Unordered_Access;
-            }
-            bloomBufferDescription.m_Width = internalResolution.x;
-            bloomBufferDescription.m_Height = internalResolution.y;
-            bloomBufferDescription.m_SampleCount = GetMSAASampleCount();
-            bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT; // Floating point for tonemapping.
-
-            m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
-            AURORA_INFO(LogLayer::Graphics, "GBuffer_Bloom Texture Creation Success.");
-        }
-
-        // Render Targets - PingPong1
-        {
-            // Bloom
-            RHI_Texture_Description bloomBufferDescription;
-            bloomBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
-            if (GetMSAASampleCount() == 1)
-            {
-                bloomBufferDescription.m_BindFlags |= Bind_Flag::Bind_Unordered_Access;
-            }
-            bloomBufferDescription.m_Width = internalResolution.x;
-            bloomBufferDescription.m_Height = internalResolution.y;
-            bloomBufferDescription.m_SampleCount = GetMSAASampleCount();
-            bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT;
-
-            m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong1]);
-            AURORA_INFO(LogLayer::Graphics, "GBuffer_PingPong1 Texture Creation Success.");
-        }
-
-        // Render Targets - PingPong2
-        {
-            // Bloom
-            RHI_Texture_Description bloomBufferDescription;
-            bloomBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
-            if (GetMSAASampleCount() == 1)
-            {
-                bloomBufferDescription.m_BindFlags |= Bind_Flag::Bind_Unordered_Access;
-            }
-            bloomBufferDescription.m_Width = internalResolution.x;
-            bloomBufferDescription.m_Height = internalResolution.y;
-            bloomBufferDescription.m_SampleCount = GetMSAASampleCount();
-            bloomBufferDescription.m_Format = Format::FORMAT_R32G32B32A32_FLOAT;
-
-            m_GraphicsDevice->CreateTexture(&bloomBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_BloomPingPong2]);
-            AURORA_INFO(LogLayer::Graphics, "GBuffer_PingPong2 Texture Creation Success.");
-        }
+        m_DeviceContext->m_RenderWidth = m_RenderWidth;
+        m_DeviceContext->m_RenderHeight = m_RenderHeight;
 
         // Depth Buffers
         {
-            RHI_Texture_Description depthBufferDescription;
-            depthBufferDescription.m_Width = internalResolution.x;
-            depthBufferDescription.m_Height = internalResolution.y;
-            depthBufferDescription.m_SampleCount = GetMSAASampleCount();
-            depthBufferDescription.m_Layout = Image_Layout::Image_Layout_DepthStencil_ReadOnly;
-            depthBufferDescription.m_Format = Format::FORMAT_R32G8X24_TYPELESS;
-            depthBufferDescription.m_BindFlags = Bind_Flag::Bind_Depth_Stencil | Bind_Flag::Bind_Shader_Resource;
-
-            m_GraphicsDevice->CreateTexture(&depthBufferDescription, nullptr, &m_DepthBuffer_Main);
-            AURORA_INFO(LogLayer::Graphics, "DepthBuffer_Main Texture Creation Success.");
-
             RHI_Texture_Description shadowDepthBufferDescription;
             shadowDepthBufferDescription.m_Width = internalResolution.x;
             shadowDepthBufferDescription.m_Height = internalResolution.y;
@@ -320,29 +229,15 @@ namespace Aurora
             m_GraphicsDevice->CreateTexture(&shadowDepthBufferDescription, nullptr, &m_ShadowDepthMap);
             AURORA_INFO(LogLayer::Graphics, "Shadow Depth Buffer Texture Creation Success.");
         }
-
-        // Render Passes - GBuffer
-        {
-            // Main (GBuffer Color, Normal & Roughtness)
-            RHI_RenderPass_Description renderPassDescription;
-
-            // Main (GBuffer Color, Normal & Roughness)
-            renderPassDescription.m_Attachments.clear();
-            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::RenderTarget(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color], RHI_RenderPass_Attachment::LoadOperation_DontCare));
-            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::RenderTarget(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Normal_Roughness], RHI_RenderPass_Attachment::LoadOperation_DontCare));
-            renderPassDescription.m_Attachments.push_back(RHI_RenderPass_Attachment::DepthStencil(&m_DepthBuffer_Main, RHI_RenderPass_Attachment::LoadOperation_Load, RHI_RenderPass_Attachment::StoreOperation_Store, Image_Layout::Image_Layout_Shader_Resource, Image_Layout::Image_Layout_DepthStencil_ReadOnly, Image_Layout::Image_Layout_DepthStencil_ReadOnly));
-
-            m_GraphicsDevice->CreateRenderPass(&renderPassDescription, &m_RenderPass_Main);
-            AURORA_INFO(LogLayer::Graphics, "Main Render Pass Creation Success.");
-        }
     }
 
     void Renderer::Tick(float deltaTime)
     {
-        if (m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Width != m_RenderWidth ||
-            m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color].m_Description.m_Height != m_RenderHeight)
+        if (static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetWidth()) != m_RenderWidth ||
+            static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetHeight()) != m_RenderHeight)
         {
             ResizeBuffers();
+            m_DeviceContext->ResizeBuffers();
 
             RHI_SwapChain_Description swapchainDescription;
             swapchainDescription.m_Width = static_cast<uint32_t>(m_EngineContext->GetSubsystem<WindowContext>()->GetWindowWidth(0));
@@ -379,13 +274,9 @@ namespace Aurora
 
         /// Rendering to Texture
         //==============================================================================================================
-        auto ourTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
-        auto ourBloomTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
-
-        ID3D11RenderTargetView* renderTargetViews[2];
-        renderTargetViews[0] = ourTexture->m_RenderTargetView.Get();
-        renderTargetViews[1] = ourBloomTexture->m_RenderTargetView.Get();
-
+        // auto ourTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
+        // auto ourBloomTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
+        // 
         // Retrieve Scene Entities
         m_SceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
 
@@ -409,18 +300,20 @@ namespace Aurora
         // ================ Scene Pass ==================================
         m_GraphicsDevice->BindPipelineState(&m_PSO_Object_Wire, 0);
 
-        ID3D11DepthStencilView* ourDepthStencilTexture = DX11_Utility::ToInternal(&m_DepthBuffer_Main)->m_DepthStencilView.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(2, renderTargetViews, ourDepthStencilTexture);
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetRenderTargetView().GetAddressOf(), m_DeviceContext->m_MultisampleFramebuffer->m_DepthStencilTexture.GetDepthStencilView().Get());
 
-        m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourBloomTexture->m_RenderTargetView.Get(), color);
-        m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(ourTexture->m_RenderTargetView.Get(), color);
-        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(ourDepthStencilTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetRenderTargetView().Get(), color);
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(m_DeviceContext->m_MultisampleFramebuffer->m_DepthStencilTexture.GetDepthStencilView().Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         ///==============================
         RenderScene();
         DrawDebugWorld(m_Camera.get());
 
+        m_DeviceContext->ResolveFramebuffer(m_DeviceContext->m_MultisampleFramebuffer.get(), m_DeviceContext->m_ResolveFramebuffer.get(), DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+
         /// ==================================
+
         auto internalState = DX11_Utility::ToInternal(&m_SwapChain);
 
         // Clear the backbuffer to black for the new frame.

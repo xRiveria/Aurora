@@ -112,6 +112,38 @@ void Editor::Tick()
 		Aurora::Profiler::GetInstance().Reset();
 		ImGui::End();
 
+		ImGui::Begin("Renderer");
+
+		char sampleString[11];
+		sprintf_s(sampleString, "%u", m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->GetCurrentMultisampleLevel());
+		if (ImGui::BeginCombo("Multisample Level", sampleString, 0))
+		{
+			if (ImGui::Selectable("Off"))
+			{
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(1);
+			}
+
+			if (ImGui::Selectable("2"))
+			{
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(2);
+			}
+
+			if (ImGui::Selectable("4"))
+			{
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(4);
+			}
+
+			if (ImGui::Selectable("8"))
+			{
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(8);
+			}
+
+			ImGui::EndCombo();
+		}
+		ImGui::Text("Maximum MSAA Level Supported: %u", m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->GetMaxMultisampleLevel());
+
+		ImGui::End();
+
 		// Sky
 		ImGui::Begin("Sky");
 
@@ -145,8 +177,8 @@ void Editor::Tick()
 		Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_ShadowDepthMap);
 		ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(600, 600));
 
-		Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
-		ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
+		// Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
+		// ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
 		ImGui::DragFloat("Light Bias", &m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_LightBias, 0.01, 0.005, 0.1);
 		/*
 		else

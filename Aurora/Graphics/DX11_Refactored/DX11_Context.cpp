@@ -6,6 +6,7 @@
 #include "DX11_InputLayout.h"
 #include "DX11_Sampler.h"
 #include "DX11_RasterizerState.h"
+#include "DX11_Texture.h"
 
 namespace Aurora
 {
@@ -26,7 +27,23 @@ namespace Aurora
     void DX11_Context::CreateSwapchain()
     {
         // Determine maximum supported MSAA level.
-        QuerySupportedMultisamplingLevels(16);
+        SetMultisampleLevel(QuerySupportedMultisamplingLevels(16));
+
+        ResizeBuffers();
+    }
+
+    void DX11_Context::ResizeBuffers()
+    {
+        // Multisample Framebuffer
+        m_MultisampleFramebuffer.reset();
+        m_MultisampleFramebuffer = std::make_shared<DX11_Framebuffer>();
+        m_MultisampleFramebuffer->m_RenderTargetTexture.Initialize(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, m_CurrentMultisampleLevelCount, DX11_ResourceViewFlag::Texture_Flag_RTV, 0, m_Devices.get());
+        m_MultisampleFramebuffer->m_DepthStencilTexture.Initialize(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_D24_UNORM_S8_UINT, m_CurrentMultisampleLevelCount, DX11_ResourceViewFlag::Texture_Flag_DSV, 0, m_Devices.get());
+
+        // Resolve Framebuffer
+        m_ResolveFramebuffer.reset();
+        m_ResolveFramebuffer = std::make_shared<DX11_Framebuffer>();
+        m_ResolveFramebuffer->m_RenderTargetTexture.Initialize(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, 1, DX11_ResourceViewFlag::Texture_Flag_RTV | DX11_ResourceViewFlag::Texture_Flag_SRV, 0, m_Devices.get());
     }
 
     void DX11_Context::CreateRasterizerStates()
@@ -164,16 +181,43 @@ namespace Aurora
         m_Devices->m_DeviceContextImmediate->RSSetState(m_RasterizerStates[rasterizerState]->GetRasterizerState().Get());
     }
 
-    void DX11_Context::QuerySupportedMultisamplingLevels(uint32_t requestedLevels)
+    void DX11_Context::SetMultisampleLevel(uint32_t multisampleLevel)
     {
-        // Loop from the top divided by 2 each iteration. We select the highest possible sampling level we can supported.
-        for (m_SupportedMultisamplingLevelCount = requestedLevels; m_SupportedMultisamplingLevelCount > 1; m_SupportedMultisamplingLevelCount /= 2)
+        if (multisampleLevel > m_MaxSupportedMultisamplingLevelCount || 0 > multisampleLevel)
+        {
+            AURORA_ERROR(LogLayer::Graphics, "Error setting multisample level to %u", multisampleLevel);
+            return;
+        }
+
+        if (multisampleLevel == m_CurrentMultisampleLevelCount) { return; }
+
+        m_CurrentMultisampleLevelCount = multisampleLevel;
+        ResizeBuffers();
+
+        // Resize textures afterwards.
+        AURORA_INFO(LogLayer::Graphics, "Successfully set multisample level to %u.", multisampleLevel);
+    }
+
+    void DX11_Context::ResolveFramebuffer(const DX11_Framebuffer* sourceFramebuffer, const DX11_Framebuffer* destinationFramebuffer, DXGI_FORMAT format)
+    {
+        if (sourceFramebuffer->m_RenderTargetTexture.GetTexture() != destinationFramebuffer->m_RenderTargetTexture.GetTexture())
+        {
+            m_Devices->m_DeviceContextImmediate->ResolveSubresource(destinationFramebuffer->m_RenderTargetTexture.GetTexture().Get(), 0, sourceFramebuffer->m_RenderTargetTexture.GetTexture().Get(), 0, format);
+        }
+    }
+
+    uint32_t DX11_Context::QuerySupportedMultisamplingLevels(uint32_t requestedLevels)
+    {
+        // Hardwares must suppor 1, 4 and 8 sample counts by default. More can be exposed by vendors naturally. We select the highest possible sampling level we can support.
+        // Standard sample patterns are 1 (trivial), 2, 4, 8 and 16.
+        for (m_MaxSupportedMultisamplingLevelCount = requestedLevels; m_MaxSupportedMultisamplingLevelCount > 1; m_MaxSupportedMultisamplingLevelCount /= 2)
         {
             UINT colorQualityLevels;
             UINT depthStencilQualityLevels;
-
-            m_Devices->m_Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R16G16B16A16_FLOAT, m_SupportedMultisamplingLevelCount, &colorQualityLevels);
-            m_Devices->m_Device->CheckMultisampleQualityLevels(DXGI_FORMAT_D24_UNORM_S8_UINT, m_SupportedMultisamplingLevelCount, &depthStencilQualityLevels);
+            
+            // CheckMultisampleQualityLevels will return 0 if the given format and level count isn't supported by the adapter. Hence, we will pick the highest level returned.
+            m_Devices->m_Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R16G16B16A16_FLOAT, m_MaxSupportedMultisamplingLevelCount, &colorQualityLevels);
+            m_Devices->m_Device->CheckMultisampleQualityLevels(DXGI_FORMAT_D24_UNORM_S8_UINT, m_MaxSupportedMultisamplingLevelCount, &depthStencilQualityLevels);
 
             if (colorQualityLevels > 0 && depthStencilQualityLevels > 0)
             {
@@ -181,6 +225,7 @@ namespace Aurora
             }
         }
 
-        AURORA_INFO(LogLayer::Graphics, "Multisampling Level Supported by DX11 Adapter: %u", m_SupportedMultisamplingLevelCount);
+        AURORA_INFO(LogLayer::Graphics, "Multisampling Level Supported by DX11 Adapter: %u", m_MaxSupportedMultisamplingLevelCount);
+        return m_MaxSupportedMultisamplingLevelCount;
     }
 }

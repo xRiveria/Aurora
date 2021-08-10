@@ -37,8 +37,7 @@ void Viewport::OnTickVisible()
         m_Height = height;
     }
 
-    auto internalState = Aurora::DX11_Utility::ToInternal(&m_RendererSubsystem->m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
-    ImGui::Image((void*)internalState->m_ShaderResourceView.Get(), ImVec2(width, height));
+    ImGui::Image((void*)m_RendererSubsystem->m_DeviceContext->m_ResolveFramebuffer->m_RenderTargetTexture.GetShaderResourceView().Get(), ImVec2(width, height));
 
     // Handle model dropping.
     if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Entity))

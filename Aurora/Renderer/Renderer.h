@@ -10,6 +10,7 @@
 #include "../Scene/Components/Material.h"
 #include "../Scene/Components/Mesh.h"
 #include "../Graphics/DX11_Refactored/DX11_Context.h"
+#include "../Graphics/DX11_Refactored/DX11_Texture.h"
 
 using namespace DirectX;
 
@@ -48,9 +49,7 @@ namespace Aurora
         /// New Abstraction
         void ResizeBuffers();
         // Depth Buffer
-        RHI_Texture m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Count];
 
-        RHI_Texture m_DepthBuffer_Main; // Used for depth-testing. Can be used for MSAA.
         RHI_Texture m_ShadowDepthMap; // Used for shadows.
         std::shared_ptr<Entity> m_DirectionalLight;
 

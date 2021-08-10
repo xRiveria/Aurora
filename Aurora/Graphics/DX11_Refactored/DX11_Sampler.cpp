@@ -38,7 +38,7 @@ namespace Aurora
             return false;
         }
 
-        AURORA_INFO(LogLayer::Graphics, "Failed to create Sampler");
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Sampler");
         return true;
     }
 }

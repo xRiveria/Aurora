@@ -9,10 +9,6 @@ int main(int argc, int argv[])
     HRESULT hr = CoInitialize(NULL);
     srand(time(0)); // Seed generator.
 
-    Console::Shade::SetColor(Console::Color::Color_LightAqua);
-    std::cout << "Hello" << "\n";
-    Console::Shade::Reset();
-
     Editor editor;
     
     editor.Tick();
