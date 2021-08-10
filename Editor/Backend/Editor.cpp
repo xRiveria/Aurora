@@ -32,6 +32,7 @@
 #include "../Widgets/Hierarchy.h"
 #include "../Widgets/ProjectSettings.h"
 #include <vector>
+#include "../Widgets/ThreadTracker.h"
 
 namespace EditorConfigurations
 {
@@ -192,6 +193,7 @@ void Editor::InitializeEditor()
 	// Create all ImGui widgets.
 	m_Widgets.emplace_back(std::make_shared<ProjectSettings>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<ThreadTracker>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<MenuBar>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));

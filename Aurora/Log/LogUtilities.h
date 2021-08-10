@@ -31,32 +31,32 @@ namespace Aurora
 		{
 			case LogLayer::Initialization:
 				Console::Shade::SetColor(Console::Color::Color_Blue);
-				std::cout << "[INITIALIZATION] ";
+				std::cout << "[Initialization] ";
 				break;
 
 			case LogLayer::Event:
 				Console::Shade::SetColor(Console::Color::Color_LightPurple);
-				std::cout << "[EVENT] ";
+				std::cout << "[Event] ";
 				break;
 
 			case LogLayer::Graphics:
 				Console::Shade::SetColor(Console::Color::Color_LightBlue);
-				std::cout << "[GRAPHICS] ";
+				std::cout << "[Graphics] ";
 				break;
 
 			case LogLayer::Engine:
 				Console::Shade::SetColor(Console::Color::Color_LightAqua);
-				std::cout << "[ENGINE] ";
+				std::cout << "[Engine] ";
 				break;
 
 			case LogLayer::Physics:
 				Console::Shade::SetColor(Console::Color::Color_BrightWhite);
-				std::cout << "[PHYSICS] ";
+				std::cout << "[Physics] ";
 				break;
 
 			case LogLayer::Serialization:
 				Console::Shade::SetColor(Console::Color::Color_Purple);
-				std::cout << "[SERIALIZATION] ";
+				std::cout << "[Serialization] ";
 				break;
 
 			case LogLayer::ECS:
@@ -66,7 +66,7 @@ namespace Aurora
 
 			case LogLayer::Assert:
 				Console::Shade::SetColor(Console::Color::Color_Red);
-				std::cout << "[ASSERT] ";
+				std::cout << "[Assert] ";
 				break;
 		}
 

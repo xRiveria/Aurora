@@ -37,13 +37,6 @@ namespace Aurora
         // ===============================================================
         ID3D11UnorderedAccessView* const nullUAV[] = { nullptr }; // Reset.
 
-        D3D11_RASTERIZER_DESC rasterizerDescription;
-        rasterizerDescription.FillMode = D3D11_FILL_SOLID;
-        rasterizerDescription.CullMode = D3D11_CULL_BACK;
-        rasterizerDescription.FrontCounterClockwise = true;
-        rasterizerDescription.DepthClipEnable = true;
-        m_Renderer->m_GraphicsDevice->m_Device->CreateRasterizerState(&rasterizerDescription, &m_DefaultRasterizerState);
-
         D3D11_DEPTH_STENCIL_DESC depthStencilDescription;
         depthStencilDescription.DepthEnable = true;
         depthStencilDescription.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
@@ -170,7 +163,7 @@ namespace Aurora
     bool Skybox::Render() const
     {
         // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->RSSetState(m_DefaultRasterizerState.Get());
+        m_Renderer->m_DeviceContext->BindRasterizerState(RasterizerState_Types::RasterizerState_Sky);
         m_Renderer->m_DeviceContext->BindInputLayout(m_InputLayout.get());
         m_Renderer->m_DeviceContext->BindVertexBuffer(m_SkyboxEntity->vertexBuffer.get());
         m_Renderer->m_DeviceContext->BindIndexBuffer(m_SkyboxEntity->indexBuffer.get());

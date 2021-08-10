@@ -75,6 +75,8 @@ namespace Aurora
         D3D11_VIEWPORT viewportInfo = { 0, 0, (float)1280.0, (float)1080.0, 0.0f, 1.0f };
         m_GraphicsDevice->m_DeviceContextImmediate->RSSetViewports(1, &viewportInfo);
 
+        m_DeviceContext->Initialize();
+
         m_Skybox = std::make_shared<Skybox>(m_EngineContext);
         m_Skybox->InitializeResources();
         return true;
@@ -228,6 +230,9 @@ namespace Aurora
 
             m_GraphicsDevice->CreateTexture(&gBufferDescription, nullptr, &m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
             AURORA_INFO(LogLayer::Graphics, "GBuffer_Color Texture Creation Success.");
+
+
+
 
             // Normal, Roughness
             gBufferDescription.m_BindFlags = Bind_Flag::Bind_Render_Target | Bind_Flag::Bind_Shader_Resource;
@@ -387,6 +392,7 @@ namespace Aurora
 
         //============== Depth Buffer Pass ==================
         m_GraphicsDevice->BindPipelineState(&m_PSO_Object_Wire, 0);
+        m_DeviceContext->BindRasterizerState(RasterizerState_Types::RasterizerState_Shadow);
         ID3D11VertexShader* vertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_SimpleDepthShaderVS.m_InternalState.get())->m_Resource.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(vertexShader, nullptr, 0);
 

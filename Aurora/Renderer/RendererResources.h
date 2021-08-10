@@ -163,6 +163,7 @@ namespace Aurora
         rasterizerState.m_IsConservativeRasterizationEnabled = false;
         
         RendererGlobals::g_RasterizerStates[RS_Types::RS_Shadow] = rasterizerState;
+
         rasterizerState.m_CullMode = Cull_Mode::Cull_None;
         RendererGlobals::g_RasterizerStates[RS_Types::RS_Shadow_DoubleSided] = rasterizerState;
 

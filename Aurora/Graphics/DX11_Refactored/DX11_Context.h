@@ -1,6 +1,7 @@
 #pragma once
 #include "../RHI_Implementation.h"
 #include "../RHI_Utilities.h"
+#include "../Renderer/RendererEnums.h"
 #include "../DX11_Refactored/DX11_VertexBuffer.h"
 
 
@@ -9,7 +10,9 @@
     Second level of abstraction postceding the Renderer class. Once we begin to support further APIs, there will be a further abstraction for the Context class, which calls underlying APIs below it.    
     The context class serves as the brain of each graphics API supported by Aurora. It provides general commands such as the creation of resources, binding, drawing amongst others.
 
-    All lower level work is propagated into the respective resource classes.
+    All lower level work are propagated into the respective resource classes. While we abstract away code into the underlying classes, resources that has plenty of parameters and are one-time 
+    creation satisfactory (rasterizer states, depth stencil states) will have their descriptions created here in this context class, whilst the actual creation and storage is abstracted away.
+    Naturally, we will hold pointers to said storage in this context class for easy access.
 
     As we are planning for future API additions, you will see bits of sprinkled abstraction comments for my future usage.
 */
@@ -21,11 +24,16 @@ namespace Aurora
     class DX11_IndexBuffer;
     class DX11_InputLayout;
     class DX11_Sampler;
+    class DX11_RasterizerState;
 
     class DX11_Context
     {
     public:
         DX11_Context(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& deviceContext);
+        void Initialize();
+
+        void CreateSwapchain();
+        void CreateRasterizerStates();
 
         template<typename T>
         inline std::shared_ptr<DX11_VertexBuffer> CreateVertexBuffer(RHI_Vertex_Type vertexType, std::vector<T>& vertices)
@@ -51,7 +59,18 @@ namespace Aurora
         std::shared_ptr<DX11_Sampler> CreateSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, D3D11_COMPARISON_FUNC comparisonFunction, float mipLODBias, float borderColor);
         void BindSampler(RHI_Shader_Stage shaderStage, uint32_t slotNumber, uint32_t slotCount, DX11_Sampler* sampler);
 
+        std::shared_ptr<DX11_RasterizerState> CreateRasterizerState(D3D11_RASTERIZER_DESC& rasterizerStateDescription);
+        void BindRasterizerState(RasterizerState_Types rasterizerState) const;
+
     private:
+        void QuerySupportedMultisamplingLevels(uint32_t requestedLevels);
+
+    public:
+
+        std::shared_ptr<DX11_RasterizerState> m_RasterizerStates[RasterizerState_Types_Count];
+
+    private:
+        uint32_t m_SupportedMultisamplingLevelCount = 0;
         std::shared_ptr<DX11_Devices> m_Devices;
     };
 }

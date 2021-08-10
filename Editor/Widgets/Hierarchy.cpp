@@ -66,6 +66,7 @@ bool Hierarchy::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
             {
                 if (const Aurora::Mesh* entityWithMesh = EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.lock()->GetComponentInChildren<Aurora::Mesh>())
                 {
+                    EditorExtensions::ContextHelper::GetInstance().SetSelectedEntity(entityWithMesh->GetEntity()->GetPointerShared());
                     Properties::m_InspectedEntity = entityWithMesh->GetEntity()->GetPointerShared();
                 }
             }

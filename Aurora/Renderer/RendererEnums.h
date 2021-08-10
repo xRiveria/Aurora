@@ -1,5 +1,14 @@
 #pragma once
 
+enum RasterizerState_Types
+{
+	RasterizerState_Front,
+	RasterizerState_Shadow,
+	RasterizerState_Wireframe,
+	RasterizerState_Sky,
+	RasterizerState_Types_Count
+};
+
 enum BlendMode_Types
 {
 	BlendMode_Opaque,

@@ -8,6 +8,7 @@
 #include "../DX11_Refactored/DX11_IndexBuffer.h"
 #include "../DX11_Refactored/DX11_InputLayout.h"
 #include "../DX11_Refactored/DX11_Sampler.h"
+#include "../DX11_Refactored/DX11_RasterizerState.h"
 
 namespace Aurora
 {
@@ -56,8 +57,9 @@ namespace Aurora
         ComPtr<ID3D11InputLayout> m_InputLayout2;
         Texture m_EnvironmentTextureEquirectangular;
         std::shared_ptr<MeshBuffer> m_SkyboxEntity;
-        ComPtr<ID3D11RasterizerState> m_DefaultRasterizerState;
+
         ComPtr<ID3D11DepthStencilState> m_SkyboxDepthStencilState;
+
         RHI_Shader m_VSSkyboxShader;
         RHI_Shader m_PSSkyboxShader;
 

@@ -107,7 +107,7 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
         float NDotL = max(dot(normalVector, lightDirection), 0.0); // Scale light by NDotL.
 
         // Add to outgoing radiance Lo.
-        Lo += (kDiffuse * albedoColor / PI + specular) * shadowFactor * radiance * NDotL; // Reflectance Equation.
+        Lo += (kDiffuse * albedoColor / PI + specular) * radiance * NDotL; // Reflectance Equation.
     }
      
     // Lo *= float3(inverseShadow, inverseShadow, inverseShadow);
@@ -122,6 +122,7 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
 
     float3 irradiance = Texture_Irradiance.Sample(defaultSampler, normalVector).rgb;
     float3 diffuse = irradiance * albedoColor;
+    diffuse *= shadowFactor;
 
     //==========================================================================================================================
     // Get indirect specular reflections of the surface by sampling pre-filtered environment map using the reflection vector. This is sampled based on the surface roughness.
@@ -132,9 +133,10 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
     float2 environmentBRDF = Texture_BRDFLUT.Sample(spBRDFSampler, float2(cosLo, roughness)).rg;
     // Total specular IBL contribution.
     float3 specular = specularIrradiance * (kSpecular * environmentBRDF.x + environmentBRDF.y);
+    specular *= shadowFactor;
 
     // Total ambient light contribution
-    float3 ambient = (kD * diffuse + specular) * shadowFactor;
+    float3 ambient = (kD * diffuse + specular);
 
     /// Final Light - Direct Lighting + Ambient Lighting
     float3 finalColor = (ambient + Lo); // Our ambient is currently a constant factor. For IBL, we will take this into account.

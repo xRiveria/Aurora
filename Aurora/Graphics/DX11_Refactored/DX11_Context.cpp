@@ -5,6 +5,7 @@
 #include "DX11_ConstantBuffer.h"
 #include "DX11_InputLayout.h"
 #include "DX11_Sampler.h"
+#include "DX11_RasterizerState.h"
 
 namespace Aurora
 {
@@ -14,6 +15,42 @@ namespace Aurora
 
         m_Devices->m_Device = device.Get();
         m_Devices->m_DeviceContextImmediate = deviceContext.Get();
+    }
+
+    void DX11_Context::Initialize()
+    {
+        CreateSwapchain();
+        CreateRasterizerStates();
+    }
+
+    void DX11_Context::CreateSwapchain()
+    {
+        // Determine maximum supported MSAA level.
+        QuerySupportedMultisamplingLevels(16);
+    }
+
+    void DX11_Context::CreateRasterizerStates()
+    {
+        D3D11_RASTERIZER_DESC rasterizerStateDescription = {};
+        rasterizerStateDescription.FillMode = D3D11_FILL_SOLID;
+        rasterizerStateDescription.CullMode = D3D11_CULL_BACK;
+        rasterizerStateDescription.FrontCounterClockwise = true;
+        rasterizerStateDescription.DepthClipEnable = true;
+        rasterizerStateDescription.DepthBias = 0;
+        rasterizerStateDescription.SlopeScaledDepthBias = 0.0f;
+        rasterizerStateDescription.DepthBiasClamp = 0.0f;
+        rasterizerStateDescription.AntialiasedLineEnable = false;
+        rasterizerStateDescription.MultisampleEnable = false;
+        rasterizerStateDescription.ScissorEnable = true;
+
+        m_RasterizerStates[RasterizerState_Types::RasterizerState_Sky] = CreateRasterizerState(rasterizerStateDescription);
+
+        rasterizerStateDescription.FillMode = D3D11_FILL_WIREFRAME;
+        m_RasterizerStates[RasterizerState_Types::RasterizerState_Wireframe] = CreateRasterizerState(rasterizerStateDescription);
+
+        rasterizerStateDescription.FillMode = D3D11_FILL_SOLID;
+        rasterizerStateDescription.CullMode = D3D11_CULL_NONE;
+        m_RasterizerStates[RasterizerState_Types::RasterizerState_Shadow] = CreateRasterizerState(rasterizerStateDescription);
     }
 
     void DX11_Context::BindVertexBuffer(DX11_VertexBuffer* vertexBuffer)
@@ -113,5 +150,37 @@ namespace Aurora
                 m_Devices->m_DeviceContextImmediate->CSSetSamplers(slotNumber, slotCount, sampler->GetSampler().GetAddressOf());
                 break;
         }
+    }
+
+    std::shared_ptr<DX11_RasterizerState> DX11_Context::CreateRasterizerState(D3D11_RASTERIZER_DESC& rasterizerStateDescription)
+    {
+        std::shared_ptr<DX11_RasterizerState> rasterizerState = std::make_shared<DX11_RasterizerState>();
+        rasterizerState->Initialize(rasterizerStateDescription, m_Devices.get());
+        return rasterizerState;
+    }
+
+    void DX11_Context::BindRasterizerState(RasterizerState_Types rasterizerState) const
+    {
+        m_Devices->m_DeviceContextImmediate->RSSetState(m_RasterizerStates[rasterizerState]->GetRasterizerState().Get());
+    }
+
+    void DX11_Context::QuerySupportedMultisamplingLevels(uint32_t requestedLevels)
+    {
+        // Loop from the top divided by 2 each iteration. We select the highest possible sampling level we can supported.
+        for (m_SupportedMultisamplingLevelCount = requestedLevels; m_SupportedMultisamplingLevelCount > 1; m_SupportedMultisamplingLevelCount /= 2)
+        {
+            UINT colorQualityLevels;
+            UINT depthStencilQualityLevels;
+
+            m_Devices->m_Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R16G16B16A16_FLOAT, m_SupportedMultisamplingLevelCount, &colorQualityLevels);
+            m_Devices->m_Device->CheckMultisampleQualityLevels(DXGI_FORMAT_D24_UNORM_S8_UINT, m_SupportedMultisamplingLevelCount, &depthStencilQualityLevels);
+
+            if (colorQualityLevels > 0 && depthStencilQualityLevels > 0)
+            {
+                break;
+            }
+        }
+
+        AURORA_INFO(LogLayer::Graphics, "Multisampling Level Supported by DX11 Adapter: %u", m_SupportedMultisamplingLevelCount);
     }
 }
