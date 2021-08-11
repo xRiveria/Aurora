@@ -48,6 +48,29 @@ namespace Aurora
         return image;
     }
 
+    bool Importer_Image::LoadTexture(const std::string& filePath, AuroraResource* resource)
+    {
+        Renderer* renderer = m_EngineContext->GetSubsystem<Renderer>();
+
+        resource->m_FilePath = filePath;
+        resource->SetObjectName(FileSystem::GetFileNameFromFilePath(filePath));
+        resource->m_Type = Resource_Type::ResourceType_Image;
+
+        const int channelCount = 4;
+        int width, height, bytesPerPixel;
+        unsigned char* textureData = stbi_load(filePath.c_str(), &width, &height, &bytesPerPixel, channelCount); // Float* for HDR.
+
+        if (textureData != nullptr)
+        {
+            AURORA_INFO(LogLayer::Graphics, "Successfully loaded Texture with Path: %s.", filePath.c_str());
+            resource->m_Resource = m_EngineContext->GetSubsystem<Renderer>()->m_DeviceContext->CreateTexture2DFromData(reinterpret_cast<const void*>(textureData), width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 1, DX11_ResourceViewFlag::Texture_Flag_SRV, 1);
+        }
+
+        stbi_image_free(textureData);
+
+        return true;
+    }
+
     std::shared_ptr<AuroraResource> Importer_Image::LoadTexture(const std::string& filePath, const std::string& fileName, uint32_t loadFlags)
     {
         Renderer* renderer = m_EngineContext->GetSubsystem<Renderer>();

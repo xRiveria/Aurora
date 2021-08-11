@@ -69,6 +69,70 @@ namespace Aurora
         return true;
     }
 
+    bool DX11_Texture::Initialize2DTextureFromFile(const void* sourceData, uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice, DX11_Devices* devices)
+    {
+        AURORA_ASSERT(devices != nullptr);
+
+        _DestroyTexture(); // Destroy resources if they existed previously.
+
+        m_Devices = devices;
+        m_Width = textureWidth;
+        m_Height = textureHeight;
+        m_Format = format;
+        m_SampleLevel = sampleLevels;
+        m_MipLevels = 1;
+        m_ResourceViewFlags = textureFlags;
+
+        D3D11_TEXTURE2D_DESC textureDescription = {};
+        textureDescription.Width = static_cast<UINT>(textureWidth);
+        textureDescription.Height = static_cast<UINT>(textureHeight);
+        textureDescription.MipLevels = static_cast<UINT>(1);
+        textureDescription.ArraySize = static_cast<UINT>(1);
+        m_ArraySize = textureDescription.ArraySize;
+        textureDescription.SampleDesc.Count = static_cast<UINT>(sampleLevels);
+        textureDescription.SampleDesc.Quality = 0;
+
+        if (format != DXGI_FORMAT_UNKNOWN)
+        {
+            textureDescription.Format = format;
+            textureDescription.BindFlags = ParseBindFlags(textureFlags);
+        }
+
+        D3D11_SUBRESOURCE_DATA initializationData = {};
+        initializationData.pSysMem = sourceData;
+        initializationData.SysMemPitch = m_Width * 4;
+
+        if (FAILED(m_Devices->m_Device->CreateTexture2D(&textureDescription, &initializationData, m_Texture.GetAddressOf())))
+        {
+            AURORA_ERROR(LogLayer::Graphics, "Failed to create Texture.");
+            return false;
+        }
+
+        AURORA_INFO(LogLayer::Graphics, "Successfully created 2D Texture.");
+
+        if (textureFlags & DX11_ResourceViewFlag::Texture_Flag_SRV)
+        {
+            CreateShaderResourceView(D3D_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D);
+        }
+
+        if (textureFlags & DX11_ResourceViewFlag::Texture_Flag_RTV)
+        {
+            CreateRenderTargetView();
+        }
+
+        if (textureFlags & DX11_ResourceViewFlag::Texture_Flag_DSV)
+        {
+            CreateDepthStencilView();
+        }
+
+        if (m_ResourceViewFlags & DX11_ResourceViewFlag::Texture_Flag_UAV)
+        {
+            CreateUnorderedAccessView(mipSlice);
+        }
+
+        return true;
+    }
+
     bool DX11_Texture::InitializeTextureCube(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, DX11_Devices* devices, uint32_t mipLevels)
     {
         AURORA_ASSERT(devices != nullptr);

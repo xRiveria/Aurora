@@ -1,11 +1,13 @@
 #pragma once
 #include "../Backend/Widget.h"
+#include "../Backend/Utilities/Extensions.h"
 
 namespace Aurora
 {
     class Settings;
 }
 
+using namespace EditorExtensions;
 class ProjectSettings : public Widget
 {
 public:

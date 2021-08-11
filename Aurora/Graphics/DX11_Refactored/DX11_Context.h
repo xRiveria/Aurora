@@ -61,7 +61,7 @@ namespace Aurora
 
         // ==== Textures ====
         std::shared_ptr<DX11_Texture> CreateTexture2D(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t textureFlags, uint32_t sampleLevels = 1, uint32_t mipLevels = 0, uint32_t mipSlice = 1);
-        std::shared_ptr<DX11_Texture> CreateTexture2DFromFilePath(const std::string& filePath, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice);
+        std::shared_ptr<DX11_Texture> CreateTexture2DFromData(const void* sourceData, uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice);
         std::shared_ptr<DX11_Texture> CreateTextureCube(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t mipLevels = 0);
 
         // ==== Samplers ====

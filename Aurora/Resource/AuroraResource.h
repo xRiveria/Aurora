@@ -1,13 +1,15 @@
 #pragma once
-#include "../Graphics/RHI_GraphicsDevice.h"
+#include <memory>
+#include "../Graphics/DX11_Refactored/DX11_Texture.h"
 #include "../Resource/AuroraObject.h"
+#include <variant>
 
 namespace Aurora
 {
     enum Resource_Type
     {
         ResourceType_Empty,
-        ResourceType_Texture,
+        ResourceType_Image,
         ResourceType_Audio,
         ResourceType_Model
     };
@@ -17,8 +19,30 @@ namespace Aurora
     public:
         Aurora::RHI_Texture m_Texture;
 
+        // ===================================================================
+        std::string TypeToString()
+        {
+            switch (m_Type)
+            {
+                case Resource_Type::ResourceType_Empty:
+                    return "Empty";
+
+                case Resource_Type::ResourceType_Image:
+                    return "Image";
+
+                case Resource_Type::ResourceType_Audio:
+                    return "Audio";
+
+                case Resource_Type::ResourceType_Model:
+                    return "Model";
+                }
+
+            return "Invalid Resource Type";
+        }
+   
+        std::shared_ptr<DX11_Texture> m_Resource; // Future types.
         Resource_Type m_Type = Resource_Type::ResourceType_Empty;
-        std::string m_FilePath;
+        std::string m_FilePath = "Empty Path";
     };
 
     enum Resource_Load_Mode

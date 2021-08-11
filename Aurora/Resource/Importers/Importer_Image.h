@@ -42,6 +42,8 @@ namespace Aurora
         Importer_Image(EngineContext* engineContext);
         ~Importer_Image() = default;
 
+        bool LoadTexture(const std::string& filePath, AuroraResource* resource);
+
         std::shared_ptr<AuroraResource> LoadTexture(const std::string& filePath, const std::string& fileName, uint32_t loadFlags);
         std::shared_ptr<AuroraResource> LoadHDRTexture(const std::string& filePath, int channels);
 

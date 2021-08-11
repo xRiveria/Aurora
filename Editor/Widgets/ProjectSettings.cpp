@@ -9,26 +9,6 @@ ProjectSettings::ProjectSettings(Editor* editorContext, Aurora::EngineContext* e
     m_WidgetName = "Project Settings";
 }
 
-void PropertyInput(const std::string& labelText, std::string& stringValue)
-{
-    ImGui::Text(labelText.c_str());
-    ImGui::NextColumn();
-    ImGui::PushItemWidth(-1);
-
-    std::string stringID = "##" + labelText;
-    char inputTextBuffer[256];
-    memset(inputTextBuffer, 0, sizeof(inputTextBuffer));
-    strcpy_s(inputTextBuffer, sizeof(inputTextBuffer), stringValue.c_str());
-
-    if (ImGui::InputText(stringID.c_str(), inputTextBuffer, sizeof(inputTextBuffer)))
-    {
-        stringValue = inputTextBuffer;
-    }
-
-    ImGui::PopItemWidth();
-    ImGui::NextColumn();
-}
-
 void ProjectSettings::OnTickVisible()
 {
     ImGui::Columns(2);

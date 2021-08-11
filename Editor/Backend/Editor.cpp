@@ -30,6 +30,7 @@
 #include "../Widgets/ProjectSettings.h"
 #include <vector>
 #include "../Widgets/ThreadTracker.h"
+#include "../Widgets/AssetManager.h"
 
 namespace EditorConfigurations
 {
@@ -76,6 +77,8 @@ inline Aurora::DX11_Utility::DX11_TexturePackage* ToInternal(const Aurora::RHI_T
 {
 	return static_cast<Aurora::DX11_Utility::DX11_TexturePackage*>(texture->m_InternalState.get());
 }
+
+std::string g_CurrentlySelectedView = "Off";
 
 void Editor::Tick()
 {
@@ -143,37 +146,45 @@ void Editor::Tick()
 		}
 		ImGui::Text("Maximum MSAA Level Supported: %u", m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->GetMaxMultisampleLevel());
 
-		/*
-		if (ImGui::BeginCombo("Debug View", sampleString, 0))
+		// Needs a whole system of its own.
+		
+		if (ImGui::BeginCombo("Debug Views", g_CurrentlySelectedView.c_str(), 0))
 		{
 			if (ImGui::Selectable("Off"))
 			{
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(1);
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				g_CurrentlySelectedView = "Off";
 			}
 
-			if (ImGui::Selectable("2"))
+			if (ImGui::Selectable("Shadow Depth Buffer"))
 			{
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(2);
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				g_CurrentlySelectedView = "Shadow Depth Buffer";
 			}
 
-			if (ImGui::Selectable("4"))
+			if (ImGui::Selectable("Bloom Buffer"))
 			{
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(4);
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				g_CurrentlySelectedView = "Bloom Buffer";
 			}
 
-			if (ImGui::Selectable("8"))
+			if (ImGui::Selectable("IBL HDR Texture"))
 			{
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(8);
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				g_CurrentlySelectedView = "IBL HDR Texture";
 			}
 
 			ImGui::EndCombo();
 		}
-		*/
-		ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_BloomRenderTexture->GetShaderResourceView().Get(), ImVec2(1280, 1080));
+
+		if (g_CurrentlySelectedView == "Shadow Depth Buffer")
+		{
+			ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
+		}
+		else if (g_CurrentlySelectedView == "Bloom Buffer")
+		{
+			ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_BloomRenderTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
+		}
+		else if (g_CurrentlySelectedView == "IBL HDR Texture")
+		{
+			ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(720, 480));
+		}
 
 		ImGui::End();
 
@@ -181,7 +192,7 @@ void Editor::Tick()
 		ImGui::Begin("Sky");
 
 		//Aurora::DX11_Utility::DX11_TexturePackage* textures = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular);
-		ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(600, 600));
+		// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(600, 600));
 		if (ImGui::Button("Front"))
 		{
 			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
@@ -266,6 +277,7 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<Viewport>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Hierarchy>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<EditorTools>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<AssetManager>(this, m_EngineContext));
 }
 
 void Editor::BeginDockingContext()

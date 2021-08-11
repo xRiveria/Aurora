@@ -3,6 +3,7 @@
 #include "FileSystem.h"
 #include "../Editor.h"
 #include "../Resource/ResourceCache.h"
+#include "../Threading/Threading.h"
 
 static Icon g_NoIcon;
 
@@ -23,7 +24,6 @@ void IconLibrary::Initialize(Aurora::EngineContext* engineContext, Editor* edito
     m_EditorContext = editorContext;
     const std::string resourceDirectory = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->GetResourceDirectory() + "/";
 
-    // Console
     LoadIcon_(resourceDirectory + "Icons/Console_Info.png", IconType::IconType_Console_Info);
     LoadIcon_(resourceDirectory + "Icons/Console_Warning.png", IconType::IconType_Console_Warning);
     LoadIcon_(resourceDirectory + "Icons/Console_Error.png", IconType::IconType_Console_Error);
@@ -38,6 +38,9 @@ void IconLibrary::Initialize(Aurora::EngineContext* engineContext, Editor* edito
 
     // Default
     g_NoIcon = LoadIcon_(resourceDirectory + "Icons/AssetBrowser_Unknown.png", IconType::IconType_Custom);
+
+    // Ensure that all loading is complete.
+    m_EngineContext->GetSubsystem<Aurora::Threading>()->Wait();
 }
 
 Aurora::AuroraResource* IconLibrary::GetTextureByType(IconType iconType)
@@ -90,8 +93,15 @@ const Icon& IconLibrary::LoadIcon_(const std::string& filePath, IconType iconTyp
     // Deduce File Path Type
     if (Aurora::FileSystem::IsSupportedImageFile(filePath))
     {
-        // Make a cheap textures.
-        std::shared_ptr<Aurora::AuroraResource> texture = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(filePath, Aurora::FileSystem::GetFileNameFromFilePath(filePath));
+        std::shared_ptr<Aurora::AuroraResource> texture = std::make_shared<Aurora::AuroraResource>();
+
+        // Make a cheap texture.
+        m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath, texture](Aurora::JobInformation jobArguments)
+        {
+            m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(filePath, texture);
+        });
+
+        // std::shared_ptr<Aurora::AuroraResource> texture = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(filePath, Aurora::FileSystem::GetFileNameFromFilePath(filePath));
         m_Icons.emplace_back(iconType, texture);
 
         return m_Icons.back();

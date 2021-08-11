@@ -19,6 +19,12 @@ namespace Aurora
 
     }
 
+    bool ResourceCache::LoadTexture(const std::string& filePath, std::shared_ptr<AuroraResource> resource)
+    {
+        m_Resources.push_back(resource);
+        return m_Importer_Image->LoadTexture(filePath, resource.get());
+    }
+
     std::shared_ptr<Entity> ResourceCache::LoadModel(const std::string& filePath, const std::string& fileName)
     {
         if (FileSystem::IsSuppportedModelFile(filePath))

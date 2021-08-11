@@ -75,10 +75,29 @@ namespace EditorExtensions
 		return std::nullopt;
 	}
 
+	inline void PropertyInput(const std::string& labelText, std::string& stringValue)
+	{
+		ImGui::Text(labelText.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string stringID = "##" + labelText;
+		char inputTextBuffer[256];
+		memset(inputTextBuffer, 0, sizeof(inputTextBuffer));
+		strcpy_s(inputTextBuffer, sizeof(inputTextBuffer), stringValue.c_str());
+
+		if (ImGui::InputText(stringID.c_str(), inputTextBuffer, sizeof(inputTextBuffer)))
+		{
+			stringValue = inputTextBuffer;
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+	}
+
 	inline bool ImageButton(const IconType iconType, const float iconSize)
 	{
-		auto internalState = Aurora::DX11_Utility::ToInternal(&IconLibrary::GetInstance().GetTextureByType(iconType)->m_Texture);
-		return ImGui::ImageButton((void*)internalState->m_ShaderResourceView.Get(),
+		return ImGui::ImageButton((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->m_Resource->GetShaderResourceView().Get(),
 			ImVec2(iconSize, iconSize),
 			ImVec2(0, 0),
 			ImVec2(1, 1),
@@ -89,8 +108,7 @@ namespace EditorExtensions
 
 	inline void Image(const IconType iconType, const float iconSize)
 	{
-		auto internalState = Aurora::DX11_Utility::ToInternal(&IconLibrary::GetInstance().GetTextureByType(iconType)->m_Texture);
-		return ImGui::Image((void*)internalState->m_ShaderResourceView.Get(),
+		return ImGui::Image((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->m_Resource->GetShaderResourceView().Get(),
 			ImVec2(iconSize, iconSize),
 			ImVec2(0, 0),
 			ImVec2(1, 1),

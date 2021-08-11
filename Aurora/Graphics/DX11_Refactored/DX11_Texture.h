@@ -19,7 +19,7 @@ namespace Aurora
         ~DX11_Texture();
 
         bool Initialize2DTexture(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t textureFlags, DX11_Devices* devices, uint32_t sampleLevels = 1, uint32_t mipLevels = 0, uint32_t mipSlice = 1);
-        // bool Initialize2DTextureFromFile(const std::string& filePath, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice, DX11_Devices* devices);
+        bool Initialize2DTextureFromFile(const void* sourceData, uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice, DX11_Devices* devices);
         bool InitializeTextureCube(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, DX11_Devices* devices, uint32_t mipLevels = 0);
 
         uint32_t GetWidth() const { return m_Width; }

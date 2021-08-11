@@ -5,6 +5,7 @@
 
 // Standard Template Library
 #include <algorithm>
+#include <memory>
 
 // Engine
 #include "Engine.h"
