@@ -1,7 +1,7 @@
 #pragma once
 #include "IComponent.h"
 #include "MeshUtilities.h"
-#include "../Resource/ResourceUtilities.h"
+#include "../Resource/AuroraResource.h"
 
 namespace Aurora
 {

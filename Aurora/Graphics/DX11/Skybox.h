@@ -46,15 +46,14 @@ namespace Aurora
             return (value + POT - 1) & -POT;
         }
 
-        Texture CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format, UINT levels = 0) const;
+        // Texture CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format, UINT levels = 0) const;
         Texture CreateTexture(UINT width, UINT height, DXGI_FORMAT format, UINT levels = 0) const;
         Texture CreateTexture(const std::shared_ptr<ImageDerp>& image, DXGI_FORMAT format, UINT levels) const;
-        void CreateTextureUAV(Texture& texture, UINT mipSlice) const;
+        // void CreateTextureUAV(Texture& texture, UINT mipSlice) const;
 
         std::shared_ptr<MeshBuffer> CreateMeshBuffer(const std::shared_ptr<class MeshDerp>& mesh) const;
 
         std::shared_ptr<DX11_InputLayout> m_InputLayout;
-        ComPtr<ID3D11InputLayout> m_InputLayout2;
         Texture m_EnvironmentTextureEquirectangular;
         std::shared_ptr<MeshBuffer> m_SkyboxEntity;
 
@@ -63,9 +62,9 @@ namespace Aurora
         RHI_Shader m_VSSkyboxShader;
         RHI_Shader m_PSSkyboxShader;
 
-        Texture m_EnvironmentTexture;
-        Texture m_IrradianceMapTexture;
-        Texture m_SpecularPrefilterBRDFLUT;
+        std::shared_ptr<DX11_Texture> m_EnvironmentTexture;
+        std::shared_ptr<DX11_Texture> m_IrradianceMapTexture;
+        std::shared_ptr<DX11_Texture> m_SpecularPrefilterBRDFLUT;
 
         std::shared_ptr<DX11_Sampler> m_ComputeSampler;
         std::shared_ptr<DX11_Sampler> m_DefaultSampler;

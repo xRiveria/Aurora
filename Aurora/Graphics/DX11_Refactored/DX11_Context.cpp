@@ -28,22 +28,34 @@ namespace Aurora
     {
         // Determine maximum supported MSAA level.
         SetMultisampleLevel(QuerySupportedMultisamplingLevels(16));
-
         ResizeBuffers();
     }
 
     void DX11_Context::ResizeBuffers()
     {
+        AURORA_INFO(LogLayer::Serialization, "Resizing Buffers...");
+
         // Multisample Framebuffer
-        m_MultisampleFramebuffer.reset();
         m_MultisampleFramebuffer = std::make_shared<DX11_Framebuffer>();
-        m_MultisampleFramebuffer->m_RenderTargetTexture.Initialize(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, m_CurrentMultisampleLevelCount, DX11_ResourceViewFlag::Texture_Flag_RTV, 0, m_Devices.get());
-        m_MultisampleFramebuffer->m_DepthStencilTexture.Initialize(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_D24_UNORM_S8_UINT, m_CurrentMultisampleLevelCount, DX11_ResourceViewFlag::Texture_Flag_DSV, 0, m_Devices.get());
+        m_MultisampleFramebuffer->m_RenderTargetTexture.Initialize2DTexture(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, DX11_ResourceViewFlag::Texture_Flag_RTV, m_Devices.get(), m_CurrentMultisampleLevelCount, 1);
+        m_MultisampleFramebuffer->m_DepthStencilTexture.Initialize2DTexture(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_D24_UNORM_S8_UINT, DX11_ResourceViewFlag::Texture_Flag_DSV, m_Devices.get(), m_CurrentMultisampleLevelCount, 1);
+        AURORA_INFO(LogLayer::Serialization, "Resized MSAA Framebuffer.");
 
         // Resolve Framebuffer
-        m_ResolveFramebuffer.reset();
         m_ResolveFramebuffer = std::make_shared<DX11_Framebuffer>();
-        m_ResolveFramebuffer->m_RenderTargetTexture.Initialize(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, 1, DX11_ResourceViewFlag::Texture_Flag_RTV | DX11_ResourceViewFlag::Texture_Flag_SRV, 0, m_Devices.get());
+        m_ResolveFramebuffer->m_RenderTargetTexture.Initialize2DTexture(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, DX11_ResourceViewFlag::Texture_Flag_RTV | DX11_ResourceViewFlag::Texture_Flag_SRV, m_Devices.get(), 1);
+        AURORA_INFO(LogLayer::Serialization, "Resized Resolve Framebuffer.");
+
+        // Bloom Texture
+        m_BloomRenderTexture = CreateTexture2D(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, DX11_ResourceViewFlag::Texture_Flag_RTV | DX11_ResourceViewFlag::Texture_Flag_SRV, 1, 1, 0);
+        m_DummyDepthTexture = CreateTexture2D(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_D24_UNORM_S8_UINT, DX11_ResourceViewFlag::Texture_Flag_DSV, 1);
+
+        // Shadow Depth Texture
+        m_ShadowDepthTexture = CreateTexture2D(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R32G8X24_TYPELESS, DX11_ResourceViewFlag::Texture_Flag_DSV | DX11_ResourceViewFlag::Texture_Flag_SRV, 1, 1, 0);
+
+        AURORA_INFO(LogLayer::Serialization, "Resized Bloom Render Target.");
+
+        AURORA_INFO(LogLayer::Serialization, "Buffers Resized!");
     }
 
     void DX11_Context::CreateRasterizerStates()
@@ -56,7 +68,7 @@ namespace Aurora
         rasterizerStateDescription.DepthBias = 0;
         rasterizerStateDescription.SlopeScaledDepthBias = 0.0f;
         rasterizerStateDescription.DepthBiasClamp = 0.0f;
-        rasterizerStateDescription.AntialiasedLineEnable = false;
+        rasterizerStateDescription.AntialiasedLineEnable = false; // Has no effect on points and triangles with MSAA and impacts only selection of line-rendering algorithm (post feature level 10.1).
         rasterizerStateDescription.MultisampleEnable = false;
         rasterizerStateDescription.ScissorEnable = true;
 
@@ -142,6 +154,28 @@ namespace Aurora
         }
     }
 
+    std::shared_ptr<DX11_Texture> DX11_Context::CreateTexture2D(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t textureFlags, uint32_t sampleLevels, uint32_t mipLevels, uint32_t mipSlice)
+    {
+        std::shared_ptr<DX11_Texture> texture = std::make_shared<DX11_Texture>();
+        texture->Initialize2DTexture(textureWidth, textureHeight, format, textureFlags, m_Devices.get(), sampleLevels, mipLevels, mipSlice);
+        return texture;
+    }
+
+    std::shared_ptr<DX11_Texture> DX11_Context::CreateTexture2DFromFilePath(const std::string& filePath, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice)
+    {
+        // std::shared_ptr<DX11_Texture> texture = std::make_shared<DX11_Texture>();
+        // texture->Initialize2DTextureFromFile(filePath, format, m_Devices.get(), sampleLevels, mipLevels, mipSlice);
+        // return texture;
+        return nullptr;
+    }
+
+    std::shared_ptr<DX11_Texture> DX11_Context::CreateTextureCube(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t mipLevels)
+    {
+        std::shared_ptr<DX11_Texture> textureCube = std::make_shared<DX11_Texture>();
+        textureCube->InitializeTextureCube(textureWidth, textureHeight, format, m_Devices.get(), mipLevels);
+        return textureCube;
+    }
+
     std::shared_ptr<DX11_Sampler> DX11_Context::CreateSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, D3D11_COMPARISON_FUNC comparisonFunction, float mipLODBias, float borderColor)
     {
         std::shared_ptr<DX11_Sampler> samplerState = std::make_shared<DX11_Sampler>();
@@ -192,7 +226,6 @@ namespace Aurora
         if (multisampleLevel == m_CurrentMultisampleLevelCount) { return; }
 
         m_CurrentMultisampleLevelCount = multisampleLevel;
-        ResizeBuffers();
 
         // Resize textures afterwards.
         AURORA_INFO(LogLayer::Graphics, "Successfully set multisample level to %u.", multisampleLevel);
@@ -221,6 +254,7 @@ namespace Aurora
 
             if (colorQualityLevels > 0 && depthStencilQualityLevels > 0)
             {
+                m_MaxSupportedMultisamplingQualityCount = colorQualityLevels; // 1
                 break;
             }
         }

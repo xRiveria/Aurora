@@ -1,7 +1,7 @@
 #pragma once
 #include "IComponent.h"
 #include <DirectXMath.h>
-#include "../Resource/ResourceUtilities.h"
+#include "../Resource/AuroraResource.h"
 #include "../_Shaders/Mappings/ResourceMappings.h"
 #include <string>
 

@@ -107,6 +107,9 @@ namespace Aurora
 
         LoadShader(RHI_Shader_Stage::Vertex_Shader, m_SimpleDepthShaderVS, "SimpleDepthVS.hlsl");
         LoadShader(RHI_Shader_Stage::Pixel_Shader, m_SimpleDepthShaderPS, "SimpleDepthPS.hlsl");
+
+        LoadShader(RHI_Shader_Stage::Vertex_Shader, m_BloomVS, "BloomVS.hlsl");
+        LoadShader(RHI_Shader_Stage::Pixel_Shader, m_BloomPS, "BloomPS.hlsl");
     }
 
     void Renderer::LoadStates()

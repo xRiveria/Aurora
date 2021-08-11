@@ -22,6 +22,4 @@ InputPixelType main(InputVertexType input)
     output.outPosition = mul(output.outPosition, g_LightSpaceMatrix);
 
     return output;
-
-
 }

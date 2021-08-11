@@ -1,5 +1,5 @@
 #include "Aurora.h"
-#include "AuroraObject.h"
+#include "../Resource/AuroraObject.h"
 
 namespace Aurora
 {

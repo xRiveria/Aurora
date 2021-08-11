@@ -26,13 +26,28 @@ namespace Aurora
 
     }
 
+    /*
     bool Renderer::Initialize()
     {
-        m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true);
-        m_ShaderCompiler.Initialize();
-        m_DeviceContext = std::make_shared<DX11_Context>(m_GraphicsDevice->m_Device, m_GraphicsDevice->m_DeviceContextImmediate);
+        m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true); // Previous core API context. We will keep this around for now.
+        m_DeviceContext = std::make_shared<DX11_Context>(m_GraphicsDevice->m_Device, m_GraphicsDevice->m_DeviceContextImmediate); // New core API context. To replace in due time.
 
-        LoadShaders();
+        m_ShaderCompiler.Initialize();
+        LoadShaders(); /// Yet to migrate.
+
+
+    }
+    */
+
+
+
+    bool Renderer::Initialize()
+    {
+        m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true); // Previous core API context. We will keep this around for now.
+        m_DeviceContext = std::make_shared<DX11_Context>(m_GraphicsDevice->m_Device, m_GraphicsDevice->m_DeviceContextImmediate); // New core API context. To replace in due time.
+
+        m_ShaderCompiler.Initialize();
+        LoadShaders(); /// Yet to migrate.
         LoadStates();
         LoadBuffers();
         LoadPipelineStates();
@@ -59,6 +74,8 @@ namespace Aurora
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
         m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Sphere);
+        auto entity = m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/ShaderBall/ball.obj");
+        entity->m_Transform->Scale({ 0.01, 0.01, 0.01 });
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -123,11 +140,11 @@ namespace Aurora
         constantBuffer.g_Texture_MetalnessMap_Index = BindMaterialTexture(TextureSlot::MetalnessMap, materialComponent);
         constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(TextureSlot::RoughnessMap, materialComponent);
 
-        constantBuffer.g_Texture_IrradianceMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_IRRADIANCE, m_Skybox->m_IrradianceMapTexture.m_SRV.Get());
-        constantBuffer.g_Texture_PrefilterMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_PREFILTER, m_Skybox->m_EnvironmentTexture.m_SRV.Get());
-        constantBuffer.g_Texture_BRDFLUT_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_BRDF_LUT, m_Skybox->m_SpecularPrefilterBRDFLUT.m_SRV.Get());
+        constantBuffer.g_Texture_IrradianceMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_IRRADIANCE, m_Skybox->m_IrradianceMapTexture->GetShaderResourceView().Get());
+        constantBuffer.g_Texture_PrefilterMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_PREFILTER, m_Skybox->m_EnvironmentTexture->GetShaderResourceView().Get());
+        constantBuffer.g_Texture_BRDFLUT_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_BRDF_LUT, m_Skybox->m_SpecularPrefilterBRDFLUT->GetShaderResourceView().Get());
 
-        constantBuffer.g_Texture_DepthShadowMap_Index = BindSkyboxTexture(m_DepthShadowMappingIndex, &m_ShadowDepthMap);
+        constantBuffer.g_Texture_DepthShadowMap_Index = BindSkyboxTexture(m_DepthShadowMappingIndex, m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get());
 
         m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Material], &constantBuffer, 0);
     }
@@ -215,20 +232,6 @@ namespace Aurora
 
         m_DeviceContext->m_RenderWidth = m_RenderWidth;
         m_DeviceContext->m_RenderHeight = m_RenderHeight;
-
-        // Depth Buffers
-        {
-            RHI_Texture_Description shadowDepthBufferDescription;
-            shadowDepthBufferDescription.m_Width = internalResolution.x;
-            shadowDepthBufferDescription.m_Height = internalResolution.y;
-            shadowDepthBufferDescription.m_SampleCount = GetMSAASampleCount();
-            shadowDepthBufferDescription.m_Layout = Image_Layout::Image_Layout_DepthStencil_ReadOnly;
-            shadowDepthBufferDescription.m_Format = Format::FORMAT_R32G8X24_TYPELESS;
-            shadowDepthBufferDescription.m_BindFlags = Bind_Flag::Bind_Depth_Stencil | Bind_Flag::Bind_Shader_Resource;
-
-            m_GraphicsDevice->CreateTexture(&shadowDepthBufferDescription, nullptr, &m_ShadowDepthMap);
-            AURORA_INFO(LogLayer::Graphics, "Shadow Depth Buffer Texture Creation Success.");
-        }
     }
 
     void Renderer::Tick(float deltaTime)
@@ -271,12 +274,6 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(3, 1, m_Skybox->m_DefaultSampler->GetSampler().GetAddressOf());
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetSamplers(4, 1, m_Skybox->m_SpecularBRDFSampler->GetSampler().GetAddressOf());
 
-
-        /// Rendering to Texture
-        //==============================================================================================================
-        // auto ourTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Color]);
-        // auto ourBloomTexture = DX11_Utility::ToInternal(&m_RenderTarget_GBuffer[GBuffer_Types::GBuffer_Bloom]);
-        // 
         // Retrieve Scene Entities
         m_SceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
 
@@ -291,11 +288,45 @@ namespace Aurora
         m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(pixelShader, nullptr, 0);
 
         float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-        ID3D11DepthStencilView* shadowMapTexture = DX11_Utility::ToInternal(&m_ShadowDepthMap)->m_DepthStencilView.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(0, nullptr, shadowMapTexture);
-        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(shadowMapTexture, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(0, nullptr, m_DeviceContext->m_ShadowDepthTexture->GetDepthStencilView().Get());
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(m_DeviceContext->m_ShadowDepthTexture->GetDepthStencilView().Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         RenderScene();
+
+        // ============= Bloom Extraction Pass =================== 
+        // Bloom Threashold and stuff
+        m_GraphicsDevice->BindPipelineState(&m_PSO_Object_Wire, 0);
+
+        ID3D11VertexShader* bloomVertexShader = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_BloomVS.m_InternalState.get())->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(bloomVertexShader, nullptr, 0);
+
+        ID3D11PixelShader* bloomPixelShader = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_BloomPS.m_InternalState.get())->m_Resource.Get();
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(bloomPixelShader, nullptr, 0);
+
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, m_DeviceContext->m_BloomRenderTexture->GetRenderTargetView().GetAddressOf(), m_DeviceContext->m_DummyDepthTexture->GetDepthStencilView().Get());
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(m_DeviceContext->m_BloomRenderTexture->GetRenderTargetView().Get(), color);
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(m_DeviceContext->m_DummyDepthTexture->GetDepthStencilView().Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+        RenderScene();
+
+        /*
+        // ============ Blur Pass ==================
+        // We will blur the image 10 times, 5 horizontally and 5 vertically.
+        const int blurPassCount = 10;
+        for (int i = 0; i < blurPassCount; ++i)
+        {
+            const int isHorizontal = i % 2; // Alternate between 0 and 1
+            const DX11_Texture* pingPongTexture = m_DeviceContext->m_Blur_PingPongTexture[1 - isHorizontal].get();
+            const int textureWidth = pingPongTexture->GetWidth();
+            const int textureHeight = pingPongTexture->GetHeight();
+
+            /// Set Shader
+            /// Set Constant
+            /// Texture
+            /// Set Sampler State
+            /// Draw
+        }
+        */
 
         // ================ Scene Pass ==================================
         m_GraphicsDevice->BindPipelineState(&m_PSO_Object_Wire, 0);
@@ -307,10 +338,10 @@ namespace Aurora
 
         ///==============================
         RenderScene();
+        m_Skybox->Render();
         DrawDebugWorld(m_Camera.get());
 
         m_DeviceContext->ResolveFramebuffer(m_DeviceContext->m_MultisampleFramebuffer.get(), m_DeviceContext->m_ResolveFramebuffer.get(), DXGI_FORMAT_R16G16B16A16_FLOAT);
-
 
         /// ==================================
 
@@ -361,8 +392,6 @@ namespace Aurora
 
             m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(meshComponent.m_Indices.size(), 0, 0);
         }
-
-        m_Skybox->Render();
     }
 
     void Renderer::DrawDebugWorld(Entity* entity)
@@ -461,19 +490,5 @@ namespace Aurora
         samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;
 
         m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Depth_Texture_Sampler);
-    }
-
-    void Renderer::LoadSkyPipelineState(RHI_Shader* vertexShader, RHI_Shader* pixelShader)
-    {
-        RHI_PipelineState_Description skyPipelineDescription;
-
-        skyPipelineDescription.m_VertexShader = vertexShader;
-        skyPipelineDescription.m_PixelShader = pixelShader;
-        skyPipelineDescription.m_InputLayout = &RendererGlobals::g_InputLayouts[InputLayout_Types::OnDemandTriangle];
-        skyPipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Front];
-        skyPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Opaque];
-        skyPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_Default];
-
-        m_GraphicsDevice->CreatePipelineState(&skyPipelineDescription, &m_PSO_Object_Sky);
     }
 }

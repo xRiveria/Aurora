@@ -1,5 +1,5 @@
 #pragma once
-#include "AuroraObject.h"
+#include "../Resource/AuroraObject.h"
 #include "../RHI_Implementation.h"
 
 namespace Aurora

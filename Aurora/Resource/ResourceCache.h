@@ -1,5 +1,5 @@
 #pragma once
-#include "ResourceUtilities.h"
+#include "AuroraResource.h"
 #include "ISubsystem.h"
 
 /*

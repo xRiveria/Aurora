@@ -59,6 +59,11 @@ namespace Aurora
         void* UpdateConstantBuffer(DX11_ConstantBuffer* constantBuffer, const void* bufferData);
         void BindConstantBuffer(RHI_Shader_Stage shaderStage, uint32_t slotNumber, uint32_t slotCount, DX11_ConstantBuffer* constantBuffer);
 
+        // ==== Textures ====
+        std::shared_ptr<DX11_Texture> CreateTexture2D(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t textureFlags, uint32_t sampleLevels = 1, uint32_t mipLevels = 0, uint32_t mipSlice = 1);
+        std::shared_ptr<DX11_Texture> CreateTexture2DFromFilePath(const std::string& filePath, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice);
+        std::shared_ptr<DX11_Texture> CreateTextureCube(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t mipLevels = 0);
+
         // ==== Samplers ====
         // We make the simple assumption that the address mode and border color are the same across all of its respective values.
         std::shared_ptr<DX11_Sampler> CreateSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, D3D11_COMPARISON_FUNC comparisonFunction, float mipLODBias, float borderColor);
@@ -85,10 +90,17 @@ namespace Aurora
 
         std::shared_ptr<DX11_Framebuffer> m_MultisampleFramebuffer = nullptr;
         std::shared_ptr<DX11_Framebuffer> m_ResolveFramebuffer = nullptr;
+        std::shared_ptr<DX11_Texture> m_ShadowDepthTexture = nullptr;
+
+        // Future
+        std::shared_ptr<DX11_Texture> m_BloomRenderTexture = nullptr;
+        std::shared_ptr<DX11_Texture> m_Blur_PingPongTexture[2] = { nullptr };
+        std::shared_ptr<DX11_Texture> m_DummyDepthTexture = nullptr;
 
     private:
         uint32_t m_CurrentMultisampleLevelCount = 0; // #
         uint32_t m_MaxSupportedMultisamplingLevelCount = 0; // #
+        uint32_t m_MaxSupportedMultisamplingQualityCount = 0; // #
         std::shared_ptr<DX11_Devices> m_Devices; // #
     };
 }

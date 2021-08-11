@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "AuroraObject.h"
+#include "../Resource/AuroraObject.h"
 #include "Components/IComponent.h"
 #include "../Graphics/RHI_Implementation.h"
 #include "../Renderer/Renderer.h"

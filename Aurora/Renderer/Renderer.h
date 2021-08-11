@@ -17,7 +17,6 @@ using namespace DirectX;
 namespace Aurora
 {
     class Skybox;
-    class Environment;
     class Renderer : public ISubsystem
     {
     public:
@@ -31,8 +30,6 @@ namespace Aurora
 
         void Present();
         void CreateTexture();
-
-        // Shenanigans
 
     public:
         void BindConstantBuffers(RHI_Shader_Stage shaderStage, RHI_CommandList commandList);
@@ -50,20 +47,14 @@ namespace Aurora
         void ResizeBuffers();
         // Depth Buffer
 
-        RHI_Texture m_ShadowDepthMap; // Used for shadows.
         std::shared_ptr<Entity> m_DirectionalLight;
 
-        RHI_RenderPass m_RenderPass_DepthPrePass;
-        RHI_RenderPass m_RenderPass_Main;
-        uint32_t m_MSAA_SampleCount = 1;
-        const uint32_t GetMSAASampleCount() const { return m_MSAA_SampleCount; }
 
         void LoadStates();
         void LoadBuffers();
         void LoadShaders();
         bool LoadShader(RHI_Shader_Stage shaderStage, RHI_Shader& shader, const std::string& fileName, Shader_Model minimumShaderModel = Shader_Model::ShaderModel_5_0);
         void LoadDefaultTextures();
-        void LoadSkyPipelineState(RHI_Shader* vertexShader, RHI_Shader* pixelShader);
 
         void LoadPipelineStates();
         void SetRenderDimensions(float width, float height) { m_RenderWidth = width; m_RenderHeight = height; }
@@ -74,16 +65,13 @@ namespace Aurora
     public:
         float m_RenderWidth = 1280;
         float m_RenderHeight = 1080;
-        RHI_PipelineState m_PSO_Object_Sky;
-        float m_LightBias = 0.025f;
+        float m_LightBias = 0.055f;
 
     public:
         RHI_GPU_Buffer        g_ConstantBuffers[CB_Types::CB_Count];
         std::shared_ptr<DX11_Context> m_DeviceContext;
 
-        std::shared_ptr<Environment> m_Environment;
         std::shared_ptr<Skybox> m_Skybox;
-
         std::shared_ptr<DX11_GraphicsDevice> m_GraphicsDevice;
 
         RHI_SwapChain m_SwapChain;
@@ -91,9 +79,10 @@ namespace Aurora
         RHI_Shader m_PixelShader;
         RHI_Shader m_SimpleDepthShaderVS;
         RHI_Shader m_SimpleDepthShaderPS;
-        int m_DepthShadowMappingIndex = TEXSLOT_RENDERER_DEPTHSHADOW_MAP;
+        RHI_Shader m_BloomVS;
+        RHI_Shader m_BloomPS;
 
-        RHI_GPU_Buffer m_VertexBuffer;
+        int m_DepthShadowMappingIndex = TEXSLOT_RENDERER_DEPTHSHADOW_MAP;
 
         RHI_Sampler m_Standard_Texture_Sampler;
         RHI_Sampler m_Depth_Texture_Sampler;

@@ -8,9 +8,6 @@
 #include "Implementation/imgui_impl_glfw.h"
 #include "Implementation/imgui_impl_dx11.h"
 #include "../Scene/World.h"
-#include "../Scene/Components/Light.h"
-#include "../Scene/Components/Mesh.h"
-#include "../Scene/Components/Material.h" 
 #include "../Widgets/MenuBar.h"
 #include "../Widgets/QuickDiagnostics.h"
 #include "../Widgets/ObjectsPanel.h"
@@ -121,26 +118,62 @@ void Editor::Tick()
 			if (ImGui::Selectable("Off"))
 			{
 				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(1);
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
 			}
 
 			if (ImGui::Selectable("2"))
 			{
 				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(2);
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
 			}
 
 			if (ImGui::Selectable("4"))
 			{
 				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(4);
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
 			}
 
 			if (ImGui::Selectable("8"))
 			{
 				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(8);
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
 			}
 
 			ImGui::EndCombo();
 		}
 		ImGui::Text("Maximum MSAA Level Supported: %u", m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->GetMaxMultisampleLevel());
+
+		/*
+		if (ImGui::BeginCombo("Debug View", sampleString, 0))
+		{
+			if (ImGui::Selectable("Off"))
+			{
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(1);
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+			}
+
+			if (ImGui::Selectable("2"))
+			{
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(2);
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+			}
+
+			if (ImGui::Selectable("4"))
+			{
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(4);
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+			}
+
+			if (ImGui::Selectable("8"))
+			{
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(8);
+				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+			}
+
+			ImGui::EndCombo();
+		}
+		*/
+		ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_BloomRenderTexture->GetShaderResourceView().Get(), ImVec2(1280, 1080));
 
 		ImGui::End();
 
@@ -174,8 +207,7 @@ void Editor::Tick()
 			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
 		}
 
-		Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_ShadowDepthMap);
-		ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(600, 600));
+		ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(600, 600));
 
 		// Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
 		// ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));

@@ -30,6 +30,19 @@ namespace Aurora
         return buffer;
     }
 
+    // Does a calculation against the texture's width and height to generate a possible number of mip levels avaliable for this texture.
+    template<typename T>
+    static constexpr T GetPossibleMipLevels(T width, T height)
+    {
+        T levels = 1;
+        while ((width | height) >> levels)
+        {
+            ++levels;
+        }
+
+        return levels;
+    }
+
     bool Skybox::InitializeResources()
     {
         m_SkyboxEntity = CreateMeshBuffer(MeshDerp::fromFile("../Resources/Models/Skybox/skybox.obj"));
@@ -54,8 +67,8 @@ namespace Aurora
         m_InputLayout = m_Renderer->m_DeviceContext->CreateInputLayout(RHI_Vertex_Type::VertexType_Position, vertexInternal->m_ShaderCode);
 
         // Unfiltered environment cubemap (temporary).
-        Texture environmentTextureUnfiltered = CreateTextureCube(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
-        CreateTextureUAV(environmentTextureUnfiltered, 0);
+        std::shared_ptr<DX11_Texture> environmentTextureUnfiltered = m_Renderer->m_DeviceContext->CreateTextureCube(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
+        // CreateTextureUAV(environmentTextureUnfiltered, 0);
 
         // Load and convert equirectangular environment map to a cubemap texture.
         {
@@ -66,15 +79,16 @@ namespace Aurora
             m_EnvironmentTextureEquirectangular = CreateTexture(ImageDerp::fromFile("../Resources/Textures/HDR/Night.hdr"), DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
 
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShaderResources(5, 1, m_EnvironmentTextureEquirectangular.m_SRV.GetAddressOf());
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, environmentTextureUnfiltered.m_UAV.GetAddressOf(), nullptr);
+            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, environmentTextureUnfiltered->GetUnorderedAccessView().GetAddressOf(), nullptr);
             m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Compute_Shader, 3, 1, m_ComputeSampler.get());
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShader(shaderInternal, nullptr, 0);
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(environmentTextureUnfiltered.m_Width / 32, environmentTextureUnfiltered.m_Height / 32, 6);
+            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(environmentTextureUnfiltered->GetWidth() / 32, environmentTextureUnfiltered->GetHeight() / 32, 6);
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
             AURORA_WARNING(LogLayer::Graphics, "Conversion to Equirectangle Map Success!");
         }
 
-        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->GenerateMips(environmentTextureUnfiltered.m_SRV.Get());
+        // Generate mipmap levels for our unfiltered texture.
+        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->GenerateMips(environmentTextureUnfiltered->GetShaderResourceView().Get());
 
         {
             struct SpecularMapFilterSettingsCB
@@ -91,32 +105,33 @@ namespace Aurora
             m_Renderer->LoadShader(RHI_Shader_Stage::Compute_Shader, specularPrefilterMapShader, "CSSpecularPrefilter.hlsl");
             ID3D11ComputeShader* shaderInternal = static_cast<DX11_Utility::DX11_ComputeShaderPackage*>(specularPrefilterMapShader.m_InternalState.get())->m_Resource.Get();
 
-            m_EnvironmentTexture = CreateTextureCube(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
+            // We will be copying from the unfiltered map into the environment map.
+            m_EnvironmentTexture = m_Renderer->m_DeviceContext->CreateTextureCube(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-            // Copy 0th mipmap level into destination environment map.
+            // Copy 0th mipmap level into destination environment map. Remember that our cube textures have 6 array slices, 1 slice for each side of the cube with its respective mip levels.
             for (int arraySlice = 0; arraySlice < 6; ++arraySlice)
             {
-                const UINT subresourceIndex = D3D11CalcSubresource(0, arraySlice, m_EnvironmentTexture.m_Levels);
-                m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CopySubresourceRegion(m_EnvironmentTexture.m_Texture.Get(), subresourceIndex, 0, 0, 0, environmentTextureUnfiltered.m_Texture.Get(), subresourceIndex, nullptr);
+                const UINT subresourceIndex = D3D11CalcSubresource(0, arraySlice, m_EnvironmentTexture->GetMipLevelsPossible(m_EnvironmentTexture->GetWidth(), m_EnvironmentTexture->GetHeight()));
+                m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CopySubresourceRegion(m_EnvironmentTexture->GetTexture().Get(), subresourceIndex, 0, 0, 0, environmentTextureUnfiltered->GetTexture().Get(), subresourceIndex, nullptr);
             }
 
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShaderResources(5, 1, environmentTextureUnfiltered.m_SRV.GetAddressOf());
+            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShaderResources(5, 1, environmentTextureUnfiltered->GetShaderResourceView().GetAddressOf());
             m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Compute_Shader, 3, 1, m_ComputeSampler.get());
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShader(shaderInternal, nullptr, 0);
 
             // Pre-filter rest of the mip chain.
-            const float deltaRoughness = 1.0 / XMMax(float(m_EnvironmentTexture.m_Levels - 1), 1.0f);
-            for (UINT level = 1, size = 512; level < m_EnvironmentTexture.m_Levels; ++level, size /= 2)
+            const float deltaRoughness = 1.0 / XMMax(float(m_EnvironmentTexture->GetMipLevelsPossible(m_EnvironmentTexture->GetWidth(), m_EnvironmentTexture->GetHeight()) - 1), 1.0f);
+            for (UINT level = 1, size = 512; level < m_EnvironmentTexture->GetMipLevelsPossible(m_EnvironmentTexture->GetWidth(), m_EnvironmentTexture->GetHeight()); ++level, size /= 2)
             {
                 const UINT numberOfGroups = XMMax<UINT>(1, size / 32);
-                CreateTextureUAV(m_EnvironmentTexture, level);
+                m_EnvironmentTexture->CreateUnorderedAccessView(level);
 
                 const SpecularMapFilterSettingsCB spmapConstants = { level * deltaRoughness };
                 m_Renderer->m_DeviceContext->UpdateConstantBuffer(constantBuffer.get(), &spmapConstants);
 
                 m_Renderer->m_DeviceContext->BindConstantBuffer(RHI_Shader_Stage::Compute_Shader, 7, 1, constantBuffer.get());
 
-                m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, m_EnvironmentTexture.m_UAV.GetAddressOf(), nullptr);
+                m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, m_EnvironmentTexture->GetUnorderedAccessView().GetAddressOf(), nullptr);
                 m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(numberOfGroups, numberOfGroups, 6);
             }
 
@@ -130,14 +145,13 @@ namespace Aurora
             m_Renderer->LoadShader(RHI_Shader_Stage::Compute_Shader, diffuseIrradianceShader, "CSIrradianceMap.hlsl");
             ID3D11ComputeShader* shaderInternal = static_cast<DX11_Utility::DX11_ComputeShaderPackage*>(diffuseIrradianceShader.m_InternalState.get())->m_Resource.Get();
 
-            m_IrradianceMapTexture = CreateTextureCube(32, 32, DXGI_FORMAT_R16G16B16A16_FLOAT, 1);
-            CreateTextureUAV(m_IrradianceMapTexture, 0);
+            m_IrradianceMapTexture = m_Renderer->m_DeviceContext->CreateTextureCube(32, 32, DXGI_FORMAT_R16G16B16A16_FLOAT, 1);
 
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShaderResources(5, 1, m_EnvironmentTexture.m_SRV.GetAddressOf());
+            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShaderResources(5, 1, m_EnvironmentTexture->GetShaderResourceView().GetAddressOf());
             m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Compute_Shader, 3, 1, m_ComputeSampler.get());
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, m_IrradianceMapTexture.m_UAV.GetAddressOf(), nullptr);
+            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, m_IrradianceMapTexture->GetUnorderedAccessView().GetAddressOf(), nullptr);
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShader(shaderInternal, nullptr, 0);
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(m_IrradianceMapTexture.m_Width / 32, m_IrradianceMapTexture.m_Height / 32, 6);
+            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(m_IrradianceMapTexture->GetWidth() / 32, m_IrradianceMapTexture->GetHeight() / 32, 6);
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
         }
         
@@ -147,13 +161,12 @@ namespace Aurora
             m_Renderer->LoadShader(RHI_Shader_Stage::Compute_Shader, specularPrefilterBRDFShader, "CSSpecularPrefilterBRDF.hlsl");
             ID3D11ComputeShader* shaderInternal = static_cast<DX11_Utility::DX11_ComputeShaderPackage*>(specularPrefilterBRDFShader.m_InternalState.get())->m_Resource.Get();
 
-            m_SpecularPrefilterBRDFLUT = CreateTexture(256, 256, DXGI_FORMAT_R16G16_FLOAT, 1);
+            m_SpecularPrefilterBRDFLUT = m_Renderer->m_DeviceContext->CreateTexture2D(256, 256, DXGI_FORMAT_R16G16_FLOAT, DX11_ResourceViewFlag::Texture_Flag_SRV | DX11_ResourceViewFlag::Texture_Flag_UAV, 1, 1, 0);
             m_SpecularBRDFSampler = m_Renderer->m_DeviceContext->CreateSampler(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_COMPARISON_NEVER, 0.0, 1.0);
-            CreateTextureUAV(m_SpecularPrefilterBRDFLUT, 0);
 
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, m_SpecularPrefilterBRDFLUT.m_UAV.GetAddressOf(), nullptr);
+            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, m_SpecularPrefilterBRDFLUT->GetUnorderedAccessView().GetAddressOf(), nullptr);
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetShader(shaderInternal, nullptr, 0);
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(m_SpecularPrefilterBRDFLUT.m_Width / 32, m_SpecularPrefilterBRDFLUT.m_Height / 32, 1);
+            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->Dispatch(m_SpecularPrefilterBRDFLUT->GetWidth() / 32, m_SpecularPrefilterBRDFLUT->GetHeight() / 32, 1);
             m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
         }
         
@@ -173,7 +186,7 @@ namespace Aurora
         ID3D11PixelShader* shaderInternalPS = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_PSSkyboxShader.m_InternalState.get())->m_Resource.Get();
         m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(shaderInternalPS, nullptr, 0);
 
-        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(5, 1, m_EnvironmentTexture.m_SRV.GetAddressOf());
+        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(5, 1, m_EnvironmentTexture->GetShaderResourceView().GetAddressOf());
         m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Pixel_Shader, 3, 1, m_DefaultSampler.get());
         m_Renderer->m_DeviceContext->BindSampler(RHI_Shader_Stage::Pixel_Shader, 4, 1, m_SpecularBRDFSampler.get());
         // m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->OMSetDepthStencilState(m_SkyboxDepthStencilState.Get(), 0);
@@ -182,62 +195,27 @@ namespace Aurora
         return true;
     }
 
-    template<typename T>
-    static constexpr T NumberOfMipmapLevels(T width, T height)
+    Texture Skybox::CreateTexture(const std::shared_ptr<ImageDerp>& image, DXGI_FORMAT format, UINT levels) const
     {
-        T levels = 1;
-        while ((width | height) >> levels)
-        {
-            ++levels;
+        Texture texture = CreateTexture(image->width(), image->height(), format, levels);
+        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->UpdateSubresource(texture.m_Texture.Get(), 0, nullptr, image->pixels<void>(), image->pitch(), 0);
+        if (levels == 0) {
+            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->GenerateMips(texture.m_SRV.Get());
         }
-
-        return levels;
-    }
-
-    Texture Skybox::CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format, UINT levels) const
-    {
-        Texture texture;
-        texture.m_Width = width;
-        texture.m_Height = height;
-        texture.m_Levels = (levels > 0) ? levels : NumberOfMipmapLevels(width, height);
-
-        D3D11_TEXTURE2D_DESC textureDescription = {};
-        textureDescription.Width = width;
-        textureDescription.Height = height;
-        textureDescription.MipLevels = levels;
-        textureDescription.ArraySize = 6;
-        textureDescription.Format = format;
-        textureDescription.SampleDesc.Count = 1;
-        textureDescription.Usage = D3D11_USAGE_DEFAULT;
-        textureDescription.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-        textureDescription.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-
-        if (levels == 0)
-        {
-            textureDescription.BindFlags |= D3D11_BIND_RENDER_TARGET;
-            textureDescription.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
-        }
-
-        m_Renderer->m_GraphicsDevice->m_Device->CreateTexture2D(&textureDescription, nullptr, &texture.m_Texture);
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDescription;
-        srvDescription.Format = textureDescription.Format;
-        srvDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-        srvDescription.TextureCube.MostDetailedMip = 0;
-        srvDescription.TextureCube.MipLevels = -1;
-
-        m_Renderer->m_GraphicsDevice->m_Device->CreateShaderResourceView(texture.m_Texture.Get(), &srvDescription, &texture.m_SRV);
-
         return texture;
     }
+
+
+    // ==================================================================================================
+    // ==================================================================================================
 
     Texture Skybox::CreateTexture(UINT width, UINT height, DXGI_FORMAT format, UINT levels) const
     {
         Texture texture;
         texture.m_Width = width;
         texture.m_Height = height;
-        texture.m_Levels = (levels > 0) ? levels : NumberOfMipmapLevels(width, height);
-        
+        texture.m_Levels = (levels > 0) ? levels : GetPossibleMipLevels(width, height);
+
         D3D11_TEXTURE2D_DESC textureDescription = {};
         textureDescription.Width = width;
         textureDescription.Height = height;
@@ -261,47 +239,9 @@ namespace Aurora
         srvDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
         srvDescription.Texture2D.MostDetailedMip = 0;
         srvDescription.Texture2D.MipLevels = -1;
-        
+
         m_Renderer->m_GraphicsDevice->m_Device->CreateShaderResourceView(texture.m_Texture.Get(), &srvDescription, &texture.m_SRV);
 
         return texture;
     }
-
-    Texture Skybox::CreateTexture(const std::shared_ptr<ImageDerp>& image, DXGI_FORMAT format, UINT levels) const
-    {
-        Texture texture = CreateTexture(image->width(), image->height(), format, levels);
-        m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->UpdateSubresource(texture.m_Texture.Get(), 0, nullptr, image->pixels<void>(), image->pitch(), 0);
-        if (levels == 0) {
-            m_Renderer->m_GraphicsDevice->m_DeviceContextImmediate->GenerateMips(texture.m_SRV.Get());
-        }
-        return texture;
-    }
-
-    void Skybox::CreateTextureUAV(Texture& texture, UINT mipSlice) const
-    {
-        D3D11_TEXTURE2D_DESC textureDescription;
-        texture.m_Texture->GetDesc(&textureDescription);
-
-        D3D11_UNORDERED_ACCESS_VIEW_DESC uavDescription = {};
-        uavDescription.Format = textureDescription.Format;
-
-        if (textureDescription.ArraySize == 1)
-        {
-            uavDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-            uavDescription.Texture2D.MipSlice = mipSlice;
-        }
-        else
-        {
-            uavDescription.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-            uavDescription.Texture2DArray.MipSlice = mipSlice;
-            uavDescription.Texture2DArray.FirstArraySlice = 0;
-            uavDescription.Texture2DArray.ArraySize = textureDescription.ArraySize;
-        }
-
-        m_Renderer->m_GraphicsDevice->m_Device->CreateUnorderedAccessView(texture.m_Texture.Get(), &uavDescription, &texture.m_UAV);
-    }
-
-
-
-    
 }

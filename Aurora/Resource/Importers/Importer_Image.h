@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "../Resource/ResourceUtilities.h"
+#include "../Resource/AuroraResource.h"
 #include "../Renderer/Renderer.h"
 
 namespace Aurora

@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "../Resource/ResourceUtilities.h"
+#include "../Resource/AuroraResource.h"
 
 enum IconType
 {
