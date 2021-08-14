@@ -16,12 +16,17 @@ namespace Aurora
         // Paths
         static bool CreateDirectory_(const std::string& directoryPath);
         static bool Exists(const std::string& filePath);
+        static bool Delete(const std::string& filePath);
+        static bool IsDirectory(const std::string& filePath);
         static std::string GetDirectoryFromFilePath(const std::string& filePath);
         static std::string GetExtensionFromFilePath(const std::string& filePath);
         static std::string GetFileNameFromFilePath(const std::string& filePath);
         static std::string GetFileNameWithoutExtensionFromFilePath(const std::string& filePath);
         static std::string GetFilePathWithoutExtension(const std::string& filePath);
+        static std::vector<std::string> GetDirectoriesInDirectory(const std::string& directoryPath);
+        static std::vector<std::string> GetFilesInDirectory(const std::string& directoryPath);
 
+        static void OpenItem(const std::string& directoryPath);
         static std::string GetWorkingDirectory();
         static std::string ReplaceOrAddExtension(const std::string& filePath, const std::string& fileExtension);
         
@@ -34,6 +39,7 @@ namespace Aurora
         // Supported Files in Directory
         static bool IsSupportedImageFile(const std::string& filePath);
         static bool IsSuppportedModelFile(const std::string& filePath);
+        static bool IsEngineFile(const std::string& filePath);
     };
 
     static const char* EXTENSION_TEXTURE = ".texture";

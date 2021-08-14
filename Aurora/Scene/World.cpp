@@ -2,6 +2,8 @@
 #include "../Window/WindowContext.h"
 #include "World.h"
 #include "Components/Light.h"
+#include "Components/Mesh.h"
+#include "Components/Camera.h"
 
 using namespace DirectX;
 
@@ -204,9 +206,39 @@ namespace Aurora
         return rootEntities;
     }
 
-    std::shared_ptr<Entity> World::CreateDefaultObject(DefaultObjectType defaultObjectType)
+    bool World::CreateDefaultObject(DefaultObjectType defaultObjectType)
     {
-        return m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel(m_EngineContext->GetSubsystem<ResourceCache>()->m_DefaultObjects[defaultObjectType]);
+        m_EngineContext->GetSubsystem<ResourceCache>()->m_Resources.push_back(std::make_shared<AuroraResource>());
+        auto& object = m_EngineContext->GetSubsystem<ResourceCache>()->m_Resources.back();
+
+        switch (defaultObjectType)
+        {
+            case DefaultObjectType::DefaultObjectType_Cube:
+                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Cube.fbx", object, false);
+                return true;
+
+            case DefaultObjectType::DefaultObjectType_Sphere:
+                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Sphere.fbx", object, false);
+                return true;
+
+            case DefaultObjectType::DefaultObjectType_Plane:
+                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Plane.fbx", object, false);
+                return true;
+
+            case DefaultObjectType::DefaultObjectType_Cylinder:
+                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Cylinder.fbx", object, false);
+                return true;
+
+            case DefaultObjectType::DefaultObjectType_Torus:
+                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Torus.fbx", object, false);
+                return true;
+
+            case DefaultObjectType::DefaultObjectType_Cone:
+                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Cone.fbx", object, false);
+                return true;
+        }
+        
+        return false;
     }
 
     void World::SerializeScene(const std::string& filePath)

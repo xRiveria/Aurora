@@ -2,8 +2,6 @@
 #include <vector>
 #include "../Resource/AuroraObject.h"
 #include "Components/IComponent.h"
-#include "../Graphics/RHI_Implementation.h"
-#include "../Renderer/Renderer.h"
 #include <DirectXPackedVector.h>
 #include "Components/Transform.h"
 

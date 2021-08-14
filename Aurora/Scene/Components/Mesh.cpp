@@ -98,18 +98,74 @@ namespace Aurora
 
     void Mesh::CreateRenderData()
     {
-        DX11_GraphicsDevice* graphicsDevice = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice.get();
+        auto& rendererContext = m_EngineContext->GetSubsystem<Renderer>()->m_DeviceContext;
+        m_MeshData.m_IndexBuffer = rendererContext->CreateIndexBuffer(m_Indices);
 
+        // Grab vertex positions and store them in our own data structure.
+        std::vector<RHI_Vertex_Position_UV_Normal> m_VertexPositionUVNormal(m_VertexPositions.size());
+
+        bool isVertexNormalsEmpty = false;
+        bool isTexCoordsEmpty = false;
+
+        if (m_VertexNormals.empty())
+        {
+            isVertexNormalsEmpty = true;
+        }
+        if (m_UVSet_0.empty())
+        {
+            isTexCoordsEmpty = true;
+        }
+
+        for (size_t i = 0; i < m_VertexPositionUVNormal.size(); ++i)
+        {
+            const XMFLOAT3& position = m_VertexPositions[i];      
+            XMFLOAT3 texNormals = { 0, 0, 0 };
+            XMFLOAT2 texCoords = { 0, 0 };
+          
+            if (!isVertexNormalsEmpty)
+            {
+                texNormals = m_VertexNormals[i];
+            }
+
+            if (!isTexCoordsEmpty)
+            {
+                texCoords = m_UVSet_0[i];
+            }
+
+            m_VertexPositionUVNormal[i].m_Position = position;
+            m_VertexPositionUVNormal[i].m_UV = texCoords;
+            m_VertexPositionUVNormal[i].m_Normal = texNormals;
+        }
+
+        m_MeshData.m_VertexBuffer = rendererContext->CreateVertexBuffer(RHI_Vertex_Type::VertexType_PositionUVNormal, m_VertexPositionUVNormal);
+
+        // RHI_Subresource_Data indexInitializationData;
+        // DX11_GraphicsDevice* graphicsDevice = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice.get();
         // Create Index Buffer GPU Data
-        RHI_GPU_Buffer_Description indexBufferDescription;
-        indexBufferDescription.m_Usage = Usage::Immutable;
-        indexBufferDescription.m_CPUAccessFlags = 0;
-        indexBufferDescription.m_BindFlags = Bind_Flag::Bind_Index_Buffer | Bind_Flag::Bind_Shader_Resource;
-        indexBufferDescription.m_MiscFlags = 0;
+        // RHI_GPU_Buffer_Description indexBufferDescription;
+        // indexBufferDescription.m_Usage = Usage::Immutable;
+        // indexBufferDescription.m_CPUAccessFlags = 0;
+        // indexBufferDescription.m_BindFlags = Bind_Flag::Bind_Index_Buffer | Bind_Flag::Bind_Shader_Resource;
+        // indexBufferDescription.m_MiscFlags = 0;
 
-        RHI_Subresource_Data indexInitializationData;
+        /* 
+        // Create buffer for our vertex data (positions).
+        RHI_GPU_Buffer_Description vertexBufferDescription;
+        vertexBufferDescription.m_Usage = Usage::Default;
+        vertexBufferDescription.m_CPUAccessFlags = 0;
+        vertexBufferDescription.m_BindFlags = Bind_Flag::Bind_Vertex_Buffer | Bind_Flag::Bind_Shader_Resource;
+        vertexBufferDescription.m_MiscFlags = Resource_Misc_Flag::Resource_Misc_Buffer_Allow_Raw_Views;
+        /// Check Raytracing.
+        vertexBufferDescription.m_ByteWidth = (uint32_t)(sizeof(Vertex_Position) * vertices.size());
 
-        // Create buffer for our index data - 16 bit.
+        RHI_Subresource_Data vertexInitializationData;
+        vertexInitializationData.m_SystemMemory = vertices.data();
+
+        graphicsDevice->CreateBuffer(&vertexBufferDescription, &vertexInitializationData, &m_VertexBuffer_Position);
+        /// Set name.
+
+         // Create buffer for our index data - 16 bit.
+        /*
         if (GetIndexFormat() == IndexBuffer_Format::Format_32Bit)
         {
             indexBufferDescription.m_StructureByteStride = sizeof(uint32_t);
@@ -138,65 +194,10 @@ namespace Aurora
             /// Set name.
         }
 
+        */
         // For AABB in the future.
-        XMFLOAT3 minimumVector = XMFLOAT3(FLT_MAX, FLT_MAX, FLT_MAX);
-        XMFLOAT3 maximumVector = XMFLOAT3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-
-        // Grab vertex positions and store them in our own data structure.
-        std::vector<Vertex_Position> vertices(m_VertexPositions.size());
-
-
-        bool isVertexNormalsEmpty = false;
-        bool isTexCoordsEmpty = false;
-        if (m_VertexNormals.empty())
-        {
-            isVertexNormalsEmpty = true;
-        }
-        if (m_UVSet_0.empty())
-        {
-            isTexCoordsEmpty = true;
-        }
-
-        for (size_t i = 0; i < vertices.size(); ++i)
-        {
-            /// Normals.
-            /// Wind Weights.
-            const XMFLOAT3& position = m_VertexPositions[i];
-           
-            XMFLOAT3 texNormals = { 0, 0, 0 };
-            XMFLOAT2 texCoords = { 0, 0 };
-          
-            if (!isVertexNormalsEmpty)
-            {
-                texNormals = m_VertexNormals[i];
-            }
-
-            if (!isTexCoordsEmpty)
-            {
-                texCoords = m_UVSet_0[i];
-            }
-
-            vertices[i].Populate(position, texCoords, m_VertexNormals[i]);
-
-            // minimumVector = Aurora::Math::Minimum(minimumVector, position);
-            // maximumVector = Aurora::Math::Maximum(maximumVector, position);
-        }
-
-        // Create buffer for our vertex data (positions).
-        RHI_GPU_Buffer_Description vertexBufferDescription;
-        vertexBufferDescription.m_Usage = Usage::Default;
-        vertexBufferDescription.m_CPUAccessFlags = 0;
-        vertexBufferDescription.m_BindFlags = Bind_Flag::Bind_Vertex_Buffer | Bind_Flag::Bind_Shader_Resource;
-        vertexBufferDescription.m_MiscFlags = Resource_Misc_Flag::Resource_Misc_Buffer_Allow_Raw_Views;
-        /// Check Raytracing.
-        vertexBufferDescription.m_ByteWidth = (uint32_t)(sizeof(Vertex_Position) * vertices.size());
-
-        RHI_Subresource_Data vertexInitializationData;
-        vertexInitializationData.m_SystemMemory = vertices.data();
-
-        graphicsDevice->CreateBuffer(&vertexBufferDescription, &vertexInitializationData, &m_VertexBuffer_Position);
-        /// Set name.
-
+        // XMFLOAT3 minimumVector = XMFLOAT3(FLT_MAX, FLT_MAX, FLT_MAX);
+        // XMFLOAT3 maximumVector = XMFLOAT3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
         // AABB
         // Vertex Buffer - Tangents

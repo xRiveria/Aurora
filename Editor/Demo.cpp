@@ -1,8 +1,6 @@
 #include "Backend/Editor.h"
 #include "Engine.h"
 #include <objbase.h> // Temporary to save us pain and suffering from CoInitialize spamming.
-#include "../Utilities/Console.h"
-#include <iostream>
 
 int main(int argc, int argv[])
 {
@@ -12,6 +10,8 @@ int main(int argc, int argv[])
     Editor editor;
     
     editor.Tick();
+
+    AURORA_INFO(Aurora::LogLayer::Engine, "Beginning Engine Shutdown...");
 
     CoUninitialize();
 }

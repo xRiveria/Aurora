@@ -22,6 +22,7 @@ namespace Aurora
 		Event,
 		Serialization,
 		ECS,
+		Editor,
 		Assert
 	};
 
@@ -62,6 +63,11 @@ namespace Aurora
 			case LogLayer::ECS:
 				Console::Shade::SetColor(Console::Color::Color_BrightWhite);
 				std::cout << "[ECS] ";
+				break;
+
+			case LogLayer::Editor:
+				Console::Shade::SetColor(Console::Color::Color_Yellow);
+				std::cout << "[Editor] ";
 				break;
 
 			case LogLayer::Assert:

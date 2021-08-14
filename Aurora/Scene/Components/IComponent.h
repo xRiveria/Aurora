@@ -1,6 +1,8 @@
 #pragma once
 #include "../Resource/AuroraObject.h"
 #include "EngineContext.h"
+#include <any>
+#include <functional>
 
 namespace Aurora
 {
@@ -53,7 +55,7 @@ namespace Aurora
         ComponentType GetType() const { return m_Type; }
         void SetType(ComponentType componentType) { m_Type = componentType; }
 
-    protected:
+    protected:    
         // The type of our component.
         ComponentType m_Type = ComponentType::Unknown;
 

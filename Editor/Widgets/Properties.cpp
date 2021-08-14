@@ -183,7 +183,7 @@ static void DrawVector3Control(const std::string& label, XMFLOAT3& values, float
     ImGui::PopID();
 }
 
-static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& materialTexture, Aurora::EngineContext* engineContext, bool drawColorControls = false, XMFLOAT4& colorValues = g_DefaultColor)
+static void DrawMaterialControl(const std::string& label, std::shared_ptr<Aurora::AuroraResource> materialTexture, Aurora::EngineContext* engineContext, bool drawColorControls = false, XMFLOAT4& colorValues = g_DefaultColor)
 {
     ImGui::PushID(label.c_str());
     ImGuiIO& io = ImGui::GetIO();
@@ -192,15 +192,13 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
     ImGui::Text(label.c_str());
     ImGui::PopFont();
 
-    if (materialTexture.m_Resource != nullptr)
+    if (materialTexture->m_Texture != nullptr)
     {
-        Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&materialTexture.m_Resource->m_Texture);
-        ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(60, 60));
+        ImGui::Image((void*)materialTexture->m_Texture->GetShaderResourceView().Get(), ImVec2(60, 60));
     }
     else
     {
-        Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&engineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->m_Texture);
-        ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(60, 60));
+        ImGui::Image((void*)engineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->m_Texture->GetShaderResourceView().Get(), ImVec2(60, 60));
     }
 
     ImGui::SameLine();
@@ -217,9 +215,7 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
         {
             std::string path = filePath.value();
             std::string fileName = Aurora::FileSystem::GetFileNameFromFilePath(path);
-            std::shared_ptr<Aurora::AuroraResource> resource = engineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(path, fileName);
-            materialTexture.m_FilePath = path; /// We need to streamline AuroraResource and TextureMap.
-            materialTexture.m_Resource = resource;
+            engineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(path, materialTexture);
         }
     }
 
@@ -240,7 +236,7 @@ static void DrawMaterialControl(const std::string& label, Aurora::TextureMap& ma
     }
 
     ImGui::SameLine(); ImGui::NewLine();
-    ImGui::Text("File: %s", materialTexture.m_FilePath.c_str());
+    ImGui::Text("File: %s", materialTexture->m_FilePath.c_str());
 
     ImGui::Separator();
     ImGui::PopID();

@@ -7,6 +7,7 @@
 #include "../Scene/Entity.h"
 #include "../Input/Input.h"
 #include "../Input/InputUtilities.h"
+#include "../Scene/Components/Camera.h"
 
 const static float PI_Formula = 180 / 3.14159265359;
 

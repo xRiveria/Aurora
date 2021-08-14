@@ -14,6 +14,7 @@ namespace Aurora
     class Entity;
     class World;
     class Material;
+    class AuroraResource;
 
     struct ModelParameters
     {
@@ -35,7 +36,8 @@ namespace Aurora
         Importer_Model(EngineContext* engineContext);
         ~Importer_Model() = default;
 
-        std::shared_ptr<Entity> Load(const std::string& filePath, const std::string& fileName = "");
+        // std::shared_ptr<Entity> Load(const std::string& filePath, const std::string& fileName = "");
+        bool LoadModel(const std::string& filePath, AuroraResource* resource);
 
     private:
         // Parsing

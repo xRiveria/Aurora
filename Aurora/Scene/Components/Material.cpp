@@ -1,5 +1,6 @@
 #include "Aurora.h"
 #include "Material.h"
+#include "../Resource/ResourceCache.h"
 #include "../Resource/Importers/Importer_Image.h"
 
 namespace Aurora
@@ -18,24 +19,24 @@ namespace Aurora
         outputStream << YAML::Key << "Roughness" << YAML::Value << m_Roughness;
         outputStream << YAML::Key << "Metalness" << YAML::Value << m_Metalness;
 
-        if (m_Textures[TextureSlot::BaseColorMap].m_Resource != nullptr)
+        if (m_Textures[TextureSlot::BaseColorMap] != nullptr)
         {
-            outputStream << YAML::Key << "ColorMapPath" << YAML::Value << m_Textures[TextureSlot::BaseColorMap].m_FilePath;
+            outputStream << YAML::Key << "ColorMapPath" << YAML::Value << m_Textures[TextureSlot::BaseColorMap]->m_FilePath;
         }
 
-        if (m_Textures[TextureSlot::MetalnessMap].m_Resource != nullptr)
+        if (m_Textures[TextureSlot::MetalnessMap] != nullptr)
         {
-            outputStream << YAML::Key << "MetallicMapPath" << YAML::Value << m_Textures[TextureSlot::MetalnessMap].m_FilePath;
+            outputStream << YAML::Key << "MetallicMapPath" << YAML::Value << m_Textures[TextureSlot::MetalnessMap]->m_FilePath;
         }
 
-        if (m_Textures[TextureSlot::MetalnessMap].m_Resource != nullptr)
+        if (m_Textures[TextureSlot::MetalnessMap] != nullptr)
         {
-            outputStream << YAML::Key << "RoughnessMapPath" << YAML::Value << m_Textures[TextureSlot::RoughnessMap].m_FilePath;
+            outputStream << YAML::Key << "RoughnessMapPath" << YAML::Value << m_Textures[TextureSlot::RoughnessMap]->m_FilePath;
         }
 
-        if (m_Textures[TextureSlot::NormalMap].m_Resource != nullptr)
+        if (m_Textures[TextureSlot::NormalMap] != nullptr)
         {
-            outputStream << YAML::Key << "NormalMapPath" << YAML::Value << m_Textures[TextureSlot::NormalMap].m_FilePath;
+            outputStream << YAML::Key << "NormalMapPath" << YAML::Value << m_Textures[TextureSlot::NormalMap]->m_FilePath;
         }
 
         outputStream << YAML::EndMap;
@@ -50,29 +51,25 @@ namespace Aurora
         if (inputNode["ColorMapPath"])
         {
             std::string filePath = inputNode["ColorMapPath"].as<std::string>();
-            m_Textures[TextureSlot::BaseColorMap].m_Resource = m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, FileSystem::GetFileNameFromFilePath(filePath));
-            m_Textures[TextureSlot::BaseColorMap].m_FilePath = filePath;
+            m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, m_Textures[TextureSlot::BaseColorMap]);
         }
 
         if (inputNode["MetallicMapPath"])
         {
             std::string filePath = inputNode["MetallicMapPath"].as<std::string>();
-            m_Textures[TextureSlot::MetalnessMap].m_Resource = m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, FileSystem::GetFileNameFromFilePath(filePath));
-            m_Textures[TextureSlot::MetalnessMap].m_FilePath = filePath;
+            m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, m_Textures[TextureSlot::MetalnessMap]);
         }
 
         if (inputNode["RoughnessMapPath"])
         {
             std::string filePath = inputNode["RoughnessMapPath"].as<std::string>();
-            m_Textures[TextureSlot::RoughnessMap].m_Resource = m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, FileSystem::GetFileNameFromFilePath(filePath));
-            m_Textures[TextureSlot::RoughnessMap].m_FilePath = filePath;
+            m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, m_Textures[TextureSlot::RoughnessMap]);
         }
 
         if (inputNode["NormalMapPath"])
         {
             std::string filePath = inputNode["NormalMapPath"].as<std::string>();
-            m_Textures[TextureSlot::NormalMap].m_Resource = m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, FileSystem::GetFileNameFromFilePath(filePath));
-            m_Textures[TextureSlot::NormalMap].m_FilePath = filePath;
+            m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, m_Textures[TextureSlot::NormalMap]);
         }
     }
 }

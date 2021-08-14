@@ -23,7 +23,7 @@ namespace Aurora
         AURORA_ASSERT(devices != nullptr);
 
         m_Devices = devices;
-        m_Stride = static_cast<uint32_t>(sizeof(uint32_t));
+        m_Stride = static_cast<uint32_t>(sizeof(uint32_t)); // Hmm...
         m_IndexCount = static_cast<uint32_t>(indices.size());
         m_ObjectSizeGPU = static_cast<uint64_t>(m_IndexCount * m_Stride);
 

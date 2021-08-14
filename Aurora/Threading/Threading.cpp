@@ -60,6 +60,8 @@ namespace Aurora
         Job job;
         if (m_JobQueue.pop_front(job))
         {
+            AURORA_INFO(LogLayer::Engine, "Handling Thread Job: Thread %u!", std::this_thread::get_id());
+
             JobInformation jobInformation = {};
             jobInformation.m_GroupID = job.m_GroupID;
 

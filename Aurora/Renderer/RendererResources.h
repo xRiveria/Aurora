@@ -74,7 +74,8 @@ namespace Aurora
 
     void Renderer::LoadDefaultTextures()
     {
-        m_DefaultWhiteTexture = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture("../Resources/Textures/Default/White.png", "Default White");
+        m_DefaultWhiteTexture = std::make_shared<AuroraResource>();
+        m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture("../Resources/Textures/Default/White.png", m_DefaultWhiteTexture);
     }
 
     void Renderer::LoadShaders()

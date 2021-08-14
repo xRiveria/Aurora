@@ -1,5 +1,6 @@
 #include "Aurora.h"
 #include "Renderer.h"
+#include "../Resource/ResourceCache.h"
 #include "../Window/WindowContext.h"
 #include "../Graphics/DX11/DX11_Utilities.h" //Temporary
 #include "ShaderInternals.h"
@@ -9,6 +10,7 @@
 #include "../Scene/Components/Material.h"
 #include "../Resource/Importers/Importer_Image.h"
 #include "../Time/Timer.h"
+#include "../Graphics/DX11_Refactored/DX11_Texture.h"
 #include <DirectXMath.h>
 #include "../Graphics/DX11/Skybox.h"
 #include <iostream>
@@ -73,9 +75,11 @@ namespace Aurora
         m_DirectionalLight->SetName("Directional Light");
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
-        m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Sphere);
-        auto entity = m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/ShaderBall/ball.obj");
-        entity->m_Transform->Scale({ 0.01, 0.01, 0.01 });
+        // m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Sphere);
+
+        std::shared_ptr<AuroraResource> resource = std::make_shared<AuroraResource>();
+        m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/ShaderBall/ball.obj", resource);
+        resource->m_Entity->m_Transform->Scale({ 0.01, 0.01, 0.01 });
 
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
@@ -98,11 +102,10 @@ namespace Aurora
         return true;
     }
 
-    int Renderer::BindMaterialTexture(TextureSlot slotType, Material* material)
+    int Renderer::BindMaterialTexture(TextureSlot slotType, int slotIndex, Material* material)
     {
         // Remember that our slot type's enum corresponds to our shader material.
-        ID3D11ShaderResourceView* shaderResourceView = DX11_Utility::ToInternal(&material->m_Textures[slotType].m_Resource->m_Texture)->m_ShaderResourceView.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources((int)slotType, 1, &shaderResourceView);
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(slotIndex, 1, material->m_Textures[slotType]->m_Texture->GetShaderResourceView().GetAddressOf());
 
         return (int)slotType;
     }
@@ -135,10 +138,10 @@ namespace Aurora
             constantBuffer.g_Camera_Position = m_Camera->GetComponent<Transform>()->m_TranslationLocal;
         }
 
-        constantBuffer.g_Texture_BaseColorMap_Index = BindMaterialTexture(TextureSlot::BaseColorMap, materialComponent);
-        constantBuffer.g_Texture_NormalMap_Index = BindMaterialTexture(TextureSlot::NormalMap, materialComponent);
-        constantBuffer.g_Texture_MetalnessMap_Index = BindMaterialTexture(TextureSlot::MetalnessMap, materialComponent);
-        constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(TextureSlot::RoughnessMap, materialComponent);
+        constantBuffer.g_Texture_BaseColorMap_Index = BindMaterialTexture(TextureSlot::BaseColorMap, m_BaseMap, materialComponent);
+        constantBuffer.g_Texture_NormalMap_Index = BindMaterialTexture(TextureSlot::NormalMap, m_NormalMapIndex, materialComponent);
+        constantBuffer.g_Texture_MetalnessMap_Index = BindMaterialTexture(TextureSlot::MetalnessMap, m_MetalMapIndex, materialComponent);
+        constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(TextureSlot::RoughnessMap, m_RoughnessMapIndex, materialComponent);
 
         constantBuffer.g_Texture_IrradianceMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_IRRADIANCE, m_Skybox->m_IrradianceMapTexture->GetShaderResourceView().Get());
         constantBuffer.g_Texture_PrefilterMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_PREFILTER, m_Skybox->m_EnvironmentTexture->GetShaderResourceView().Get());
@@ -381,9 +384,8 @@ namespace Aurora
             UINT offset = 0;
             UINT modelStride = 8 * sizeof(float);
 
-            ID3D11Buffer* vertexBuffer = (ID3D11Buffer*)DX11_Utility::ToInternal(&meshComponent.m_VertexBuffer_Position)->m_Resource.Get();
-            m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBuffer, &modelStride, &offset);
-            m_GraphicsDevice->BindIndexBuffer(&meshComponent.m_IndexBuffer, meshComponent.GetIndexFormat(), 0, 0);
+            m_DeviceContext->BindVertexBuffer(meshComponent.m_MeshData.m_VertexBuffer.get());
+            m_DeviceContext->BindIndexBuffer(meshComponent.m_MeshData.m_IndexBuffer.get());
 
             if (meshComponent.GetEntity()->HasComponent<Material>())
             {

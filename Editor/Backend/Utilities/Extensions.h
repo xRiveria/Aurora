@@ -1,5 +1,7 @@
 #pragma once
 #include <optional>
+#include "../Math/Vector4.h"
+#include "../Math/Vector2.h"
 #include "EngineContext.h"
 #include "../Source/imgui.h"
 #include "../Scene/Entity.h"
@@ -7,6 +9,7 @@
 #include "../Utilities/IconLibrary.h"
 #include "../Resource/ResourceCache.h"
 #include "../Input/InputEvents/InputEvent.h"
+#include "../Graphics/DX11_Refactored/DX11_Texture.h"
 #include <variant>
 
 namespace EditorExtensions
@@ -95,9 +98,17 @@ namespace EditorExtensions
 		ImGui::NextColumn();
 	}
 
+	inline bool Button(const char* label, Aurora::Math::Vector2& size)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		bool result = ImGui::Button(label, { size.x, size.y });
+		ImGui::PopStyleVar();
+		return result;
+	}
+
 	inline bool ImageButton(const IconType iconType, const float iconSize)
 	{
-		return ImGui::ImageButton((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->m_Resource->GetShaderResourceView().Get(),
+		return ImGui::ImageButton((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->m_Texture->GetShaderResourceView().Get(),
 			ImVec2(iconSize, iconSize),
 			ImVec2(0, 0),
 			ImVec2(1, 1),
@@ -108,12 +119,27 @@ namespace EditorExtensions
 
 	inline void Image(const IconType iconType, const float iconSize)
 	{
-		return ImGui::Image((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->m_Resource->GetShaderResourceView().Get(),
+		return ImGui::Image((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->m_Texture->GetShaderResourceView().Get(),
 			ImVec2(iconSize, iconSize),
 			ImVec2(0, 0),
 			ImVec2(1, 1),
 			g_DefaultTint,
 			ImColor(0, 0, 0, 0)); // Border
+	}
+
+	inline void Image(Aurora::DX11_Texture* texture, const ImVec2& size, bool border = false)
+	{
+		if (!border)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		}
+
+		ImGui::Image((void*)texture->GetShaderResourceView().Get(), size, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), g_DefaultTint, ImColor(0.0f, 0.0f, 0.0f, 0.0f));
+		
+		if (!border)
+		{
+			ImGui::PopStyleVar();
+		}
 	}
 
 	// Drag & Drop

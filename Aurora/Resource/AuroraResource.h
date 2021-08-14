@@ -1,7 +1,10 @@
 #pragma once
-#include <memory>
-#include "../Graphics/DX11_Refactored/DX11_Texture.h"
 #include "../Resource/AuroraObject.h"
+#include "../Scene/Entity.h"
+#include "../Graphics/DX11_Refactored/DX11_Texture.h"
+#include "../Graphics/DX11_Refactored/DX11_VertexBuffer.h"
+#include "../Graphics/DX11_Refactored/DX11_IndexBuffer.h"
+#include <memory>
 #include <variant>
 
 namespace Aurora
@@ -14,10 +17,19 @@ namespace Aurora
         ResourceType_Model
     };
 
+    // A struct holding crucial information regarding a mesh/model's polygons, normals etc.
+    struct DX11_MeshData
+    {
+        DX11_MeshData() = default;
+
+        std::shared_ptr<DX11_VertexBuffer> m_VertexBuffer = nullptr;
+        std::shared_ptr<DX11_IndexBuffer> m_IndexBuffer = nullptr;
+    };
+
     class AuroraResource : public AuroraObject
     {
     public:
-        Aurora::RHI_Texture m_Texture;
+        // Aurora::RHI_Texture m_Texture;
 
         // ===================================================================
         std::string TypeToString()
@@ -40,7 +52,10 @@ namespace Aurora
             return "Invalid Resource Type";
         }
    
-        std::shared_ptr<DX11_Texture> m_Resource; // Future types.
+        std::shared_ptr<DX11_Texture> m_Texture;
+        std::vector<DX11_MeshData> m_Meshes; // Future types.
+        Entity* m_Entity = nullptr; // Texture and Models involve entities. We store them here for reference.
+
         Resource_Type m_Type = Resource_Type::ResourceType_Empty;
         std::string m_FilePath = "Empty Path";
     };

@@ -1,11 +1,12 @@
 #pragma once
 #include "EngineContext.h"
+#include "../Resource/AuroraResource.h"
 #include "../Graphics/RHI_Implementation.h"
 #include "../Graphics/RHI_GraphicsDevice.h"
-#include "../Resource/ResourceCache.h"
 #include "../Scene/Components/Camera.h"
 #include "RendererEnums.h"
 #include "ShaderCompiler.h"
+#include "../_Shaders/ShaderUtilities.h"
 #include "../Resource/Importers/Importer_Model.h"
 #include "../Scene/Components/Material.h"
 #include "../Scene/Components/Mesh.h"
@@ -17,6 +18,8 @@ using namespace DirectX;
 namespace Aurora
 {
     class Skybox;
+    class ResourceCache;
+
     class Renderer : public ISubsystem
     {
     public:
@@ -38,7 +41,7 @@ namespace Aurora
         void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
         void UpdateLightConstantBuffer();
         void UpdateMaterialConstantBuffer(Material* materialComponent);
-        int BindMaterialTexture(TextureSlot slotType, Material* material);
+        int BindMaterialTexture(TextureSlot slotType, int slotIndex, Material* material);
         int BindSkyboxTexture(int slotNumber, RHI_Texture* texture);
         int BindSkyboxTexture(int slotNumber, ID3D11ShaderResourceView* shaderResourceView);
 
@@ -82,7 +85,11 @@ namespace Aurora
         RHI_Shader m_BloomVS;
         RHI_Shader m_BloomPS;
 
-        int m_DepthShadowMappingIndex = TEXSLOT_RENDERER_DEPTHSHADOW_MAP;
+        int m_DepthShadowMappingIndex = 36;
+        int m_BaseMap = TEXSLOT_RENDERER_BASECOLOR_MAP;
+        int m_NormalMapIndex = TEXSLOT_RENDERER_NORMAL_MAP;
+        int m_MetalMapIndex = TEXSLOT_RENDERER_METALNESS_MAP;
+        int m_RoughnessMapIndex = TEXSLOT_RENDERER_ROUGHNESS_MAP;
 
         RHI_Sampler m_Standard_Texture_Sampler;
         RHI_Sampler m_Depth_Texture_Sampler;

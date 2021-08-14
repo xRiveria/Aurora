@@ -30,7 +30,8 @@
 #include "../Widgets/ProjectSettings.h"
 #include <vector>
 #include "../Widgets/ThreadTracker.h"
-#include "../Widgets/AssetManager.h"
+#include "../Widgets/AssetRegistry.h"
+#include "../Widgets/AssetBrowser.h"
 
 namespace EditorConfigurations
 {
@@ -277,7 +278,8 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<Viewport>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<Hierarchy>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<EditorTools>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<AssetManager>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<AssetRegistry>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<AssetBrowser>(this, m_EngineContext));
 }
 
 void Editor::BeginDockingContext()

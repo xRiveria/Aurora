@@ -3,6 +3,7 @@
 #include "ISubsystem.h"
 #include "Entity.h"
 #include "../Serializer/Serializer.h"
+#include "../Resource/ResourceCache.h"
 
 namespace Aurora
 {
@@ -23,6 +24,7 @@ namespace Aurora
         
         // Entities
         std::shared_ptr<Entity> EntityCreate(bool isActive = true);
+        // std::shared_ptr<Entity> EntityClone(AuroraResource* auroraResource, bool isActive = true);
         bool EntityExists(const std::shared_ptr<Entity>& entity);
         void EntityRemove(const std::shared_ptr<Entity>& entity);
 
@@ -32,7 +34,7 @@ namespace Aurora
         std::vector<std::shared_ptr<Entity>> EntityGetRoots();
 
         // Default Components - In the future, we ought to load the model into memory at runtime, set to inactive and simply duplicate it when ready.
-        std::shared_ptr<Entity> CreateDefaultObject(DefaultObjectType defaultObjectType);
+        bool CreateDefaultObject(DefaultObjectType defaultObjectType);
 
         // Serializing
         void SerializeScene(const std::string& filePath);

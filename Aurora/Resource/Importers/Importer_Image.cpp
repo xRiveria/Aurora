@@ -63,7 +63,7 @@ namespace Aurora
         if (textureData != nullptr)
         {
             AURORA_INFO(LogLayer::Graphics, "Successfully loaded Texture with Path: %s.", filePath.c_str());
-            resource->m_Resource = m_EngineContext->GetSubsystem<Renderer>()->m_DeviceContext->CreateTexture2DFromData(reinterpret_cast<const void*>(textureData), width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 1, DX11_ResourceViewFlag::Texture_Flag_SRV, 1);
+            resource->m_Texture = m_EngineContext->GetSubsystem<Renderer>()->m_DeviceContext->CreateTexture2DFromData(reinterpret_cast<const void*>(textureData), width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 1, DX11_ResourceViewFlag::Texture_Flag_SRV, 1);
         }
 
         stbi_image_free(textureData);
@@ -71,6 +71,7 @@ namespace Aurora
         return true;
     }
 
+    /*
     std::shared_ptr<AuroraResource> Importer_Image::LoadTexture(const std::string& filePath, const std::string& fileName, uint32_t loadFlags)
     {
         Renderer* renderer = m_EngineContext->GetSubsystem<Renderer>();
@@ -176,4 +177,5 @@ namespace Aurora
 
         return nullptr;
     }
+    */
 }

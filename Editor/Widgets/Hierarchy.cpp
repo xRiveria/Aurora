@@ -1,10 +1,11 @@
 #include "Hierarchy.h"
 #include "../Scene/World.h"
+#include "../Scene/Components/Mesh.h"
 #include "../Input/Input.h"
 #include "../Input/InputUtilities.h"
-#include "Properties.h"
 #include "../Backend/Source/imgui_internal.h"
 #include "../Backend/Utilities/Extensions.h"
+#include "Properties.h"
 
 namespace HierarchyGlobals
 {

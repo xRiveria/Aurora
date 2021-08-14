@@ -3,6 +3,7 @@
 #include "FileSystem.h"
 #include "../Editor.h"
 #include "../Resource/ResourceCache.h"
+#include "Settings.h"
 #include "../Threading/Threading.h"
 
 static Icon g_NoIcon;
@@ -22,19 +23,22 @@ void IconLibrary::Initialize(Aurora::EngineContext* engineContext, Editor* edito
 {
     m_EngineContext = engineContext;
     m_EditorContext = editorContext;
-    const std::string resourceDirectory = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->GetResourceDirectory() + "/";
+    const std::string resourceDirectory = m_EngineContext->GetSubsystem<Aurora::Settings>()->GetResourceDirectory(Aurora::ResourceDirectory::Icons) + "/";
 
-    LoadIcon_(resourceDirectory + "Icons/Console_Info.png", IconType::IconType_Console_Info);
-    LoadIcon_(resourceDirectory + "Icons/Console_Warning.png", IconType::IconType_Console_Warning);
-    LoadIcon_(resourceDirectory + "Icons/Console_Error.png", IconType::IconType_Console_Error);
+    LoadIcon_(resourceDirectory + "Console_Info.png", IconType::IconType_Console_Info);
+    LoadIcon_(resourceDirectory + "Console_Warning.png", IconType::IconType_Console_Warning);
+    LoadIcon_(resourceDirectory + "Console_Error.png", IconType::IconType_Console_Error);
 
     // Toolbar
-    LoadIcon_(resourceDirectory + "Icons/Toolbar_Play.png", IconType::IconType_Toolbar_Play);
-    LoadIcon_(resourceDirectory + "Icons/Toolbar_Pause.png", IconType::IconType_Toolbar_Pause);
-    LoadIcon_(resourceDirectory + "Icons/Toolbar_Stop.png", IconType::IconType_Toolbar_Stop);
+    LoadIcon_(resourceDirectory + "Toolbar_Play.png", IconType::IconType_Toolbar_Play);
+    LoadIcon_(resourceDirectory + "Toolbar_Pause.png", IconType::IconType_Toolbar_Pause);
+    LoadIcon_(resourceDirectory + "Toolbar_Stop.png", IconType::IconType_Toolbar_Stop);
+
+    // Asset Browser
+    LoadIcon_(resourceDirectory + "AssetBrowser_Folder.png", IconType::IconType_AssetBrowser_Folder);
 
     // Assets
-    LoadIcon_(resourceDirectory + "Icons/Assets_Cube.png", IconType::IconType_ObjectPanel_Cube);
+    LoadIcon_(resourceDirectory + "Assets_Cube.png", IconType::IconType_ObjectPanel_Cube);
 
     // Default
     g_NoIcon = LoadIcon_(resourceDirectory + "Icons/AssetBrowser_Unknown.png", IconType::IconType_Custom);
@@ -96,10 +100,10 @@ const Icon& IconLibrary::LoadIcon_(const std::string& filePath, IconType iconTyp
         std::shared_ptr<Aurora::AuroraResource> texture = std::make_shared<Aurora::AuroraResource>();
 
         // Make a cheap texture.
-        m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath, texture](Aurora::JobInformation jobArguments)
-        {
-            m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(filePath, texture);
-        });
+        //m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath, texture](Aurora::JobInformation jobArguments)
+        //{
+        m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(filePath, texture);
+        //});
 
         // std::shared_ptr<Aurora::AuroraResource> texture = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(filePath, Aurora::FileSystem::GetFileNameFromFilePath(filePath));
         m_Icons.emplace_back(iconType, texture);

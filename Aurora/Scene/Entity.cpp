@@ -2,7 +2,8 @@
 #include "Entity.h"
 #include "Components/Camera.h"
 #include "Components/Light.h"
-#include "../Core/FileSystem.h"
+#include "Components/Mesh.h"
+#include "Components/Material.h"
 #include <type_traits>
 #include "../Scene/World.h"
 #include <functional>
@@ -79,7 +80,7 @@ namespace Aurora
         auto CloneEntity = [&world, &clonedEntities](Entity* entity)
         {
             // Clone the name and ID.
-            auto clonedEntity = world->EntityCreate().get();
+            Entity* clonedEntity = world->EntityCreate().get();
             clonedEntity->SetObjectID(GenerateObjectID());
             clonedEntity->SetName(entity->GetObjectName());
             clonedEntity->SetActive(entity->IsActive());
@@ -89,8 +90,8 @@ namespace Aurora
             for (const auto& component : entity->GetAllComponents())
             {
                 const auto& originalComponent = component;
-                auto clonedComponent = clonedEntity->AddComponent(component->GetType());
-                /// Copy Attributes.
+                //auto clonedComponent = clonedEntity->AddComponent(component->GetType());
+                //clonedComponent->SetAttributes(originalComponent->GetAttributes());
             }
 
             clonedEntities.emplace_back(clonedEntity);

@@ -1,4 +1,7 @@
 #include "Aurora.h"
+#include "../Scene/Components/Mesh.h"
+#include "../Scene/Components/Material.h"
+
 #include "Serializer.h"
 #include "SerializerUtilities.h"
 #include "../Scene/World.h"
