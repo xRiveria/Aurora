@@ -183,7 +183,7 @@ static void DrawVector3Control(const std::string& label, XMFLOAT3& values, float
     ImGui::PopID();
 }
 
-static void DrawMaterialControl(const std::string& label, std::shared_ptr<Aurora::AuroraResource> materialTexture, Aurora::EngineContext* engineContext, bool drawColorControls = false, XMFLOAT4& colorValues = g_DefaultColor)
+static void DrawMaterialControl(const std::string& label, std::shared_ptr<Aurora::AuroraResource>& materialTexture, Aurora::EngineContext* engineContext, bool drawColorControls = false, XMFLOAT4& colorValues = g_DefaultColor)
 {
     ImGui::PushID(label.c_str());
     ImGuiIO& io = ImGui::GetIO();
@@ -214,7 +214,6 @@ static void DrawMaterialControl(const std::string& label, std::shared_ptr<Aurora
         if (filePath.has_value())
         {
             std::string path = filePath.value();
-            std::string fileName = Aurora::FileSystem::GetFileNameFromFilePath(path);
             engineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(path, materialTexture);
         }
     }

@@ -337,7 +337,7 @@ void FileDialog::ShowBottomUI(bool* isVisible)
         ImGui::PushItemWidth(sliderWidth);
 
         const float previousWidth = m_HierarchyItemSize.x;
-        ImGui::SetCursorPosY((ImGui::GetWindowSize().y - m_OffsetBottom));
+        ImGui::SetCursorPosY((ImGui::GetWindowSize().y - m_OffsetBottom - 2.3f));
         ImGui::SliderFloat("##FileDialog_Slider", &m_HierarchyItemSize.x, m_HierarchyItemSizeMinimum, m_HierarchyItemSizeMaximum, "%.3g");
         m_HierarchyItemSize.y += m_HierarchyItemSize.x - previousWidth; // Main aspect ratio.
 
@@ -345,7 +345,7 @@ void FileDialog::ShowBottomUI(bool* isVisible)
     };
 
     m_OffsetBottom = 23.0f;
-    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - m_OffsetBottom) + 6.0f);
+    ImGui::SetCursorPosY(ImGui::GetWindowSize().y - m_OffsetBottom);
 
     const char* text = (m_DisplayedItemCount == 1) ? "%d Item" : "%d Items";
     ImGui::Text(text, m_DisplayedItemCount);

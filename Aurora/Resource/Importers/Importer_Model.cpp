@@ -391,6 +391,7 @@ namespace Aurora
                     const std::string deducedPath = ValidateTexturePath(texturePath.data, modelParameters.m_FilePath);
                     if (FileSystem::IsSupportedImageFile(deducedPath))
                     {
+                        material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>();
                         m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(deducedPath, material->m_Textures[engineSlotType]);
 
                         if (typeAssimp == aiTextureType_BASE_COLOR || typeAssimp == aiTextureType_DIFFUSE)
@@ -406,7 +407,9 @@ namespace Aurora
             }
 
             AURORA_WARNING(LogLayer::Graphics, "Could not find texture of appropriate type. Binding default texture...");
-            material->m_Textures[engineSlotType] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
+            material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>();
+            m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture->m_FilePath, material->m_Textures[engineSlotType]);
+            // material->m_Textures[engineSlotType] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
         };
 
         // Engine Texture, Assimp PBR Texture, Assimp Legacy Texture (Fallback)
