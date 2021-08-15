@@ -163,6 +163,21 @@ namespace Aurora
         return GetEntityByID(entity->GetObjectID()) != nullptr;
     }
 
+    const std::vector<std::shared_ptr<Entity>>& World::GetEntitiesByComponent(ComponentType componentType)
+    {
+        std::vector<std::shared_ptr<Entity>> componentEntities;
+
+        for (const std::shared_ptr<Entity>& entity : m_Entities)
+        {
+            if (entity->HasComponent(componentType))
+            {
+                componentEntities.emplace_back(entity);
+            }
+        }
+
+        return componentEntities;
+    }
+
     const std::shared_ptr<Entity>& World::GetEntityByName(const std::string& entityName)
     {
         for (const std::shared_ptr<Entity>& entity : m_Entities)

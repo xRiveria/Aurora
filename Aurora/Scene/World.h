@@ -28,6 +28,7 @@ namespace Aurora
         bool EntityExists(const std::shared_ptr<Entity>& entity);
         void EntityRemove(const std::shared_ptr<Entity>& entity);
 
+        const std::vector<std::shared_ptr<Entity>>& GetEntitiesByComponent(ComponentType componentType);
         const std::shared_ptr<Entity>& GetEntityByName(const std::string& entityName);
         const std::shared_ptr<Entity>& GetEntityByID(uint32_t entityID);
         const std::vector<std::shared_ptr<Entity>>& EntityGetAll() const { return m_Entities; }

@@ -14,6 +14,7 @@ namespace Aurora
         Mesh,
         Transform,
         Material,
+        RigidBody,
         Unknown
     };
 

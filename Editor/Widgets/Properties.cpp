@@ -4,6 +4,7 @@
 #include "../Scene/Components/Material.h"
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Light.h"
+#include "../Scene/Components/RigidBody.h"
 #include "../Backend/Source/imgui_internal.h"
 #include "../Renderer/Renderer.h"
 #include "../Backend/Utilities/Extensions.h"
@@ -47,6 +48,7 @@ void Properties::OnTickVisible()
         ShowTransformProperties(entityPointer->GetComponent<Aurora::Transform>());
         ShowMaterialProperties(materialPointer);
         ShowLightProperties(entityPointer->GetComponent<Aurora::Light>());
+        ShowRigidBodyProperties(entityPointer->GetComponent<Aurora::RigidBody>());
 
         ShowAddComponentButton();
     }
@@ -79,15 +81,15 @@ void Properties::ShowAddComponentButton() const
     {
         if (std::shared_ptr<Aurora::Entity> entity = m_InspectedEntity.lock())
         {
-            if (ImGui::BeginMenu("Light"))
-            {
-                if (ImGui::MenuItem("Position"))
-                {
-                    entity->AddComponent<Aurora::Light>();
-                }
+             if (ImGui::MenuItem("Rigidbody"))
+             {
+                 entity->AddComponent<Aurora::RigidBody>();
+             }
 
-                ImGui::EndMenu();
-            }
+             if (ImGui::MenuItem("Light"))
+             {
+                 entity->AddComponent<Aurora::Light>();
+             }           
         }
 
         ImGui::EndPopup();
@@ -324,6 +326,95 @@ void Properties::ShowLightProperties(Aurora::Light* lightComponent) const
             ImGui::ColorPicker3("##LightColor", &lightComponent->m_Color.x);
 
             ImGui::EndPopup();
+        }
+
+        ImGui::PopID();
+    }
+
+    ComponentEnd();
+}
+
+void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) const
+{
+    if (!rigidBodyComponent)
+    {
+        return;
+    }
+
+    if (ComponentBegin("Rigidbody"))
+    {
+        ImGui::PushID(rigidBodyComponent->GetObjectID());
+
+        if (ImGui::BeginCombo("Collider Shape", rigidBodyComponent->GetCollisionShapeToString().c_str(), 0))
+        {
+            if (ImGui::Selectable("Empty"))
+            {
+                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_Empty);
+            }
+            if (ImGui::Selectable("Box"))
+            {
+                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_Box);
+            }
+            if (ImGui::Selectable("Capsule"))
+            {
+                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_Capsule);
+            }
+            if (ImGui::Selectable("Sphere"))
+            {
+                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_Sphere);
+            }
+            if (ImGui::Selectable("Convex Hull"))
+            {
+                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_ConvexHull);
+            }
+            if (ImGui::Selectable("Triangle Mesh"))
+            {
+                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_TriangleMesh);
+            }
+
+            ImGui::EndCombo();
+        }
+
+        float rigidBodyMass = rigidBodyComponent->GetMass();
+        if (ImGui::DragFloat("Mass", &rigidBodyMass, 0.05f, 0.0f, 10.0f))
+        {
+            rigidBodyComponent->SetMass(rigidBodyMass);
+        }
+
+        float friction = rigidBodyComponent->GetFriction();
+        if (ImGui::DragFloat("Friction", &friction, 0.05f, 0.0f, 1.0f))
+        {
+            rigidBodyComponent->SetFriction(friction);
+        }
+
+        float restitution = rigidBodyComponent->GetRestitution();
+        if (ImGui::DragFloat("Restitution", &restitution, 0.05f, 0.0f, 1.0f))
+        {
+            rigidBodyComponent->SetRestitution(restitution);
+        }
+
+        float linearDamping = rigidBodyComponent->GetDamplingLinear();
+        if (ImGui::DragFloat("Linear Damping", &linearDamping, 0.05f, 0.0f, 1.0f))
+        {
+            rigidBodyComponent->SetDamplingLinear(linearDamping);
+        }
+
+        float angularDamping = rigidBodyComponent->GetDamplingAngular();
+        if (ImGui::DragFloat("Angular Damping", &angularDamping, 0.05f, 0.0f, 1.0f))
+        {
+            rigidBodyComponent->SetDamplingAngular(angularDamping);
+        }
+
+        bool isKinematic = rigidBodyComponent->GetKinematicState();
+        if (ImGui::Checkbox("Kinematic", &isKinematic))
+        {
+            rigidBodyComponent->SetKinematic(isKinematic);
+        }
+
+        bool isDeactivated = rigidBodyComponent->GetDeactivationState();
+        if (ImGui::Checkbox("Deactivated", &isDeactivated))
+        {
+            rigidBodyComponent->SetDeactivationState(isDeactivated);
         }
 
         ImGui::PopID();

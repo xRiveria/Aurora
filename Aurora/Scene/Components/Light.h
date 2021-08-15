@@ -51,6 +51,5 @@ namespace Aurora
 
         Lighting_Type m_Type = Lighting_Type::Point;
         uint32_t m_Flags = Lighting_Flags::Lighting_Flags_Empty;
-        // float m_Bias = 0.05;
     };
 }

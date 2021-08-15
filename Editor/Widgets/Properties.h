@@ -7,6 +7,7 @@ namespace Aurora
     class Entity;
     class Transform;
     class Material;
+    class RigidBody;
     class Light;
 }
 
@@ -31,4 +32,5 @@ private:
     void ShowTransformProperties(Aurora::Transform* transformComponent) const;
     void ShowMaterialProperties(Aurora::Material* materialComponent) const;
     void ShowLightProperties(Aurora::Light* lightComponent) const;
+    void ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) const;
 };

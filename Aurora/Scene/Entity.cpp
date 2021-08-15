@@ -4,6 +4,7 @@
 #include "Components/Light.h"
 #include "Components/Mesh.h"
 #include "Components/Material.h"
+#include "Components/RigidBody.h"
 #include <type_traits>
 #include "../Scene/World.h"
 #include <functional>
@@ -129,6 +130,7 @@ namespace Aurora
             case ComponentType::Transform: return AddComponent<Transform>(componentID);
             case ComponentType::Material: return AddComponent<Material>(componentID);
             case ComponentType::Mesh: return AddComponent<Mesh>(componentID);
+            case ComponentType::RigidBody: return AddComponent<RigidBody>(componentID);
             default: nullptr;
         }
 
