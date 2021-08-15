@@ -417,6 +417,7 @@ namespace Aurora
         LoadMaterialTexture(TextureSlot::RoughnessMap, aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SHININESS); // Use specular as fallback.
         LoadMaterialTexture(TextureSlot::MetalnessMap, aiTextureType_METALNESS, aiTextureType_AMBIENT); // Use ambient as fallback.
         LoadMaterialTexture(TextureSlot::NormalMap, aiTextureType_NORMAL_CAMERA, aiTextureType_NORMALS);
+        LoadMaterialTexture(TextureSlot::OcclusionMap, aiTextureType_AMBIENT_OCCLUSION, aiTextureType_AMBIENT); // Use ambient as fallback.
     }
 
     std::string Importer_Model::TextureTryMultipleExtensions(const std::string& filePath)

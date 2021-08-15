@@ -16,9 +16,9 @@ namespace Aurora
         NormalMap, 
         MetalnessMap,
         RoughnessMap,
+        OcclusionMap,
         EmissiveMap,
         DisplacementMap,
-        OcclusionMap,
         TransmissionMap,
         SpecularMap,
         TextureSlot_Count

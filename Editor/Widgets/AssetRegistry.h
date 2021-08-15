@@ -16,5 +16,8 @@ public:
 	void OnTickVisible() override;
 
 private:
+	ImGuiTextFilter m_RegistryFilter;
+
+private:
 	Aurora::ResourceCache* m_ResourceCache;
 };

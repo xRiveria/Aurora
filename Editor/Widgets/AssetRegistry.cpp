@@ -2,6 +2,8 @@
 #include "../Backend/Utilities/Extensions.h"
 #include "../Resource/ResourceCache.h"
 
+bool g_FilterByType = false;
+
 AssetRegistry::AssetRegistry(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
     m_ResourceCache = m_EngineContext->GetSubsystem<Aurora::ResourceCache>();
@@ -10,13 +12,33 @@ AssetRegistry::AssetRegistry(Editor* editorContext, Aurora::EngineContext* engin
 
 void AssetRegistry::OnTickVisible()
 {
+    ImGui::Checkbox("Filter By Type", &g_FilterByType);
+
+    m_RegistryFilter.Draw("##RegisterFilter", ImGui::GetContentRegionAvailWidth());
+
     ImGui::Columns(2);
     ImGui::AlignTextToFramePadding();
 
     uint32_t cacheSize = static_cast<uint32_t>(m_ResourceCache->GetCachedResources().size());
-    for (int i = 0; i < cacheSize; i++)
+    for (uint32_t i = 0; i < cacheSize; i++)
     {
         auto& resource = m_ResourceCache->GetCachedResources()[i];
+
+        // Apply search filter.
+        if (!g_FilterByType)
+        {
+            if (!m_RegistryFilter.PassFilter(resource->GetObjectName().c_str()))
+            {
+                continue;
+            }
+        }
+        else
+        {
+            if (!m_RegistryFilter.PassFilter(resource->TypeToString().c_str()))
+            {
+                continue;
+            }
+        }
 
         ImGui::PushID(resource->GetObjectName().c_str());
 

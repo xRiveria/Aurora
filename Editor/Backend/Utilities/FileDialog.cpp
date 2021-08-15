@@ -72,16 +72,23 @@ void FileDialog::ShowTopUI(bool* isVisible)
     }
 
     // Directory Navigation Buttons
-    if (ImGui::Button("<"))
+    if (EditorExtensions::ImageButton(IconType::IconType_AssetBrowser_Previous, 17))
     {
         m_IsDirty = m_NavigationContext.Backward();
     }
 
     ImGui::SameLine();
 
-    if (ImGui::Button(">"))
+    if (EditorExtensions::ImageButton(IconType::IconType_AssetBrowser_Next, 17))
     {
         m_IsDirty = m_NavigationContext.Forward();
+    }
+
+    ImGui::SameLine();
+
+    if (EditorExtensions::ImageButton(IconType::IconType_AssetBrowser_Refresh, 17))
+    {
+        m_IsDirty = true;
     }
 
     // Search filter.
@@ -93,14 +100,23 @@ void FileDialog::ShowTopUI(bool* isVisible)
     ImGui::SameLine();
 
     // Turn them into buttons?
-    char buffer[1024] = "";
-    for (uint32_t i = 0; i < m_NavigationContext.m_CurrentPathHierarchyLabels.size(); i++)
+    for (uint32_t i = 0; i < m_NavigationContext.m_CurrentPathHierarchy.size(); i++)
     {
-        strcat_s(buffer, sizeof(buffer), m_NavigationContext.m_CurrentPathHierarchyLabels[i].c_str());
-        strcat_s(buffer, sizeof(buffer), " / ");
+        ImGui::SameLine();
+        Aurora::Math::Vector2 buttonSize = { 0.0f, 0.0f };
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        if (EditorExtensions::Button(m_NavigationContext.m_CurrentPathHierarchyLabels[i].c_str(), buttonSize))
+        {
+            m_IsDirty = m_NavigationContext.NavigateTo(m_NavigationContext.m_CurrentPathHierarchy[i]);
+        }
+        ImGui::PopStyleColor();
+        
+        if (i + 1 != m_NavigationContext.m_CurrentPathHierarchy.size())
+        {
+            ImGui::SameLine();
+            ImGui::Text("/");
+        }
     }
-
-    ImGui::Text(buffer);
 
     ImGui::Separator();
 }
@@ -355,7 +371,31 @@ void FileDialog::ShowBottomUI(bool* isVisible)
 
 void FileDialog::OnItemDrag(FileDialogItem* item) const
 {
+    if (!item)
+    {
+        return;
+    }
 
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+    {
+        const auto SetPayload = [this](const EditorExtensions::DragPayloadType dragPayloadType, const std::string& filePath)
+        {
+            m_DragDropPayload.m_PayloadType = dragPayloadType;
+            m_DragDropPayload.m_Data = filePath.c_str();
+            EditorExtensions::CreateDragPayload(m_DragDropPayload);
+        };
+
+        if (Aurora::FileSystem::IsSupportedModelFile(item->GetPath()))
+        {
+            SetPayload(EditorExtensions::DragPayloadType::DragPayloadType_Model, item->GetPath());
+        }
+
+        // Preview
+        EditorExtensions::Image(item->GetTexture(), { 50, 50 });
+        ImGui::Text(item->GetLabel().c_str());
+
+        ImGui::EndDragDropSource();
+    }
 }
 
 void FileDialog::OnItemClick(FileDialogItem* item) const
@@ -433,9 +473,16 @@ bool FileDialog::DialogUpdateFromDirectory(const std::string& directoryPath)
     std::vector<std::string> childItems = Aurora::FileSystem::GetFilesInDirectory(directoryPath);
     for (const std::string& childItem : childItems)
     {
-        if (Aurora::FileSystem::IsSupportedImageFile(childItem) || Aurora::FileSystem::IsEngineFile(childItem))
+        if (Aurora::FileSystem::IsSupportedImageFile(childItem))
         {
             m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_Custom, static_cast<int>(m_HierarchyItemSize.x)));
+            continue;
+        }
+
+        if (Aurora::FileSystem::IsSupportedModelFile(childItem))
+        {
+            m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_ObjectPanel_Cube, static_cast<int>(m_HierarchyItemSize.x)));
+            continue;
         }
     }
 

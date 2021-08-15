@@ -244,6 +244,28 @@ void Editor::Tick()
 		*/
 		ImGui::End();
 
+		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+		float height = ImGui::GetFrameHeight() + 1.0f; //Add a little padding here so things look nicer.
+
+		if (ImGui::BeginViewportSideBar("##MainStatusBar", nullptr, ImGuiDir_Down, height, windowFlags)) //Specifies that this will be pipped at the top of the window, below the main menu bar.
+		{
+			if (ImGui::BeginMenuBar())
+			{
+				// ImGui::PushStyleColor(ImGuiCol_Text, m_LogTypeColor[static_cast<int>(m_Logs.back().m_LogLevel)]);
+				ImGui::TextUnformatted("I Love Trains");
+				// ImGui::PopStyleColor(1);
+			}
+			else
+			{
+				ImGui::TextUnformatted("");
+			}
+
+			ImGui::EndMenuBar();
+		}
+
+		ImGui::End();
+		
+
 		ImGui::End(); // Ends docking context.
 
 		ImGui::Render();

@@ -22,7 +22,7 @@ namespace Aurora
         return true;
     }
 
-    bool ResourceCache::LoadTexture(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource)
+    bool ResourceCache::LoadTexture(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource /*= true*/)
     {
         if (FileSystem::IsSupportedImageFile(filePath))
         {
@@ -37,9 +37,9 @@ namespace Aurora
         return false;
     }
 
-    bool ResourceCache::LoadModel(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource)
+    bool ResourceCache::LoadModel(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource /*= true*/)
     {
-        if (FileSystem::IsSuppportedModelFile(filePath))
+        if (FileSystem::IsSupportedModelFile(filePath))
         {
             if (cacheResource)
             {

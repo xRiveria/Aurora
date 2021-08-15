@@ -43,10 +43,20 @@ CBUFFER(ConstantBufferData_Material, CBSLOT_RENDERER_MATERIAL)
     int g_Texture_MetalnessMap_Index;
     int g_Texture_RoughnessMap_Index;
 
+    //int g_Texture_AOMap_Index;
+    //int g_PaddingPadding01;
+    //int g_PaddingPadding02;
+    //int g_PaddingPadding03;
+
     int g_Texture_DepthShadowMap_Index;
     int g_Texture_PrefilterMap_Index;
     int g_Texture_IrradianceMap_Index;
     int g_Texture_BRDFLUT_Index;
+
+    int g_Texture_AOMap_Index;
+    int g_PaddingPadding01;
+    int g_PaddingPadding02;
+    int g_PaddingPadding03;
 };
 
 CBUFFER(ConstantBufferData_Misc, CBSLOT_RENDERER_MISC)

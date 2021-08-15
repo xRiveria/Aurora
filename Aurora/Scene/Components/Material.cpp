@@ -39,6 +39,11 @@ namespace Aurora
             outputStream << YAML::Key << "NormalMapPath" << YAML::Value << m_Textures[TextureSlot::NormalMap]->m_FilePath;
         }
 
+        if (m_Textures[TextureSlot::OcclusionMap] != nullptr)
+        {
+            outputStream << YAML::Key << "OcclusionMapPath" << YAML::Value << m_Textures[TextureSlot::OcclusionMap]->m_FilePath;
+        }
+
         outputStream << YAML::EndMap;
     }
 
@@ -70,6 +75,12 @@ namespace Aurora
         {
             std::string filePath = inputNode["NormalMapPath"].as<std::string>();
             m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, m_Textures[TextureSlot::NormalMap]);
+        }
+
+        if (inputNode["OcclusionMapPath"])
+        {
+            std::string filePath = inputNode["OcclusionMapPath"].as<std::string>();
+            m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(filePath, m_Textures[TextureSlot::OcclusionMap]);
         }
     }
 }

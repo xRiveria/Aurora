@@ -90,6 +90,7 @@ namespace Aurora
         int m_NormalMapIndex = TEXSLOT_RENDERER_NORMAL_MAP;
         int m_MetalMapIndex = TEXSLOT_RENDERER_METALNESS_MAP;
         int m_RoughnessMapIndex = TEXSLOT_RENDERER_ROUGHNESS_MAP;
+        int m_AOMapIndex = TEXSLOT_RENDERER_AO_MAP;
 
         RHI_Sampler m_Standard_Texture_Sampler;
         RHI_Sampler m_Depth_Texture_Sampler;

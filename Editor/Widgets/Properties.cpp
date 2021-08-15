@@ -283,6 +283,7 @@ void Properties::ShowMaterialProperties(Aurora::Material* materialComponent) con
         DrawMaterialControl("Roughness Map", materialComponent->m_Textures[Aurora::TextureSlot::RoughnessMap], m_EngineContext);
         DrawMaterialControl("Normal Map", materialComponent->m_Textures[Aurora::TextureSlot::NormalMap], m_EngineContext);
         DrawMaterialControl("Metallic Map", materialComponent->m_Textures[Aurora::TextureSlot::MetalnessMap], m_EngineContext);
+        DrawMaterialControl("Occlusion Map", materialComponent->m_Textures[Aurora::TextureSlot::OcclusionMap], m_EngineContext);
 
         ImGui::SliderFloat("Roughness", &materialComponent->m_Roughness, 0.0, 1.0);
         ImGui::SliderFloat("Metalness", &materialComponent->m_Metalness, 0.0, 1.0);

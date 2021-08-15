@@ -69,10 +69,13 @@ bool Hierarchy::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
                 {
                     EditorExtensions::ContextHelper::GetInstance().SetSelectedEntity(entityWithMesh->GetEntity()->GetPointerShared());
                     Properties::m_InspectedEntity = entityWithMesh->GetEntity()->GetPointerShared();
+                    return true;
                 }
             }
             break;
     }
+
+    return false;
 }
 
 void Hierarchy::ShowEntityTree()

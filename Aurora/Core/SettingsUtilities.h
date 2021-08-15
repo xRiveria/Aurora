@@ -43,6 +43,8 @@ namespace Aurora
             case ResourceDirectory::Cubemaps:
                 return "Cubemaps";
         }
+
+        return "Unidentified Resource Directory";
     }
 
     struct ExternalLibrary

@@ -142,6 +142,7 @@ namespace Aurora
         constantBuffer.g_Texture_NormalMap_Index = BindMaterialTexture(TextureSlot::NormalMap, m_NormalMapIndex, materialComponent);
         constantBuffer.g_Texture_MetalnessMap_Index = BindMaterialTexture(TextureSlot::MetalnessMap, m_MetalMapIndex, materialComponent);
         constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(TextureSlot::RoughnessMap, m_RoughnessMapIndex, materialComponent);
+        constantBuffer.g_Texture_AOMap_Index = BindMaterialTexture(TextureSlot::OcclusionMap, m_AOMapIndex, materialComponent);
 
         constantBuffer.g_Texture_IrradianceMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_IRRADIANCE, m_Skybox->m_IrradianceMapTexture->GetShaderResourceView().Get());
         constantBuffer.g_Texture_PrefilterMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_PREFILTER, m_Skybox->m_EnvironmentTexture->GetShaderResourceView().Get());
@@ -239,6 +240,8 @@ namespace Aurora
 
     void Renderer::Tick(float deltaTime)
     {
+        Stopwatch widgetStopwatch("Renderer Pass");
+
         if (static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetWidth()) != m_RenderWidth ||
             static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetHeight()) != m_RenderHeight)
         {

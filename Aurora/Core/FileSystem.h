@@ -38,7 +38,7 @@ namespace Aurora
 
         // Supported Files in Directory
         static bool IsSupportedImageFile(const std::string& filePath);
-        static bool IsSuppportedModelFile(const std::string& filePath);
+        static bool IsSupportedModelFile(const std::string& filePath);
         static bool IsEngineFile(const std::string& filePath);
     };
 

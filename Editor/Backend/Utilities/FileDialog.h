@@ -43,7 +43,7 @@ public:
         m_CurrentPathHierarchyLabels.clear();
 
         // Is there a slash?
-        std::size_t slashPositionIndex = m_CurrentPath.find('/'); // Remember that .find returns the first occurance of the given character found.
+        std::size_t slashPositionIndex = m_CurrentPath.find('\\'); // Remember that .find returns the first occurance of the given character found.
 
         // If there are no further slashes and no nesting, we are done.
         if (slashPositionIndex == std::string::npos)
@@ -59,11 +59,11 @@ public:
             while (true)
             {
                 // Save everything before the slash.
-                m_CurrentPathHierarchy.emplace_back(Aurora::FileSystem::GetFileNameFromFilePath(m_CurrentPath.substr(0, slashPositionIndex)));
+                m_CurrentPathHierarchy.emplace_back(m_CurrentPath.substr(0, slashPositionIndex));
 
                 // Attempt to find a slash after the one we already found.
                 previousSlashPosition = slashPositionIndex;
-                slashPositionIndex = m_CurrentPath.find('/', slashPositionIndex + 1);
+                slashPositionIndex = m_CurrentPath.find('\\', slashPositionIndex + 1);
 
                 // If there are no more slashes...
                 if (slashPositionIndex == std::string::npos)
@@ -78,14 +78,14 @@ public:
         // Create a proper looking label to show in the editor for each path.
         for (const std::string& filePath : m_CurrentPathHierarchy)
         {
-            slashPositionIndex = filePath.find('/');
+            slashPositionIndex = filePath.find('\\');
             if (slashPositionIndex == std::string::npos)
             {
-                m_CurrentPathHierarchyLabels.emplace_back(filePath + " >");
+                m_CurrentPathHierarchyLabels.emplace_back(filePath);
             }
             else
             {
-                m_CurrentPathHierarchyLabels.emplace_back(filePath.substr(filePath.find_last_of('/') + 1) + " >");
+                m_CurrentPathHierarchyLabels.emplace_back(filePath.substr(filePath.find_last_of('\\') + 1)); // Do not include the /.              
             }
         }
 

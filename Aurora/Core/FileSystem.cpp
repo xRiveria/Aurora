@@ -307,7 +307,7 @@ namespace Aurora
         return false;
     }
 
-    bool FileSystem::IsSuppportedModelFile(const std::string& filePath)
+    bool FileSystem::IsSupportedModelFile(const std::string& filePath)
     {
         const std::string extension = GetExtensionFromFilePath(filePath);
 

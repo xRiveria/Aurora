@@ -48,7 +48,7 @@ namespace EditorExtensions
 		fileDialog.nFilterIndex = 1; // Which filter is set by default. 
 		fileDialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR; // The last flag is very important. If you don't do this and call OpenFileName, it will change the working directory for your application to the folder you open the window from.  
 
-		if (GetOpenFileNameA(&fileDialog) == true)
+		if (GetOpenFileNameA(&fileDialog) == TRUE)
 		{
 			return fileDialog.lpstrFile; // We return the file path of the file we open and create a string out of the char* path.
 		}

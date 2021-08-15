@@ -36,6 +36,9 @@ void IconLibrary::Initialize(Aurora::EngineContext* engineContext, Editor* edito
 
     // Asset Browser
     LoadIcon_(resourceDirectory + "AssetBrowser_Folder.png", IconType::IconType_AssetBrowser_Folder);
+    LoadIcon_(resourceDirectory + "AssetBrowser_Next.png", IconType::IconType_AssetBrowser_Next);
+    LoadIcon_(resourceDirectory + "AssetBrowser_Previous.png", IconType::IconType_AssetBrowser_Previous);
+    LoadIcon_(resourceDirectory + "AssetBrowser_Refresh.png", IconType::IconType_AssetBrowser_Refresh);
 
     // Assets
     LoadIcon_(resourceDirectory + "Assets_Cube.png", IconType::IconType_ObjectPanel_Cube);
