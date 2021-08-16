@@ -7,6 +7,7 @@ namespace Aurora
 {
     Camera::Camera(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
+        m_Type = ComponentType::Camera;
     }
 
     Camera::~Camera()

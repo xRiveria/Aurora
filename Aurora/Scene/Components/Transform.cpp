@@ -9,7 +9,8 @@ namespace Aurora
 
     Transform::Transform(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
-        m_ParentTransform = nullptr;     
+        m_ParentTransform = nullptr;    
+        m_Type = ComponentType::Transform;
     }
 
     void Transform::Tick(float deltaTime)

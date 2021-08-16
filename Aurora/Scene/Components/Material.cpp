@@ -7,7 +7,7 @@ namespace Aurora
 {
     Material::Material(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
-
+        m_Type = ComponentType::Material;
     }
 
     void Material::Serialize(SerializationStream& outputStream)

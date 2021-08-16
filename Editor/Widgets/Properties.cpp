@@ -5,6 +5,7 @@
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Light.h"
 #include "../Scene/Components/RigidBody.h"
+#include "../Physics/Physics.h"
 #include "../Backend/Source/imgui_internal.h"
 #include "../Renderer/Renderer.h"
 #include "../Backend/Utilities/Extensions.h"
@@ -13,6 +14,7 @@
 std::weak_ptr<Aurora::Entity> Properties::m_InspectedEntity;
 std::weak_ptr<Aurora::Material> Properties::m_InspectedMaterial;
 XMFLOAT4 g_DefaultColor = { 1, 1, 1, 1 };
+float g_ForceAmount[3] = { 0.0f, 0.0f, 50.0f };
 
 Properties::Properties(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
@@ -415,6 +417,17 @@ void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) 
         if (ImGui::Checkbox("Deactivated", &isDeactivated))
         {
             rigidBodyComponent->SetDeactivationState(isDeactivated);
+        }
+
+        ImGui::SliderFloat3("Force Amount", g_ForceAmount, 0.0f, 100.0f);
+        if (ImGui::Button("Add Force"))
+        {
+            m_EngineContext->GetSubsystem<Aurora::Physics>()->ApplyForce(rigidBodyComponent, XMFLOAT3(g_ForceAmount));
+        }
+
+        if (ImGui::Button("Add Impulse"))
+        {
+            m_EngineContext->GetSubsystem<Aurora::Physics>()->ApplyImpulse(rigidBodyComponent, XMFLOAT3(g_ForceAmount));
         }
 
         ImGui::PopID();

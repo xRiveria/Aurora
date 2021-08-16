@@ -29,8 +29,8 @@ namespace Aurora
         void Serialize(SerializationStream& outputStream) override;
         void Deserialize(SerializationNode& inputNode) override;
 
-        void SetLightingType(Lighting_Type type) { m_Type = type; }
-        Lighting_Type GetLightingType() const { return m_Type; }
+        void SetLightingType(Lighting_Type type) { m_LightType = type; }
+        Lighting_Type GetLightingType() const { return m_LightType; }
 
         void SetIsCastingShadow(bool value) 
         { 
@@ -49,7 +49,7 @@ namespace Aurora
         XMFLOAT3 m_Color = XMFLOAT3(1, 1, 1);
         float m_Intensity = 40.0;
 
-        Lighting_Type m_Type = Lighting_Type::Point;
+        Lighting_Type m_LightType = Lighting_Type::Point;
         uint32_t m_Flags = Lighting_Flags::Lighting_Flags_Empty;
     };
 }

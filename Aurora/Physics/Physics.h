@@ -1,6 +1,8 @@
 #pragma once
 #include "EngineContext.h"
 #include "ISubsystem.h"
+#include "../Scene/Components/Transform.h"
+#include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/RigidBody.h"
 #include "Bullet/btBulletDynamicsCommon.h"
 
@@ -23,6 +25,8 @@ namespace Aurora
         void SetPhysicsSimulationEnabled(bool value) { m_IsSimulationEnabled = value; }
         bool GetPhysicsSimulationEnabled() const { return m_IsSimulationEnabled; }
 
+        void AddRigidBody(Entity* entity, RigidBody* rigidBodyComponent, const Transform* transformComponent, const Mesh* meshComponent);
+
         // Apply force at body center.
         void ApplyForce(const RigidBody* rigidBodyComponent, const XMFLOAT3& force);
 
@@ -39,7 +43,7 @@ namespace Aurora
         // Collision configuration contains default setup for memory, collision setup. 
         btDefaultCollisionConfiguration m_CollisionConfiguration;
         // btDbvtBroadphase is a good general purpose broadphase. We can also try btAxis3Sweep.
-        btBroadphaseInterface* m_OverlappingPairCache;
+        btDbvtBroadphase m_OverlappingPairCache;
         // The default constraint solver. For parallel processing, we can use a different solver.
         btSequentialImpulseConstraintSolver m_Solver;
 
@@ -50,6 +54,7 @@ namespace Aurora
     private:
         bool m_IsEnabled = true;
         bool m_IsSimulationEnabled = true;
+        int m_Accuracy = 10;
     };
 }
 
@@ -65,4 +70,7 @@ namespace Aurora
 
     - VelocityChange Mode: Same as Impulse Mode and doesn't take mass into account. It will add the force to the object's velocity in a single frame.
       : Force = Vector3.forward * 1.0f;
+
+    - applyCentralImpulse applies the impulse directly to the box's center of gravity, turning 100% of the impulse into linear velocity. applyImpulse allows you to specify a point in space where the 
+    impulse is applied, such as an edge or corner, which will convert the impulse into both linear and angular velocity, so it will move through space and also rotate.
 */

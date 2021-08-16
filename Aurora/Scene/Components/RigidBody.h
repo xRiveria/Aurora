@@ -87,6 +87,9 @@ namespace Aurora
         bool GetKinematicState() const { return m_RigidBodyFlags & RigidBodyFlags::RigidBodyFlag_Kinematic; }
 
     public:
+        CapsuleParameters m_CapsuleParameters;
+        SphereParameters m_SphereParameters;
+        BoxParameters m_BoxParameters;
         void* m_PhysicsInternal = nullptr;
 
     private:
@@ -97,10 +100,6 @@ namespace Aurora
         float m_DampingAngular = 0.0f; // Angular damping is similar, but applies to angular motion (ie. rotation).
 
         uint32_t m_RigidBodyFlags = 0;
-
-        CapsuleParameters m_CapsuleParameters;
-        SphereParameters m_SphereParameters;
-        BoxParameters m_BoxParameters;
         CollisionShape m_CollisionShape = CollisionShape::CollisionShape_Empty;
     };
 }

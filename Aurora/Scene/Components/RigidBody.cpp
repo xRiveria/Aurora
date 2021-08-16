@@ -5,7 +5,7 @@ namespace Aurora
 {
     RigidBody::RigidBody(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
-
+        m_Type = ComponentType::RigidBody;
     }
 
     RigidBody::~RigidBody()
