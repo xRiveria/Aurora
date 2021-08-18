@@ -347,6 +347,8 @@ namespace Aurora
         m_Skybox->Render();
         DrawDebugWorld(m_Camera.get());
 
+        TickPrimitives(deltaTime);
+
         m_DeviceContext->ResolveFramebuffer(m_DeviceContext->m_MultisampleFramebuffer.get(), m_DeviceContext->m_ResolveFramebuffer.get(), DXGI_FORMAT_R16G16B16A16_FLOAT);
 
         /// ==================================
@@ -495,5 +497,74 @@ namespace Aurora
         samplerDescription.m_MaxLOD = D3D11_FLOAT32_MAX;
 
         m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Depth_Texture_Sampler);
+    }
+
+
+
+
+
+    // ======================================================================================
+
+    void Renderer::Pass_Lines()
+    {
+        const bool isLineDrawingEnabled = !m_Lines_DepthDisabled.empty() || !m_Lines_DepthEnabled.empty(); // Any kind of lines, physics, user debug or whatsoever.
+        const bool drawLinesState = isLineDrawingEnabled;
+
+        if (!drawLinesState)
+        {
+            return;
+        }
+    }
+
+    void Renderer::TickPrimitives(const float deltaTime)
+    {
+        // Remove lines which have expired.
+        uint32_t end = static_cast<uint32_t>(m_Lines_DepthDisabled_Duration.size()); 
+        for (uint32_t i = 0; i < end; i++)
+        {
+            m_Lines_DepthDisabled_Duration[i] -= deltaTime;
+
+            if (m_Lines_DepthDisabled_Duration[i] <= 0.0f)
+            {
+                m_Lines_DepthDisabled_Duration.erase(m_Lines_DepthDisabled_Duration.begin() + i); // Remove corresponding line duration.
+                m_Lines_DepthDisabled.erase(m_Lines_DepthDisabled.begin() + i); // Remove corresponding line.
+                i--;
+                end--;
+            }
+        }
+
+        end = static_cast<uint32_t>(m_Lines_DepthEnabled_Duration.size());
+        for (uint32_t i = 0; i < end; i++)
+        {
+            m_Lines_DepthEnabled_Duration[i] -= deltaTime;
+            
+            if (m_Lines_DepthEnabled_Duration[i] <= 0.0f)
+            {
+                m_Lines_DepthEnabled_Duration.erase(m_Lines_DepthEnabled_Duration.begin() + i);
+                m_Lines_DepthEnabled.erase(m_Lines_DepthEnabled.begin() + i);
+                i--;
+                end--;
+            }
+        }
+    }
+
+    void Renderer::DrawLine(const XMFLOAT3& fromPoint, const XMFLOAT3& toPoint, const XMFLOAT4& fromColor, const XMFLOAT4& toColor, const float duration /* = 0.0f */, const bool depthEnabled /* = true */)
+    {
+        if (depthEnabled)
+        {
+            m_Lines_DepthEnabled.emplace_back(fromPoint, fromColor);
+            m_Lines_DepthEnabled_Duration.emplace_back(duration);
+
+            m_Lines_DepthEnabled.emplace_back(toPoint, toColor);
+            m_Lines_DepthEnabled_Duration.emplace_back(duration);
+        }
+        else
+        {
+            m_Lines_DepthDisabled.emplace_back(fromPoint, fromColor);
+            m_Lines_DepthDisabled_Duration.emplace_back(duration);
+
+            m_Lines_DepthDisabled.emplace_back(toPoint, toColor);
+            m_Lines_DepthDisabled_Duration.emplace_back(duration);
+        }
     }
 }

@@ -11,6 +11,13 @@ if (!(##expression))                      \
     AURORA_DEBUG_BREAK();                 \
 }
 
+#define AURORA_POINTER_DELETE(x)          \
+if (x)                                    \
+{                                         \
+    delete x;                             \
+    x = nullptr;                          \
+}                                           
+
 #define AURORA_BIND_INPUT_EVENT(function) std::bind(&function, this, std::placeholders::_1)
 
 #define AURORA_GRAPHICS_DX11

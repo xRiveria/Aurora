@@ -9,6 +9,7 @@ namespace Aurora
     class Material;
     class RigidBody;
     class Light;
+    class Collider;
 }
 
 class Properties : public Widget
@@ -33,4 +34,5 @@ private:
     void ShowMaterialProperties(Aurora::Material* materialComponent) const;
     void ShowLightProperties(Aurora::Light* lightComponent) const;
     void ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) const;
+    void ShowColliderProperties(Aurora::Collider* colliderComponent) const;
 };

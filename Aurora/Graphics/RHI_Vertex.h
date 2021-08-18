@@ -16,7 +16,8 @@ namespace Aurora
         VertexType_Unknown,
         VertexType_Position,
         VertexType_PositionUV,
-        VertexType_PositionUVNormal
+        VertexType_PositionColor,
+        VertexType_PositionUVNormal,
     };
 
     // To remake into fully RHI attribute.
@@ -66,6 +67,26 @@ namespace Aurora
 
         XMFLOAT3 m_Position = { 0, 0, 0 };
         XMFLOAT2 m_UV = { 0, 0 };
+    };
+
+    struct RHI_Vertex_Position_Color
+    {
+        RHI_Vertex_Position_Color() = default;
+
+        RHI_Vertex_Position_Color(const XMFLOAT3& position, const XMFLOAT4& color)
+        {
+            this->m_Position.x = position.x;
+            this->m_Position.y = position.y;
+            this->m_Position.z = position.z;
+            
+            this->m_Color.x = color.x;
+            this->m_Color.y = color.y;
+            this->m_Color.z = color.z;
+            this->m_Color.w = color.w;
+        }
+
+        XMFLOAT3 m_Position = { 0.0f, 0.0f, 0.0f };
+        XMFLOAT4 m_Color = { 0.0f, 0.0f, 0.0f, 0.0f };
     };
 
     struct RHI_Vertex_Position_UV_Normal

@@ -120,7 +120,7 @@ namespace Aurora::Math
         }
 
         // Returns the length of ||V||. 
-        float Length() const { return Utilities::SquareRoot(x * x + y * y); }
+        float Length() const { return Helper::SquareRoot(x * x + y * y); }
 
         // Returns the length squared.
         float LengthSquared() const { return x * x + y * y; }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "MathUtilities.h"
 #include <string>
 
@@ -67,7 +69,7 @@ namespace Aurora::Math
         Vector3 Cross(const Vector3& otherVector) const { return Cross(*this, otherVector); }
 
         // Returns the length.
-        float Length() const { return Utilities::SquareRoot(x * x + y * y + z * z); }
+        float Length() const { return Helper::SquareRoot(x * x + y * y + z * z); }
 
         // Returns the length squared.
         float LengthSquared() const { return x * x + y * y + z * z; }
@@ -90,9 +92,9 @@ namespace Aurora::Math
             const float lengthSquared = LengthSquared();
 
             // We will only normalize the vector if it's current length is not already 1.0 and more than 0.
-            if (!Utilities::Equals(lengthSquared, 1.0f) && lengthSquared > 0.0f)
+            if (!Helper::Equals(lengthSquared, 1.0f) && lengthSquared > 0.0f)
             {
-                const float lengthInverted = 1.0f / Utilities::SquareRoot(lengthSquared);
+                const float lengthInverted = 1.0f / Helper::SquareRoot(lengthSquared);
 
                 this->x *= lengthInverted;
                 this->y *= lengthInverted;
@@ -107,9 +109,9 @@ namespace Aurora::Math
         {
             const float lengthSquared = LengthSquared();
 
-            if (!Utilities::Equals(lengthSquared, 1.0f) && lengthSquared > 0.0f)
+            if (!Helper::Equals(lengthSquared, 1.0f) && lengthSquared > 0.0f)
             {
-                const float lengthInverted = 1.0f / Utilities::SquareRoot(lengthSquared);
+                const float lengthInverted = 1.0f / Helper::SquareRoot(lengthSquared);
                 return (*this) * lengthInverted;
             }
             else
@@ -262,5 +264,5 @@ namespace Aurora::Math
     };
 
     // Reverse order operators.
-    inline Vector3 operator*(float value, const Vector3& otherVector) { return otherVector * value; }
+    // inline Vector3 operator*(float value, const Vector3& otherVector) { return otherVector * value; }
 }

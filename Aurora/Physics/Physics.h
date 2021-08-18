@@ -8,6 +8,8 @@
 
 namespace Aurora
 {
+    class PhysicsDebugDraw;
+
     class Physics : public ISubsystem
     {
     public:
@@ -25,31 +27,25 @@ namespace Aurora
         void SetPhysicsSimulationEnabled(bool value) { m_IsSimulationEnabled = value; }
         bool GetPhysicsSimulationEnabled() const { return m_IsSimulationEnabled; }
 
-        void AddRigidBody(Entity* entity, RigidBody* rigidBodyComponent, const Transform* transformComponent, const Mesh* meshComponent);
+        // RigidBody
+        void AddRigidBody(btRigidBody* rigidBodyInternal) const;
+        void RemoveRigidBody(btRigidBody*& rigidBodyInternal) const;
 
-        // Apply force at body center.
-        void ApplyForce(const RigidBody* rigidBodyComponent, const XMFLOAT3& force);
+        /// Soft Bodies
+        /// Constraints
 
-        // Apply force at body local position.
-        void ApplyForceAt(const RigidBody* rigidBodyComponent, const XMFLOAT3& force, const XMFLOAT3& atPosition);
-
-        // Apply impulse at body center.
-        void ApplyImpulse(const RigidBody* rigidBodyComponent, const XMFLOAT3& impulse);
-
-        // Apply impulse at body local position.
-        void ApplyImpulseAt(const RigidBody* rigidBodyComponent, const XMFLOAT3& impulse, const XMFLOAT3& atPosition);
+        // Properties
+        XMFLOAT3 GetGravity() const;
+        PhysicsDebugDraw* GetDebugDrawSystem() const { return m_DebugDrawSystem.get(); }
 
     private:
-        // Collision configuration contains default setup for memory, collision setup. 
         btDefaultCollisionConfiguration m_CollisionConfiguration;
-        // btDbvtBroadphase is a good general purpose broadphase. We can also try btAxis3Sweep.
         btDbvtBroadphase m_OverlappingPairCache;
-        // The default constraint solver. For parallel processing, we can use a different solver.
         btSequentialImpulseConstraintSolver m_Solver;
 
-        std::unique_ptr<btDiscreteDynamicsWorld> m_PhysicsWorld;
-        // Uses the default collision dispatcher. For parallel processing, you can use a different dispatcher.
-        std::unique_ptr<btCollisionDispatcher> m_CollisionDispatcher;
+        std::unique_ptr<btDiscreteDynamicsWorld> m_PhysicsWorld = nullptr;
+        std::unique_ptr<btCollisionDispatcher> m_CollisionDispatcher = nullptr;
+        std::unique_ptr<PhysicsDebugDraw> m_DebugDrawSystem = nullptr;
 
     private:
         bool m_IsEnabled = true;

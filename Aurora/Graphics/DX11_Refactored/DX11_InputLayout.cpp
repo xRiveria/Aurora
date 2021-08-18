@@ -23,33 +23,41 @@ namespace Aurora
         UINT inputSlotBinding = 0;
         switch (vertexType)
         {
-            case RHI_Vertex_Type::VertexType_Unknown:
-                AURORA_ERROR(LogLayer::Graphics, "Unknown Vertex Type is being used to create Input Layout.");
-                return false;
+        case RHI_Vertex_Type::VertexType_Unknown:
+            AURORA_ERROR(LogLayer::Graphics, "Unknown Vertex Type is being used to create Input Layout.");
+            return false;
 
-            case RHI_Vertex_Type::VertexType_Position:
-                m_VertexAttributes =
-                {
-                    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position, m_Position), D3D11_INPUT_PER_VERTEX_DATA  }
-                };
-                return _Initialize(vertexShaderBlob);
+        case RHI_Vertex_Type::VertexType_Position:
+            m_VertexAttributes =
+            {
+                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position, m_Position), D3D11_INPUT_PER_VERTEX_DATA  }
+            };
+            return _Initialize(vertexShaderBlob);
 
-            case RHI_Vertex_Type::VertexType_PositionUV:
-                m_VertexAttributes =
-                {
-                    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position_UV, m_Position), D3D11_INPUT_PER_VERTEX_DATA },
-                    { "UV",       0, DXGI_FORMAT_R32G32_FLOAT,    inputSlotBinding, offsetof(RHI_Vertex_Position_UV, m_UV), D3D11_INPUT_PER_VERTEX_DATA }
-                };
-                return _Initialize(vertexShaderBlob);
+        case RHI_Vertex_Type::VertexType_PositionUV:
+            m_VertexAttributes =
+            {
+                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position_UV, m_Position), D3D11_INPUT_PER_VERTEX_DATA },
+                { "UV",       0, DXGI_FORMAT_R32G32_FLOAT,    inputSlotBinding, offsetof(RHI_Vertex_Position_UV, m_UV), D3D11_INPUT_PER_VERTEX_DATA }
+            };
+            return _Initialize(vertexShaderBlob);
 
-            case RHI_Vertex_Type::VertexType_PositionUVNormal:
-                m_VertexAttributes =
-                {
-                    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position_UV_Normal, m_Position), D3D11_INPUT_PER_VERTEX_DATA },
-                    { "UV",       0, DXGI_FORMAT_R32G32_FLOAT,    inputSlotBinding, offsetof(RHI_Vertex_Position_UV_Normal, m_UV),       D3D11_INPUT_PER_VERTEX_DATA },
-                    { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position_UV_Normal, m_Normal),   D3D11_INPUT_PER_VERTEX_DATA }
-                };
-                return _Initialize(vertexShaderBlob);
+        case RHI_Vertex_Type::VertexType_PositionColor:
+            m_VertexAttributes =
+            {
+                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position_Color, m_Position), D3D11_INPUT_PER_VERTEX_DATA },
+                { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position_Color, m_Color), D3D11_INPUT_PER_VERTEX_DATA }
+            };
+            return _Initialize(vertexShaderBlob);
+
+        case RHI_Vertex_Type::VertexType_PositionUVNormal:
+            m_VertexAttributes =
+            {
+                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position_UV_Normal, m_Position), D3D11_INPUT_PER_VERTEX_DATA },
+                { "UV",       0, DXGI_FORMAT_R32G32_FLOAT,    inputSlotBinding, offsetof(RHI_Vertex_Position_UV_Normal, m_UV),       D3D11_INPUT_PER_VERTEX_DATA },
+                { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, inputSlotBinding, offsetof(RHI_Vertex_Position_UV_Normal, m_Normal),   D3D11_INPUT_PER_VERTEX_DATA }
+            };
+            return _Initialize(vertexShaderBlob);
         }        
     }
 

@@ -5,6 +5,7 @@
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Light.h"
 #include "../Scene/Components/RigidBody.h"
+#include "../Scene/Components/Collider.h"
 #include "../Physics/Physics.h"
 #include "../Backend/Source/imgui_internal.h"
 #include "../Renderer/Renderer.h"
@@ -50,6 +51,7 @@ void Properties::OnTickVisible()
         ShowTransformProperties(entityPointer->GetComponent<Aurora::Transform>());
         ShowMaterialProperties(materialPointer);
         ShowLightProperties(entityPointer->GetComponent<Aurora::Light>());
+        ShowColliderProperties(entityPointer->GetComponent<Aurora::Collider>());
         ShowRigidBodyProperties(entityPointer->GetComponent<Aurora::RigidBody>());
 
         ShowAddComponentButton();
@@ -86,6 +88,11 @@ void Properties::ShowAddComponentButton() const
              if (ImGui::MenuItem("Rigidbody"))
              {
                  entity->AddComponent<Aurora::RigidBody>();
+             }
+
+             if (ImGui::MenuItem("Collider"))
+             {
+                 entity->AddComponent<Aurora::Collider>();
              }
 
              if (ImGui::MenuItem("Light"))
@@ -336,6 +343,73 @@ void Properties::ShowLightProperties(Aurora::Light* lightComponent) const
     ComponentEnd();
 }
 
+void Properties::ShowColliderProperties(Aurora::Collider* colliderComponent) const
+{
+    if (!colliderComponent)
+    {
+        return;
+    }
+
+    if (ComponentBegin("Collider"))
+    {
+        ImGui::PushID(colliderComponent->GetObjectID());
+
+        if (ImGui::BeginCombo("Collider Shape", colliderComponent->GetColliderShapeToString().c_str(), 0))
+        {
+            if (ImGui::Selectable("Box"))
+            {
+                colliderComponent->SetShapeType(Aurora::ColliderShape::ColliderShape_Box);
+            }
+            if (ImGui::Selectable("Sphere"))
+            {
+                colliderComponent->SetShapeType(Aurora::ColliderShape::ColliderShape_Sphere);
+            }
+            if (ImGui::Selectable("Static Plane"))
+            {
+                colliderComponent->SetShapeType(Aurora::ColliderShape::ColliderShape_StaticPlane);
+            }
+            if (ImGui::Selectable("Cylinder"))
+            {
+                colliderComponent->SetShapeType(Aurora::ColliderShape::ColliderShape_Cylinder);
+            }
+            if (ImGui::Selectable("Capsule"))
+            {
+                colliderComponent->SetShapeType(Aurora::ColliderShape::ColliderShape_Capsule);
+            }
+            if (ImGui::Selectable("Cone"))
+            {
+                colliderComponent->SetShapeType(Aurora::ColliderShape::ColliderShape_Cone);
+            }
+            if (ImGui::Selectable("Mesh"))
+            {
+                colliderComponent->SetShapeType(Aurora::ColliderShape::ColliderShape_Mesh);
+            }
+
+            ImGui::EndCombo();
+        }
+
+        // Size
+        XMFLOAT3 colliderSize = colliderComponent->GetBoundingBox();
+        if (ImGui::DragFloat3("Size", &colliderSize.x, 0.1f))
+        {
+            colliderComponent->SetBoundingBox(colliderSize);
+        }
+
+        // Center
+        XMFLOAT3 centerLocation = colliderComponent->GetCenter();
+        if (ImGui::DragFloat3("Center", &centerLocation.x, 0.1f))
+        {
+            colliderComponent->SetCenter(centerLocation);
+        }
+
+        /// Optimize but only if current shape is Mesh.
+
+        ImGui::PopID();
+    }
+
+    ComponentEnd();
+}
+
 void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) const
 {
     if (!rigidBodyComponent)
@@ -347,87 +421,54 @@ void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) 
     {
         ImGui::PushID(rigidBodyComponent->GetObjectID());
 
-        if (ImGui::BeginCombo("Collider Shape", rigidBodyComponent->GetCollisionShapeToString().c_str(), 0))
-        {
-            if (ImGui::Selectable("Empty"))
-            {
-                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_Empty);
-            }
-            if (ImGui::Selectable("Box"))
-            {
-                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_Box);
-            }
-            if (ImGui::Selectable("Capsule"))
-            {
-                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_Capsule);
-            }
-            if (ImGui::Selectable("Sphere"))
-            {
-                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_Sphere);
-            }
-            if (ImGui::Selectable("Convex Hull"))
-            {
-                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_ConvexHull);
-            }
-            if (ImGui::Selectable("Triangle Mesh"))
-            {
-                rigidBodyComponent->SetCollisionShape(Aurora::CollisionShape::CollisionShape_TriangleMesh);
-            }
-
-            ImGui::EndCombo();
-        }
-
         float rigidBodyMass = rigidBodyComponent->GetMass();
-        if (ImGui::DragFloat("Mass", &rigidBodyMass, 0.05f, 0.0f, 10.0f))
+        if (ImGui::DragFloat("Mass", &rigidBodyMass, 0.1f))
         {
             rigidBodyComponent->SetMass(rigidBodyMass);
         }
 
         float friction = rigidBodyComponent->GetFriction();
-        if (ImGui::DragFloat("Friction", &friction, 0.05f, 0.0f, 1.0f))
+        if (ImGui::DragFloat("Friction", &friction, 0.1f))
         {
             rigidBodyComponent->SetFriction(friction);
         }
 
+        float rollingFriction = rigidBodyComponent->GetFrictionRolling();
+        if (ImGui::DragFloat("Rolling Friction", &rollingFriction, 0.1f))
+        {
+            rigidBodyComponent->SetFrictionRolling(rollingFriction);
+        }
+
         float restitution = rigidBodyComponent->GetRestitution();
-        if (ImGui::DragFloat("Restitution", &restitution, 0.05f, 0.0f, 1.0f))
+        if (ImGui::DragFloat("Restitution", &restitution, 0.1f))
         {
             rigidBodyComponent->SetRestitution(restitution);
         }
 
-        float linearDamping = rigidBodyComponent->GetDamplingLinear();
-        if (ImGui::DragFloat("Linear Damping", &linearDamping, 0.05f, 0.0f, 1.0f))
+        bool gravityState = rigidBodyComponent->GetGravityState();
+        if (ImGui::Checkbox("Use Gravity", &gravityState))
         {
-            rigidBodyComponent->SetDamplingLinear(linearDamping);
+            rigidBodyComponent->SetUseGravity(gravityState);
         }
 
-        float angularDamping = rigidBodyComponent->GetDamplingAngular();
-        if (ImGui::DragFloat("Angular Damping", &angularDamping, 0.05f, 0.0f, 1.0f))
+        bool kinematicState = rigidBodyComponent->GetKinematicState();
+        if (ImGui::Checkbox("Kinematic", &kinematicState))
         {
-            rigidBodyComponent->SetDamplingAngular(angularDamping);
+            rigidBodyComponent->SetKinematicState(kinematicState);
         }
 
-        bool isKinematic = rigidBodyComponent->GetKinematicState();
-        if (ImGui::Checkbox("Kinematic", &isKinematic))
-        {
-            rigidBodyComponent->SetKinematic(isKinematic);
-        }
-
-        bool isDeactivated = rigidBodyComponent->GetDeactivationState();
-        if (ImGui::Checkbox("Deactivated", &isDeactivated))
-        {
-            rigidBodyComponent->SetDeactivationState(isDeactivated);
-        }
-
+        /// Freeze Position
+        /// Freeze Rotation
+       
         ImGui::SliderFloat3("Force Amount", g_ForceAmount, 0.0f, 100.0f);
         if (ImGui::Button("Add Force"))
         {
-            m_EngineContext->GetSubsystem<Aurora::Physics>()->ApplyForce(rigidBodyComponent, XMFLOAT3(g_ForceAmount));
+            rigidBodyComponent->ApplyForce(XMFLOAT3(g_ForceAmount[0], g_ForceAmount[1], g_ForceAmount[2]), Aurora::ForceMode::ForceMode_Force);
         }
 
         if (ImGui::Button("Add Impulse"))
         {
-            m_EngineContext->GetSubsystem<Aurora::Physics>()->ApplyImpulse(rigidBodyComponent, XMFLOAT3(g_ForceAmount));
+            rigidBodyComponent->ApplyForce(XMFLOAT3(g_ForceAmount[0], g_ForceAmount[1], g_ForceAmount[2]), Aurora::ForceMode::ForceMode_Impulse);
         }
 
         ImGui::PopID();

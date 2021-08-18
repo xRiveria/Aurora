@@ -5,6 +5,7 @@
 #include "Components/Mesh.h"
 #include "Components/Material.h"
 #include "Components/RigidBody.h"
+#include "Components/Collider.h"
 #include <type_traits>
 #include "../Scene/World.h"
 #include <functional>
@@ -42,7 +43,7 @@ namespace Aurora
 
     void Entity::Start()
     {
-        // Call component Start() across all of the engine's components.
+        // Call component OnStart() across all of the engine's components.
         for (const std::shared_ptr<IComponent>& component : m_Components)
         {
             component->Start();
@@ -131,6 +132,7 @@ namespace Aurora
             case ComponentType::Material: return AddComponent<Material>(componentID);
             case ComponentType::Mesh: return AddComponent<Mesh>(componentID);
             case ComponentType::RigidBody: return AddComponent<RigidBody>(componentID);
+            case ComponentType::Collider: return AddComponent<Collider>(componentID);
             default: nullptr;
         }
 

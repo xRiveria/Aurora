@@ -77,8 +77,12 @@ namespace Aurora
         rasterizerStateDescription.FillMode = D3D11_FILL_WIREFRAME;
         m_RasterizerStates[RasterizerState_Types::RasterizerState_Wireframe] = CreateRasterizerState(rasterizerStateDescription);
 
+        rasterizerStateDescription.AntialiasedLineEnable = true;
+        m_RasterizerStates[RasterizerState_Types::RasterizerState_CullBackWireframe] = CreateRasterizerState(rasterizerStateDescription);
+
         rasterizerStateDescription.FillMode = D3D11_FILL_SOLID;
         rasterizerStateDescription.CullMode = D3D11_CULL_NONE;
+        rasterizerStateDescription.AntialiasedLineEnable = false;
         m_RasterizerStates[RasterizerState_Types::RasterizerState_Shadow] = CreateRasterizerState(rasterizerStateDescription);
     }
 

@@ -15,6 +15,7 @@ namespace Aurora
         Transform,
         Material,
         RigidBody,
+        Collider,
         Unknown
     };
 

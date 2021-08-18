@@ -72,7 +72,7 @@ namespace Aurora::Math
         }
 
         // Returns the length.
-        float Length() const { return Utilities::SquareRoot(this->x * this->x + this->y * this->y + this->z * this->z + this->w * this->w); }
+        float Length() const { return Helper::SquareRoot(this->x * this->x + this->y * this->y + this->z * this->z + this->w * this->w); }
         
         // Returns the squared length.
         float LengthSquared() const { return this->x * this->x + this->y * this->y + this->z * this->z + this->w * this->w; }
@@ -82,9 +82,9 @@ namespace Aurora::Math
         {
             const float lengthSquared = LengthSquared();
 
-            if (!Utilities::Equals(lengthSquared, 1.0f) && lengthSquared > 0.0f)
+            if (!Helper::Equals(lengthSquared, 1.0f) && lengthSquared > 0.0f)
             {
-                const float lengthInverted = 1.0f / Utilities::SquareRoot(lengthSquared);
+                const float lengthInverted = 1.0f / Helper::SquareRoot(lengthSquared);
 
                 this->x *= lengthInverted;
                 this->y *= lengthInverted;
@@ -97,9 +97,9 @@ namespace Aurora::Math
         {
             const float lengthSquared = LengthSquared();
 
-            if (!Utilities::Equals(lengthSquared, 1.0f) && lengthSquared > 0.0f)
+            if (!Helper::Equals(lengthSquared, 1.0f) && lengthSquared > 0.0f)
             {
-                const float lengthInverted = 1.0f / Utilities::SquareRoot(lengthSquared);
+                const float lengthInverted = 1.0f / Helper::SquareRoot(lengthSquared);
                 return (*this) * lengthInverted;
             }
             else

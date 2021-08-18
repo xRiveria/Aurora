@@ -90,5 +90,6 @@ namespace Aurora
 
     template bool DX11_VertexBuffer::Initialize(RHI_Vertex_Type vertexType, std::vector<RHI_Vertex_Position>& vertices, DX11_Devices* devices);
     template bool DX11_VertexBuffer::Initialize(RHI_Vertex_Type vertexType, std::vector<RHI_Vertex_Position_UV>& vertices, DX11_Devices* devices);
+    template bool DX11_VertexBuffer::Initialize(RHI_Vertex_Type vertexType, std::vector<RHI_Vertex_Position_Color>& vertices, DX11_Devices* devices);
     template bool DX11_VertexBuffer::Initialize(RHI_Vertex_Type vertexType, std::vector<RHI_Vertex_Position_UV_Normal>& vertices, DX11_Devices* devices);
 }

@@ -23,6 +23,25 @@ namespace Aurora
     class Renderer : public ISubsystem
     {
     public:
+        // Passes
+        void Pass_Lines();
+
+        // Primitives Rendering
+        void TickPrimitives(const float deltaTime);
+        void DrawLine(const XMFLOAT3& fromPoint, const XMFLOAT3& toPoint, const XMFLOAT4& fromColor, const XMFLOAT4& toColor, const float duration = 0.0f, const bool depthEnabled = true);
+
+    private:
+        // Line Rendering
+        std::vector<RHI_Vertex_Position_Color> m_Lines_DepthDisabled;
+        std::vector<RHI_Vertex_Position_Color> m_Lines_DepthEnabled;
+        std::vector<float> m_Lines_DepthDisabled_Duration;
+        std::vector<float> m_Lines_DepthEnabled_Duration;
+
+        RHI_Shader m_ColorShaderVertex;
+        RHI_Shader m_ColorShaderPixel;
+        std::shared_ptr<DX11_InputLayout> m_ColorInputLayout;
+
+    public:
         Renderer(EngineContext* engineContext);
         ~Renderer();
         
@@ -61,6 +80,8 @@ namespace Aurora
 
         void LoadPipelineStates();
         void SetRenderDimensions(float width, float height) { m_RenderWidth = width; m_RenderHeight = height; }
+
+
 
     private:
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;

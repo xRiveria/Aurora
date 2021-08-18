@@ -1,14 +1,19 @@
 #pragma once
 #include <numeric>
 
-namespace Aurora::Math::Utilities
+namespace Aurora::Math::Helper
 {
+    constexpr float Epsilon = std::numeric_limits<float>::epsilon();
+    constexpr float Infinity = std::numeric_limits<float>::infinity();
     constexpr float PI = 3.14159265359f;
     constexpr float _DegreesToRadians = PI / 180.0f;
     constexpr float _RadiansToDegrees = 180.0f / PI;
 
     constexpr float DegreesToRadians(const float degrees) { return degrees * _DegreesToRadians; }
     constexpr float RadiansToDegrees(const float radians) { return radians * _RadiansToDegrees; }
+
+    template <typename T>
+    constexpr T Clamp(T value, T minimum, T maximum) { return value < minimum ? minimum : (value > maximum ? maximum : value); }
 
     template <typename T>
     constexpr T SquareRoot(T x) { return sqrt(x); }
