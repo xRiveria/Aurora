@@ -18,6 +18,8 @@ namespace Aurora
         static bool Exists(const std::string& filePath);
         static bool Delete(const std::string& filePath);
         static bool IsDirectory(const std::string& filePath);
+        static bool IsFile(const std::string& filePath);
+
         static std::string GetDirectoryFromFilePath(const std::string& filePath);
         static std::string GetExtensionFromFilePath(const std::string& filePath);
         static std::string GetFileNameFromFilePath(const std::string& filePath);
@@ -32,11 +34,17 @@ namespace Aurora
         
         // Path Absolute
         static std::string MakePathAbsolute(const std::string& filePath);
+        static std::string GetRelativePath(const std::string& filePath);
+        static std::string NativizeFilePath(const std::string& filePath);
 
         // File Operations
         static bool PushFileDataToBuffer(const std::string& fileName, std::vector<uint8_t>& data);
 
-        // Supported Files in Directory
+        // Supported Files by the Engine
+        static bool IsEngineMaterialFile(const std::string& filePath);
+        static bool IsEngineSceneFile(const std::string& filePath);
+        static bool IsEngineModelFile(const std::string& filePath);
+
         static bool IsSupportedImageFile(const std::string& filePath);
         static bool IsSupportedModelFile(const std::string& filePath);
         static bool IsEngineFile(const std::string& filePath);
@@ -45,6 +53,7 @@ namespace Aurora
     static const char* EXTENSION_TEXTURE = ".texture";
     static const char* EXTENSION_MODEL = ".model";
     static const char* EXTENSION_SCENE = ".aurora";
+    static const char* EXTENSION_MATERIAL = ".material";
 
     static const std::vector<std::string> g_Supported_Model_Formats
     {

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Resource/AuroraObject.h"
+#include "../Resource/AuroraResource.h"
 #include "../RHI_Implementation.h"
 
 namespace Aurora
@@ -12,11 +12,14 @@ namespace Aurora
         Texture_Flag_DSV = 1 << 3,       // Depth Stencil View
     };
 
-    class DX11_Texture : public AuroraObject
+    class DX11_Texture : public AuroraResource
     {
     public:
-        DX11_Texture() = default;
-        ~DX11_Texture();
+        DX11_Texture(EngineContext* engineContext);
+        ~DX11_Texture() override;
+
+        bool SaveToFile(const std::string& filePath) override;
+        bool LoadFromFile(const std::string& filePath) override;
 
         bool Initialize2DTexture(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t textureFlags, DX11_Devices* devices, uint32_t sampleLevels = 1, uint32_t mipLevels = 0, uint32_t mipSlice = 1);
         bool Initialize2DTextureFromFile(const void* sourceData, uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice, DX11_Devices* devices);

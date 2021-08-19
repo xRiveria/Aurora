@@ -110,6 +110,28 @@ namespace Aurora
         return false;
     }
 
+    bool FileSystem::IsFile(const std::string& filePath)
+    {
+        if (filePath.empty())
+        {
+            return false;
+        }
+
+        try
+        {
+            if (std::filesystem::exists(filePath) && std::filesystem::is_regular_file(filePath))
+            {
+                return true;
+            }
+        }
+        catch (std::filesystem::filesystem_error& error)
+        {
+            AURORA_WARNING(LogLayer::Engine, "%s, %s", error.what(), filePath.c_str())
+        }
+
+        return false;
+    }
+
     std::string FileSystem::GetDirectoryFromFilePath(const std::string& filePath)
     {
         const size_t lastIndex = filePath.find_last_of("\\/");
@@ -270,6 +292,70 @@ namespace Aurora
         return "Null";
     }
 
+    // Relative paths are paths that are in respect to another point in the file system. In our case, it is to our working directory.
+    std::string FileSystem::GetRelativePath(const std::string& filePath)
+    {
+        if (std::filesystem::path(filePath).is_relative())
+        {
+            return filePath;
+        }
+
+        // Create absolute paths.
+        const std::filesystem::path absolutePath = std::filesystem::absolute(filePath);
+        const std::filesystem::path relativePath = std::filesystem::absolute(GetWorkingDirectory());
+
+        // If the root paths are different, return absolute path.
+        if (absolutePath.root_path() != relativePath.root_path())
+        {
+            return absolutePath.generic_string();
+        }
+
+        // Initialize relative path.
+        std::filesystem::path result;
+
+        // Find out where the two paths diverge.
+        std::filesystem::path::const_iterator iteratorAbsolute = absolutePath.begin();
+        std::filesystem::path::const_iterator iteratorRelative = relativePath.begin();
+
+        // This loop will break once a discrepency is found between the paths or if either one ends.
+        while (*iteratorAbsolute == *iteratorRelative && iteratorAbsolute != absolutePath.end() && iteratorRelative != relativePath.end())
+        {
+            ++iteratorAbsolute;
+            ++iteratorRelative;
+        }
+
+        // Add "../" for each remaining token in iteratorRelativeTo.
+        if (iteratorRelative != relativePath.end())
+        {
+            ++iteratorRelative;
+            while (iteratorRelative != relativePath.end())
+            {
+                result /= "..";
+                ++iteratorRelative;
+            }
+        }
+
+        // Add remaining path.
+        while (iteratorAbsolute != absolutePath.end())
+        {
+            result /= *iteratorAbsolute;
+            ++iteratorAbsolute;
+        }
+
+        return result.generic_string();
+    }
+
+    std::string FileSystem::NativizeFilePath(const std::string& filePath)
+    {
+        const std::string filePathWithoutExtension = GetFileNameWithoutExtensionFromFilePath(filePath);
+
+        if (IsSupportedModelFile(filePath)) { return filePathWithoutExtension + EXTENSION_MODEL; }
+        if (IsSupportedImageFile(filePath)) { return filePathWithoutExtension + EXTENSION_TEXTURE; }
+
+        AURORA_WARNING(LogLayer::Engine, "Failed to nativize file path.");
+        return filePath;
+    }
+
     bool FileSystem::PushFileDataToBuffer(const std::string& fileName, std::vector<uint8_t>& data)
     {
         std::ifstream file(fileName, std::ios::binary | std::ios::ate);
@@ -285,6 +371,21 @@ namespace Aurora
 
         AURORA_ERROR(LogLayer::Engine, "File not found: %s.", fileName.c_str());
         return false;
+    }
+
+    bool FileSystem::IsEngineMaterialFile(const std::string& filePath)
+    {
+        return GetExtensionFromFilePath(filePath) == EXTENSION_MATERIAL;
+    }
+
+    bool FileSystem::IsEngineSceneFile(const std::string& filePath)
+    {
+        return GetExtensionFromFilePath(filePath) == EXTENSION_SCENE;
+    }
+
+    bool FileSystem::IsEngineModelFile(const std::string& filePath)
+    {
+        return GetExtensionFromFilePath(filePath) == EXTENSION_MODEL;
     }
 
     bool FileSystem::IsSupportedImageFile(const std::string& filePath)
@@ -324,6 +425,8 @@ namespace Aurora
 
     bool FileSystem::IsEngineFile(const std::string& filePath)
     {
-        return true;
+        return IsEngineModelFile(filePath)    ||
+               IsEngineMaterialFile(filePath) ||
+               IsEngineSceneFile(filePath);
     }
 }

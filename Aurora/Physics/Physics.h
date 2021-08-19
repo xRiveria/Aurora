@@ -19,10 +19,6 @@ namespace Aurora
         bool Initialize() override;
         void Tick(float deltaTime) override;
 
-        // Enable or disable the physics engine altogether.
-        void SetPhysicsEnabled(bool value) { m_IsEnabled = value; }
-        bool GetPhysicsEnabled() const { return m_IsEnabled; }
-
         // Enable or disable the physics simulation.
         void SetPhysicsSimulationEnabled(bool value) { m_IsSimulationEnabled = value; }
         bool GetPhysicsSimulationEnabled() const { return m_IsSimulationEnabled; }
@@ -48,7 +44,6 @@ namespace Aurora
         std::unique_ptr<PhysicsDebugDraw> m_DebugDrawSystem = nullptr;
 
     private:
-        bool m_IsEnabled = true;
         bool m_IsSimulationEnabled = true;
         int m_Accuracy = 1000;
     };

@@ -54,7 +54,7 @@ namespace Aurora
 
         resource->m_FilePath = filePath;
         resource->SetObjectName(FileSystem::GetFileNameFromFilePath(filePath));
-        resource->m_Type = Resource_Type::ResourceType_Image;
+        resource->SetResourceType(ResourceType::ResourceType_Image);
 
         const int channelCount = 4;
         int width, height, bytesPerPixel;

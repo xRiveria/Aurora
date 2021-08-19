@@ -32,6 +32,7 @@ namespace Aurora
         }
 
         m_PhysicsWorld->setGravity(btVector3(0, -10, 0));
+        m_PhysicsWorld->getSolverInfo().m_splitImpulse = true;
 
         AURORA_INFO(LogLayer::Physics, "Initialized Physics Engine.");
         return true;
@@ -39,7 +40,7 @@ namespace Aurora
 
     void Physics::Tick(float deltaTime)
     {
-        if (!GetPhysicsEnabled() || deltaTime <= 0 || !m_PhysicsWorld)
+        if (deltaTime <= 0 || !m_PhysicsWorld)
         {
             return;
         }
@@ -52,12 +53,14 @@ namespace Aurora
         m_PhysicsWorld->debugDrawWorld();
         //}
 
-        // Perform internal simulation step.
-        if (GetPhysicsSimulationEnabled())
+        // Don't simulate physics if they are turned off or if we are in the editor mode.
+        if (!m_EngineContext->GetEngine()->EngineFlag_IsSet(EngineFlag::EngineFlag_TickGame) || !m_EngineContext->GetEngine()->EngineFlag_IsSet(EngineFlag::EngineFlag_TickPhysics))
         {
-            // AURORA_INFO(LogLayer::Physics, "Running Physics!");
-            m_PhysicsWorld->stepSimulation(deltaTime, m_Accuracy);
+            return;
         }
+       
+        // Step the physics world. 
+        m_PhysicsWorld->stepSimulation(static_cast<float>(deltaTime), 10);    
     }
 
     void Physics::AddRigidBody(btRigidBody* rigidBodyInternal) const

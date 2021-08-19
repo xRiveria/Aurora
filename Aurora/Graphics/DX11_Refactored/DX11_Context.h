@@ -29,7 +29,7 @@ namespace Aurora
     class DX11_Context
     {
     public:
-        DX11_Context(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& deviceContext);
+        DX11_Context(EngineContext* engineContext, ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& deviceContext);
         void Initialize();
 
         void CreateSwapchain();
@@ -103,5 +103,6 @@ namespace Aurora
         uint32_t m_MaxSupportedMultisamplingLevelCount = 0; // #
         uint32_t m_MaxSupportedMultisamplingQualityCount = 0; // #
         std::shared_ptr<DX11_Devices> m_Devices; // #
+        EngineContext* m_EngineContext;
     };
 }

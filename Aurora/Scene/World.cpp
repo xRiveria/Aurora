@@ -45,14 +45,40 @@ namespace Aurora
             return;
         }
 
-        for (std::shared_ptr<Entity>& entity : m_Entities)
+        // Tick Entities.
         {
-            entity->Tick(deltaTime);
+            // Detect game toggling.
+            const bool runtimeStarted = m_EngineContext->GetEngine()->EngineFlag_IsSet(EngineFlag::EngineFlag_TickGame) && m_WasInEditorMode;
+            const bool runtimeStopped = !m_EngineContext->GetEngine()->EngineFlag_IsSet(EngineFlag::EngineFlag_TickGame) && !m_WasInEditorMode;
+            m_WasInEditorMode = !m_EngineContext->GetEngine()->EngineFlag_IsSet(EngineFlag::EngineFlag_TickGame);
+
+            // Started
+            if (runtimeStarted)
+            {
+                for (std::shared_ptr<Entity>& entity : m_Entities)
+                {
+                    entity->Start();
+                }
+            }
+
+            // Stopped
+            if (runtimeStopped)
+            {
+                for (std::shared_ptr<Entity>& entity : m_Entities)
+                {
+                    entity->Stop();
+                }
+            }
+
+            for (std::shared_ptr<Entity>& entity : m_Entities)
+            {
+                entity->Tick(deltaTime);
+            }
         }
 
         if (m_IsSceneDirty)
         {
-            // Make a copy so we can iterate while remove entities.
+            // Make a copy so we can iterate while removing entities.
             std::vector<std::shared_ptr<Entity>> entitiesCopied = m_Entities;
             
             for (std::shared_ptr<Entity>& entity : entitiesCopied)
@@ -223,8 +249,8 @@ namespace Aurora
 
     bool World::CreateDefaultObject(DefaultObjectType defaultObjectType)
     {
-        m_EngineContext->GetSubsystem<ResourceCache>()->m_Resources.push_back(std::make_shared<AuroraResource>());
-        auto& object = m_EngineContext->GetSubsystem<ResourceCache>()->m_Resources.back();
+        m_EngineContext->GetSubsystem<ResourceCache>()->m_CachedResources.push_back(std::make_shared<AuroraResource>(m_EngineContext, ResourceType::ResourceType_Model));
+        auto& object = m_EngineContext->GetSubsystem<ResourceCache>()->m_CachedResources.back();
 
         switch (defaultObjectType)
         {

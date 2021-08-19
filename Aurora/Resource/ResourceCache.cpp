@@ -1,6 +1,7 @@
 #include "Aurora.h"
 #include "ResourceCache.h"
 #include "FileSystem.h"
+#include "../Scene/World.h"
 #include "Importers/Importer_Model.h"
 #include "Importers/Importer_Image.h"
 
@@ -18,9 +19,118 @@ namespace Aurora
 
     bool ResourceCache::Initialize()
     {
-        CreateDefaultObjects();
         return true;
     }
+
+    bool ResourceCache::IsResourceCached(const std::string& resourceName, ResourceType resourceType)
+    {
+        AURORA_ASSERT(!resourceName.empty());
+
+        for (std::shared_ptr<AuroraResource>& cachedResource : m_CachedResources)
+        {
+            if (resourceName == cachedResource->GetResourceName())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    std::shared_ptr<AuroraResource>& ResourceCache::GetResourceByName(const std::string& resourceName, ResourceType resourceType)
+    {
+        for (std::shared_ptr<AuroraResource>& cachedResource : m_CachedResources)
+        {
+            if (resourceName == cachedResource->GetResourceName())
+            {
+                return cachedResource;
+            }
+        }
+
+        static std::shared_ptr<AuroraResource> emptyResource;
+        return emptyResource;
+    }
+
+    std::vector<std::shared_ptr<AuroraResource>> ResourceCache::GetResourcesByType(ResourceType resourceType)
+    {
+        std::vector<std::shared_ptr<AuroraResource>> resources;
+
+        for (std::shared_ptr<AuroraResource>& cachedResource : m_CachedResources)
+        {
+            if (cachedResource->GetResourceType() == resourceType)
+            {
+                resources.emplace_back(cachedResource);
+            }
+        }
+
+        return resources;
+    }
+
+    uint64_t ResourceCache::GetMemoryUsageCPU(ResourceType resourceType)
+    {
+        uint64_t size = 0;
+
+        for (std::shared_ptr<AuroraResource>& resource : m_CachedResources)
+        {
+            if (resource->GetResourceType() == resourceType || resourceType == ResourceType::ResourceType_Empty)
+            {
+                if (AuroraObject* auroraObject = dynamic_cast<AuroraResource*>(resource.get()))
+                {
+                    size += auroraObject->GetObjectSizeCPU();
+                }
+            }
+        }
+
+        return size;
+    }
+
+    uint64_t ResourceCache::GetMemoryUsageGPU(ResourceType resourceType)
+    {
+        uint64_t size = 0;
+
+        for (std::shared_ptr<AuroraResource>& resource : m_CachedResources)
+        {
+            if (resource->GetResourceType() == resourceType || resourceType == ResourceType::ResourceType_Empty)
+            {
+                if (AuroraObject* auroraObject = dynamic_cast<AuroraResource*>(resource.get()))
+                {
+                    size += auroraObject->GetObjectSizeGPU();
+;                }
+            }
+        }
+
+        return size;
+    }
+
+    uint32_t ResourceCache::GetResourceCount(ResourceType resourceType)
+    {
+        return static_cast<uint32_t>(GetResourcesByType(resourceType).size());
+    }
+
+    void ResourceCache::ClearCache()
+    {
+        uint32_t resourceCount = static_cast<uint32_t>(m_CachedResources.size());
+
+        m_CachedResources.clear();
+
+        AURORA_INFO(LogLayer::Engine, "%u resources have been cleared from the Resource Cache.", resourceCount);
+    }
+
+    void ResourceCache::SaveResourcesToFiles()
+    {
+        /// Progress tracker.
+
+        // Create resource list file.
+        std::string filePath = m_EngineContext->GetSubsystem<Settings>()->GetProjectDirectoryAbsolute() + m_EngineContext->GetSubsystem<World>()->GetWorldName() + "_Resources.dat";       
+    }
+
+    void ResourceCache::LoadResourcesFromFiles()
+    {
+    }
+
+    // =========================================================================================
+
+
 
     bool ResourceCache::LoadTexture(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource /*= true*/)
     {
@@ -28,7 +138,7 @@ namespace Aurora
         {
             if (cacheResource)
             {
-                m_Resources.push_back(resource);
+                m_CachedResources.push_back(resource);
             }
             return m_Importer_Image->LoadTexture(filePath, resource.get());
         }
@@ -43,7 +153,7 @@ namespace Aurora
         {
             if (cacheResource)
             {
-                m_Resources.push_back(resource);
+                m_CachedResources.push_back(resource);
             }
             return m_Importer_Model->LoadModel(filePath, resource.get());
         }
@@ -51,45 +161,4 @@ namespace Aurora
         AURORA_ERROR(LogLayer::Engine, "Requested model file is not supported: %s.", filePath.c_str());
         return false;
     }
-
-    void ResourceCache::CreateDefaultObjects()
-    {
-        /*
-        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cube] = std::make_shared<AuroraResource>();
-        m_Importer_Model->LoadModel("../Resources/Models/Default/Cube.fbx", m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cube].get());
-
-        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Sphere] = std::make_shared<AuroraResource>();
-        m_Importer_Model->LoadModel("../Resources/Models/Default/Sphere.fbx", m_DefaultObjects[DefaultObjectType::DefaultObjectType_Sphere].get());
-
-        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Plane] = std::make_shared<AuroraResource>();
-        m_Importer_Model->LoadModel("../Resources/Models/Default/Plane.fbx", m_DefaultObjects[DefaultObjectType::DefaultObjectType_Plane].get());
-
-        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cylinder] = std::make_shared<AuroraResource>();
-        m_Importer_Model->LoadModel("../Resources/Models/Default/Cylinder.fbx", m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cylinder].get());
-
-        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Torus] = std::make_shared<AuroraResource>();
-        m_Importer_Model->LoadModel("../Resources/Models/Default/Torus.fbx", m_DefaultObjects[DefaultObjectType::DefaultObjectType_Torus].get());
-
-        m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cone] = std::make_shared<AuroraResource>();
-        m_Importer_Model->LoadModel("../Resources/Models/Default/Cone.fbx", m_DefaultObjects[DefaultObjectType::DefaultObjectType_Cone].get());
-        */
-    }
-
-    /*
-    std::shared_ptr<AuroraResource> ResourceCache::LoadTexture(const std::string& filePath, const std::string& fileName, uint32_t loadFlags)
-    {
-        if (FileSystem::IsSupportedImageFile(filePath))
-        {
-            return m_Importer_Image->LoadTexture(filePath, fileName, loadFlags);
-        }
-
-        AURORA_ERROR(LogLayer::Engine, "Requested image file is not supported: %s.", filePath.c_str());
-        return nullptr;
-    }
-
-    std::shared_ptr<AuroraResource> ResourceCache::LoadTextureHDR(const std::string& filePath, int channels)
-    {
-        return m_Importer_Image->LoadHDRTexture(filePath, channels);
-    }
-    */
 }

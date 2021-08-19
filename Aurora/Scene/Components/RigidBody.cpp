@@ -84,7 +84,7 @@ namespace Aurora
     void RigidBody::Tick(float deltaTime)
     {
         // When the rigidbody is inactive or we are in editor mode, allow the user to move/rotate it.
-        if (!GetActivationState()) /// Runtime
+        if (!GetActivationState() || !m_EngineContext->GetEngine()->EngineFlag_IsSet(EngineFlag::EngineFlag_TickGame))
         {
             if (GetPosition() != GetEntity()->GetTransform()->GetPosition())
             {

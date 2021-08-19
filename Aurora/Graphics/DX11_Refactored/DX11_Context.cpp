@@ -10,12 +10,13 @@
 
 namespace Aurora
 {
-    DX11_Context::DX11_Context(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& deviceContext)
+    DX11_Context::DX11_Context(EngineContext* engineContext, ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& deviceContext)
     {
         m_Devices = std::make_shared<DX11_Devices>();
 
         m_Devices->m_Device = device.Get();
         m_Devices->m_DeviceContextImmediate = deviceContext.Get();
+        m_EngineContext = engineContext;
     }
 
     void DX11_Context::Initialize()
@@ -36,14 +37,14 @@ namespace Aurora
         AURORA_INFO(LogLayer::Serialization, "Resizing Buffers...");
 
         // Multisample Framebuffer
-        m_MultisampleFramebuffer = std::make_shared<DX11_Framebuffer>();
-        m_MultisampleFramebuffer->m_RenderTargetTexture.Initialize2DTexture(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, DX11_ResourceViewFlag::Texture_Flag_RTV, m_Devices.get(), m_CurrentMultisampleLevelCount, 1);
-        m_MultisampleFramebuffer->m_DepthStencilTexture.Initialize2DTexture(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_D24_UNORM_S8_UINT, DX11_ResourceViewFlag::Texture_Flag_DSV, m_Devices.get(), m_CurrentMultisampleLevelCount, 1);
+        m_MultisampleFramebuffer = std::make_shared<DX11_Framebuffer>(m_EngineContext);
+        m_MultisampleFramebuffer->m_RenderTargetTexture->Initialize2DTexture(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, DX11_ResourceViewFlag::Texture_Flag_RTV, m_Devices.get(), m_CurrentMultisampleLevelCount, 1);
+        m_MultisampleFramebuffer->m_DepthStencilTexture->Initialize2DTexture(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_D24_UNORM_S8_UINT, DX11_ResourceViewFlag::Texture_Flag_DSV, m_Devices.get(), m_CurrentMultisampleLevelCount, 1);
         AURORA_INFO(LogLayer::Serialization, "Resized MSAA Framebuffer.");
 
         // Resolve Framebuffer
-        m_ResolveFramebuffer = std::make_shared<DX11_Framebuffer>();
-        m_ResolveFramebuffer->m_RenderTargetTexture.Initialize2DTexture(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, DX11_ResourceViewFlag::Texture_Flag_RTV | DX11_ResourceViewFlag::Texture_Flag_SRV, m_Devices.get(), 1);
+        m_ResolveFramebuffer = std::make_shared<DX11_Framebuffer>(m_EngineContext);
+        m_ResolveFramebuffer->m_RenderTargetTexture->Initialize2DTexture(m_RenderWidth, m_RenderHeight, DXGI_FORMAT_R16G16B16A16_FLOAT, DX11_ResourceViewFlag::Texture_Flag_RTV | DX11_ResourceViewFlag::Texture_Flag_SRV, m_Devices.get(), 1);
         AURORA_INFO(LogLayer::Serialization, "Resized Resolve Framebuffer.");
 
         // Bloom Texture
@@ -160,21 +161,21 @@ namespace Aurora
 
     std::shared_ptr<DX11_Texture> DX11_Context::CreateTexture2D(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t textureFlags, uint32_t sampleLevels, uint32_t mipLevels, uint32_t mipSlice)
     {
-        std::shared_ptr<DX11_Texture> texture = std::make_shared<DX11_Texture>();
+        std::shared_ptr<DX11_Texture> texture = std::make_shared<DX11_Texture>(m_EngineContext);
         texture->Initialize2DTexture(textureWidth, textureHeight, format, textureFlags, m_Devices.get(), sampleLevels, mipLevels, mipSlice);
         return texture;
     }
 
     std::shared_ptr<DX11_Texture> DX11_Context::CreateTexture2DFromData(const void* sourceData, uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice)
     {
-        std::shared_ptr<DX11_Texture> texture = std::make_shared<DX11_Texture>();
+        std::shared_ptr<DX11_Texture> texture = std::make_shared<DX11_Texture>(m_EngineContext);
         texture->Initialize2DTextureFromFile(sourceData, textureWidth, textureHeight, format, sampleLevels, textureFlags, mipSlice, m_Devices.get());
         return texture;
     }
 
     std::shared_ptr<DX11_Texture> DX11_Context::CreateTextureCube(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t mipLevels)
     {
-        std::shared_ptr<DX11_Texture> textureCube = std::make_shared<DX11_Texture>();
+        std::shared_ptr<DX11_Texture> textureCube = std::make_shared<DX11_Texture>(m_EngineContext);
         textureCube->InitializeTextureCube(textureWidth, textureHeight, format, m_Devices.get(), mipLevels);
         return textureCube;
     }
@@ -261,9 +262,9 @@ namespace Aurora
 
     void DX11_Context::ResolveFramebuffer(const DX11_Framebuffer* sourceFramebuffer, const DX11_Framebuffer* destinationFramebuffer, DXGI_FORMAT format)
     {
-        if (sourceFramebuffer->m_RenderTargetTexture.GetTexture() != destinationFramebuffer->m_RenderTargetTexture.GetTexture())
+        if (sourceFramebuffer->m_RenderTargetTexture->GetTexture() != destinationFramebuffer->m_RenderTargetTexture->GetTexture())
         {
-            m_Devices->m_DeviceContextImmediate->ResolveSubresource(destinationFramebuffer->m_RenderTargetTexture.GetTexture().Get(), 0, sourceFramebuffer->m_RenderTargetTexture.GetTexture().Get(), 0, format);
+            m_Devices->m_DeviceContextImmediate->ResolveSubresource(destinationFramebuffer->m_RenderTargetTexture->GetTexture().Get(), 0, sourceFramebuffer->m_RenderTargetTexture->GetTexture().Get(), 0, format);
         }
     }
 

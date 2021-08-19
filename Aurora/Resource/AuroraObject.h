@@ -20,6 +20,7 @@ namespace Aurora
 
         void SetObjectID(const uint32_t newID) { m_ObjectID = newID; }
         void SetObjectName(const std::string& objectName) { m_ObjectName = objectName; }
+
         /// Might need improvement.
         static uint32_t GenerateObjectID() { return static_cast<uint32_t>(rand()); }  // Generates and returns an object ID. Seeded at the start of each run.
 

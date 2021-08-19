@@ -37,7 +37,7 @@ void Viewport::OnTickVisible()
         m_Height = height;
     }
 
-    ImGui::Image((void*)m_RendererSubsystem->m_DeviceContext->m_ResolveFramebuffer->m_RenderTargetTexture.GetShaderResourceView().Get(), ImVec2(width, height));
+    ImGui::Image((void*)m_RendererSubsystem->m_DeviceContext->m_ResolveFramebuffer->m_RenderTargetTexture->GetShaderResourceView().Get(), ImVec2(width, height));
 
     // Handle model dropping.
     if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Entity))
@@ -55,7 +55,7 @@ void Viewport::OnTickVisible()
     }
     else if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Model))
     {
-        std::shared_ptr<Aurora::AuroraResource> resource = std::make_shared<Aurora::AuroraResource>();
+        std::shared_ptr<Aurora::AuroraResource> resource = std::make_shared<Aurora::AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Model);
         m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadModel(std::get<const char*>(payload->m_Data), resource);
         resource->m_Entity->m_Transform->Scale({ 0.01, 0.01, 0.01 });
     }

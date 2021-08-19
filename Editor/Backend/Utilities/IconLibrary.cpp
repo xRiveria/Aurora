@@ -100,7 +100,7 @@ const Icon& IconLibrary::LoadIcon_(const std::string& filePath, IconType iconTyp
     // Deduce File Path Type
     if (Aurora::FileSystem::IsSupportedImageFile(filePath))
     {
-        std::shared_ptr<Aurora::AuroraResource> texture = std::make_shared<Aurora::AuroraResource>();
+        std::shared_ptr<Aurora::AuroraResource> texture = std::make_shared<Aurora::AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Image);
 
         // Make a cheap texture.
         //m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath, texture](Aurora::JobInformation jobArguments)

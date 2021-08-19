@@ -56,7 +56,8 @@ namespace Aurora
         std::shared_ptr<Serializer> m_Serializer;
         std::string m_WorldName = "Untitled_Scene";  // Or Scene Name.
 
-        bool m_IsSceneDirty = false;
+        bool m_IsSceneDirty = true;
+        bool m_WasInEditorMode = false;
 
         std::vector<std::shared_ptr<Entity>> m_Entities;
     };

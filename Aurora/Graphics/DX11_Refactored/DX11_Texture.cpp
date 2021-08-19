@@ -4,9 +4,24 @@
 
 namespace Aurora
 {
+    DX11_Texture::DX11_Texture(EngineContext* engineContext) : AuroraResource(engineContext, ResourceType::ResourceType_Image)
+    {
+
+    }
+
     DX11_Texture::~DX11_Texture()
     {
         _DestroyTexture();
+    }
+
+    bool DX11_Texture::SaveToFile(const std::string& filePath)
+    {
+        return true;
+    }
+
+    bool DX11_Texture::LoadFromFile(const std::string& filePath)
+    {
+        return true;
     }
 
     bool DX11_Texture::Initialize2DTexture(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t textureFlags, DX11_Devices* devices, uint32_t sampleLevels, uint32_t mipLevels, uint32_t mipSlice)

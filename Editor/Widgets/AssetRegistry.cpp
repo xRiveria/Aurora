@@ -19,10 +19,11 @@ void AssetRegistry::OnTickVisible()
     ImGui::Columns(2);
     ImGui::AlignTextToFramePadding();
 
-    uint32_t cacheSize = static_cast<uint32_t>(m_ResourceCache->GetCachedResources().size());
+
+    uint32_t cacheSize = static_cast<uint32_t>(m_ResourceCache->m_CachedResources.size());
     for (uint32_t i = 0; i < cacheSize; i++)
     {
-        auto& resource = m_ResourceCache->GetCachedResources()[i];
+        Aurora::AuroraResource* resource = m_ResourceCache->m_CachedResources[i].get();
 
         // Apply search filter.
         if (!g_FilterByType)
@@ -34,7 +35,7 @@ void AssetRegistry::OnTickVisible()
         }
         else
         {
-            if (!m_RegistryFilter.PassFilter(resource->TypeToString().c_str()))
+            if (!m_RegistryFilter.PassFilter(resource->GetResourceTypeInCString()))
             {
                 continue;
             }
@@ -47,7 +48,7 @@ void AssetRegistry::OnTickVisible()
         std::string buffer = resourceHandle;
 
         std::string objectName = resource->GetObjectName();
-        std::string resourceType = resource->TypeToString();
+        std::string resourceType = resource->GetResourceTypeInCString();
 
         PropertyInput("Handle", buffer);
         PropertyInput("File Path", objectName);
@@ -57,7 +58,7 @@ void AssetRegistry::OnTickVisible()
         {
             ImGui::Separator();
         }
-
+     
         ImGui::PopID();
     }
 

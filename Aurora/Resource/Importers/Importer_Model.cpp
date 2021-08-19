@@ -131,7 +131,7 @@ namespace Aurora
             return false;
         }
 
-        resource->m_Type = Resource_Type::ResourceType_Model;
+        resource->SetResourceType(ResourceType::ResourceType_Model);
         resource->m_FilePath = filePath;
         resource->SetObjectName(FileSystem::GetFileNameFromFilePath(filePath));
 
@@ -391,7 +391,7 @@ namespace Aurora
                     const std::string deducedPath = ValidateTexturePath(texturePath.data, modelParameters.m_FilePath);
                     if (FileSystem::IsSupportedImageFile(deducedPath))
                     {
-                        material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>();
+                        material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Image);
                         m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(deducedPath, material->m_Textures[engineSlotType]);
 
                         if (typeAssimp == aiTextureType_BASE_COLOR || typeAssimp == aiTextureType_DIFFUSE)
@@ -407,7 +407,7 @@ namespace Aurora
             }
 
             AURORA_WARNING(LogLayer::Graphics, "Could not find texture of appropriate type. Binding default texture...");
-            material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>();
+            material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Image);
             m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture->m_FilePath, material->m_Textures[engineSlotType]);
             // material->m_Textures[engineSlotType] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
         };

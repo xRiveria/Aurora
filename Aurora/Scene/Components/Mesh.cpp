@@ -6,7 +6,7 @@ namespace Aurora
 {
     Mesh::Mesh(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
-
+        m_MeshData = std::make_shared<DX11_MeshData>(engineContext);
     }
 
     void Mesh::Serialize(SerializationStream& outputStream)
@@ -99,7 +99,7 @@ namespace Aurora
     void Mesh::CreateRenderData()
     {
         auto& rendererContext = m_EngineContext->GetSubsystem<Renderer>()->m_DeviceContext;
-        m_MeshData.m_IndexBuffer = rendererContext->CreateIndexBuffer(m_Indices);
+        m_MeshData->m_IndexBuffer = rendererContext->CreateIndexBuffer(m_Indices);
 
         // Grab vertex positions and store them in our own data structure.
         std::vector<RHI_Vertex_Position_UV_Normal> m_VertexPositionUVNormal(m_VertexPositions.size());
@@ -137,7 +137,7 @@ namespace Aurora
             m_VertexPositionUVNormal[i].m_Normal = texNormals;
         }
 
-        m_MeshData.m_VertexBuffer = rendererContext->CreateVertexBuffer(RHI_Vertex_Type::VertexType_PositionUVNormal, m_VertexPositionUVNormal);
+        m_MeshData->m_VertexBuffer = rendererContext->CreateVertexBuffer(RHI_Vertex_Type::VertexType_PositionUVNormal, m_VertexPositionUVNormal);
 
         // RHI_Subresource_Data indexInitializationData;
         // DX11_GraphicsDevice* graphicsDevice = m_EngineContext->GetSubsystem<Renderer>()->m_GraphicsDevice.get();

@@ -46,7 +46,7 @@ namespace Aurora
     bool Renderer::Initialize()
     {
         m_GraphicsDevice = std::make_shared<DX11_GraphicsDevice>(m_EngineContext, true); // Previous core API context. We will keep this around for now.
-        m_DeviceContext = std::make_shared<DX11_Context>(m_GraphicsDevice->m_Device, m_GraphicsDevice->m_DeviceContextImmediate); // New core API context. To replace in due time.
+        m_DeviceContext = std::make_shared<DX11_Context>(m_EngineContext, m_GraphicsDevice->m_Device, m_GraphicsDevice->m_DeviceContextImmediate); // New core API context. To replace in due time.
 
         m_ShaderCompiler.Initialize();
         LoadShaders(); /// Yet to migrate.
@@ -238,8 +238,8 @@ namespace Aurora
     {
         Stopwatch widgetStopwatch("Renderer Pass");
 
-        if (static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetWidth()) != m_RenderWidth ||
-            static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetHeight()) != m_RenderHeight)
+        if (static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture->GetWidth()) != m_RenderWidth ||
+            static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture->GetHeight()) != m_RenderHeight)
         {
             ResizeBuffers();
             m_DeviceContext->ResizeBuffers();
@@ -333,10 +333,10 @@ namespace Aurora
         // ================ Scene Pass ==================================
         m_GraphicsDevice->BindPipelineState(&m_PSO_Object_Wire, 0);
 
-        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetRenderTargetView().GetAddressOf(), m_DeviceContext->m_MultisampleFramebuffer->m_DepthStencilTexture.GetDepthStencilView().Get());
+        m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture->GetRenderTargetView().GetAddressOf(), m_DeviceContext->m_MultisampleFramebuffer->m_DepthStencilTexture->GetDepthStencilView().Get());
 
-        m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture.GetRenderTargetView().Get(), color);
-        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(m_DeviceContext->m_MultisampleFramebuffer->m_DepthStencilTexture.GetDepthStencilView().Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearRenderTargetView(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture->GetRenderTargetView().Get(), color);
+        m_GraphicsDevice->m_DeviceContextImmediate->ClearDepthStencilView(m_DeviceContext->m_MultisampleFramebuffer->m_DepthStencilTexture->GetDepthStencilView().Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         ///==============================
         RenderScene();
@@ -386,8 +386,8 @@ namespace Aurora
             UINT offset = 0;
             UINT modelStride = 8 * sizeof(float);
 
-            m_DeviceContext->BindVertexBuffer(meshComponent.m_MeshData.m_VertexBuffer.get());
-            m_DeviceContext->BindIndexBuffer(meshComponent.m_MeshData.m_IndexBuffer.get());
+            m_DeviceContext->BindVertexBuffer(meshComponent.m_MeshData->m_VertexBuffer.get());
+            m_DeviceContext->BindIndexBuffer(meshComponent.m_MeshData->m_IndexBuffer.get());
 
             if (meshComponent.GetEntity()->HasComponent<Material>())
             {

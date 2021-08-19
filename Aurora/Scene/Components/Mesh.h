@@ -26,7 +26,7 @@ namespace Aurora
         std::vector<XMFLOAT2> m_UVSet_0;
 
         // Abstract away this information and store it in our newly created DX11_MeshData struct.
-        DX11_MeshData m_MeshData;
+        std::shared_ptr<DX11_MeshData> m_MeshData = nullptr;
 
         // RHI_GPU_Buffer m_IndexBuffer;
         // RHI_GPU_Buffer m_VertexBuffer_Position;

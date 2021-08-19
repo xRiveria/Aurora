@@ -13,8 +13,14 @@ namespace Aurora
     // A framebuffer object allows us to specify attachments that are used for rendering. This includes the render textures (color/depth) and their respective views.
     struct DX11_Framebuffer
     {
-        DX11_Texture m_RenderTargetTexture;
-        DX11_Texture m_DepthStencilTexture;
+        DX11_Framebuffer(EngineContext* engineContext)
+        {
+            m_RenderTargetTexture = std::make_shared<DX11_Texture>(engineContext);
+            m_DepthStencilTexture = std::make_shared<DX11_Texture>(engineContext);
+        }
+
+        std::shared_ptr<DX11_Texture> m_RenderTargetTexture;
+        std::shared_ptr<DX11_Texture> m_DepthStencilTexture;
     };
 
     inline UINT ParseBindFlags(uint32_t resourceFlags)

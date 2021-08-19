@@ -17,6 +17,10 @@ namespace Aurora
 {
     Engine::Engine()
     {
+        // Flags
+        m_EngineFlags |= EngineFlag::EngineFlag_TickPhysics;
+        m_EngineFlags |= EngineFlag::EngineFlag_TickGame;
+
         // Create Engine Context
         m_EngineContext = std::make_shared<EngineContext>(this);
 

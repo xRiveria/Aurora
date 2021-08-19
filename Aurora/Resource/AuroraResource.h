@@ -1,15 +1,18 @@
 #pragma once
 #include "../Resource/AuroraObject.h"
-#include "../Scene/Entity.h"
-#include "../Graphics/DX11_Refactored/DX11_Texture.h"
+#include "FileSystem.h"
 #include "../Graphics/DX11_Refactored/DX11_VertexBuffer.h"
 #include "../Graphics/DX11_Refactored/DX11_IndexBuffer.h"
+#include "../Scene/Entity.h"
 #include <memory>
 #include <variant>
 
 namespace Aurora
 {
-    enum Resource_Type
+    class DX11_Texture;
+    class DX11_MeshData;
+
+    enum ResourceType
     {
         ResourceType_Empty,
         ResourceType_Image,
@@ -17,59 +20,101 @@ namespace Aurora
         ResourceType_Model
     };
 
-    // A struct holding crucial information regarding a mesh/model's polygons, normals etc.
-    struct DX11_MeshData
+    enum class LoadState
     {
-        DX11_MeshData() = default;
-
-        std::shared_ptr<DX11_VertexBuffer> m_VertexBuffer = nullptr;
-        std::shared_ptr<DX11_IndexBuffer> m_IndexBuffer = nullptr;
+        LoadState_Idle,
+        LoadState_Started,
+        LoadState_Completed,
+        LoadState_Failed
     };
 
+    // Simply add additional resource layer to objects.
     class AuroraResource : public AuroraObject
     {
     public:
-        // Aurora::RHI_Texture m_Texture;
+        AuroraResource(EngineContext* engineContext, ResourceType resourceType);
+        virtual ~AuroraResource() = default;
 
-        // ===================================================================
-        std::string TypeToString()
+        void SetResourceFilePath(const std::string& filePath)
         {
-            switch (m_Type)
+            const bool isNativeFile = FileSystem::IsEngineMaterialFile(filePath) || FileSystem::IsEngineModelFile(filePath);
+
+            // If this is a native engine file, don't do a file check as no actual foreign material exists (it was created on the fly).
+            if (!isNativeFile)
             {
-                case Resource_Type::ResourceType_Empty:
-                    return "Empty";
-
-                case Resource_Type::ResourceType_Image:
-                    return "Image";
-
-                case Resource_Type::ResourceType_Audio:
-                    return "Audio";
-
-                case Resource_Type::ResourceType_Model:
-                    return "Model";
+                if (!FileSystem::IsFile(filePath))
+                {
+                    AURORA_ERROR(LogLayer::Engine, "The provided path \"%s\" is not valid.", filePath.c_str());
+                    return;
                 }
+            }
 
-            return "Invalid Resource Type";
+            const std::string filePathRelative = FileSystem::GetRelativePath(filePath);
+
+            // Foreign file.
+            if (!FileSystem::IsEngineFile(filePath))
+            {
+                m_ResourceFilePathForeign = filePathRelative;
+                m_ResourceFilePathNative = FileSystem::NativizeFilePath(filePathRelative);
+            }
+            // Native File
+            else
+            {
+                m_ResourceFilePathForeign.clear();
+                m_ResourceFilePathNative = filePathRelative;
+            }
+
+            m_ResourceName = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePathRelative);
+            m_ResourceDirectory = FileSystem::GetDirectoryFromFilePath(filePathRelative);
         }
-   
+
+        void SetResourceType(ResourceType resourceType) { m_ResourceType = resourceType; }
+        ResourceType GetResourceType() const { return m_ResourceType; }
+
+        const char* GetResourceTypeInCString() const { return typeid(*this).name(); }
+        const std::string& GetResourceFilePath() const { return m_ResourceFilePathForeign; }
+        bool HasFilePathNative() const { return !m_ResourceFilePathNative.empty(); }
+        const std::string& GetResourceFilePathNative() const { return m_ResourceFilePathNative; }
+        const std::string& GetResourceName() const { return m_ResourceName; }
+        const std::string& GetResourceDirectory() const { return m_ResourceDirectory; }
+
+        // Misc
+        LoadState GetLoadState() const { return m_LoadState; }
+
+        // IO
+        virtual bool SaveToFile(const std::string& filePath) { return true; }
+        virtual bool LoadFromFile(const std::string& filePath) { return true; }
+
+        // Type
+        template<typename T>
+        static constexpr ResourceType TypeToEnum();
+
+    public:
         std::shared_ptr<DX11_Texture> m_Texture;
-        std::vector<DX11_MeshData> m_Meshes; // Future types.
+        std::vector<std::shared_ptr<DX11_MeshData>> m_Meshes; // Future types.
         Entity* m_Entity = nullptr; // Texture and Models involve entities. We store them here for reference.
 
-        Resource_Type m_Type = Resource_Type::ResourceType_Empty;
         std::string m_FilePath = "Empty Path";
+
+    protected:
+        ResourceType m_ResourceType = ResourceType::ResourceType_Empty;
+        std::atomic<LoadState> m_LoadState = LoadState::LoadState_Idle;
+
+    private:
+        std::string m_ResourceName;
+        std::string m_ResourceDirectory;
+        std::string m_ResourceFilePathNative;
+        std::string m_ResourceFilePathForeign;
     };
 
-    enum Resource_Load_Mode
+    // A struct holding crucial information regarding a mesh/model's polygons, normals etc.
+    class DX11_MeshData : public AuroraResource
     {
-        Import_Discard_File_Data_After_Load,                   // Default behavior. The file data will be discarded after loading. This will not allow serialization of embedded resources. Less memory will be used overall.
-        Import_Allow_Retain_File_Data,                         // Allows for the file data to be kept. This mode allows serialization of embedded resources which request it.
-        Import_Allow_Retain_File_Data_Without_Embedding        // Allows keeping of file data, but it won't be embedded by the serializer.
-    };
+    public:
+        DX11_MeshData(EngineContext* engineContext);
+        ~DX11_MeshData() override;
 
-    enum Resource_Flags
-    {
-        Import_Color_Grading_LUT = 1 << 0,                     // Image import will convert the resource to 3D color grading LUT.
-        Import_Retain_File_Data  = 1 << 1                      // File data will be kept for later reuse. This is required for keeping the resourced serializable. 
+        std::shared_ptr<DX11_VertexBuffer> m_VertexBuffer = nullptr;
+        std::shared_ptr<DX11_IndexBuffer> m_IndexBuffer = nullptr;
     };
 }
