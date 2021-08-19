@@ -334,7 +334,7 @@ namespace Aurora
         debugPipelineDescription.m_DepthStencilState = &RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead];
         debugPipelineDescription.m_RasterizerState = &RendererGlobals::g_RasterizerStates[RS_Types::RS_Wire_DoubleSided_Smooth];
         debugPipelineDescription.m_BlendState = &RendererGlobals::g_BlendStates[BS_Types::BS_Transparent];
-        debugPipelineDescription.m_PrimitiveTopology = Primitive_Topology::LineList;
+        debugPipelineDescription.m_PrimitiveTopology = RHI_Primitive_Topology::LineList;
 
         m_GraphicsDevice->CreatePipelineState(&debugPipelineDescription, &RendererGlobals::m_PSO_Object_Debug[DebugRenderer_Type::DebugRenderer_Grid]);
     }

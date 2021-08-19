@@ -36,9 +36,9 @@ namespace Aurora
 
         D3D11_BUFFER_DESC bufferDescription = {};
         bufferDescription.ByteWidth = static_cast<UINT>(m_ObjectSizeGPU);
-        bufferDescription.Usage = isDynamicBuffer ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_IMMUTABLE;
+        bufferDescription.Usage = D3D11_USAGE_DYNAMIC;
         bufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-        bufferDescription.CPUAccessFlags = isDynamicBuffer ? D3D11_CPU_ACCESS_WRITE : 0;
+        bufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
         bufferDescription.MiscFlags = 0;
         bufferDescription.StructureByteStride = 0;
 

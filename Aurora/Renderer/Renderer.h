@@ -23,6 +23,8 @@ namespace Aurora
     class Renderer : public ISubsystem
     {
     public:
+        void InitializeShaders();
+
         // Passes
         void Pass_Lines();
 
@@ -32,6 +34,7 @@ namespace Aurora
 
     private:
         // Line Rendering
+        std::shared_ptr<DX11_VertexBuffer> m_Lines_VertexBuffer;
         std::vector<RHI_Vertex_Position_Color> m_Lines_DepthDisabled;
         std::vector<RHI_Vertex_Position_Color> m_Lines_DepthEnabled;
         std::vector<float> m_Lines_DepthDisabled_Duration;

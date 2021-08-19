@@ -98,7 +98,7 @@ namespace Aurora
         const RHI_RasterizerState*      m_Previous_RasterizerState[g_CommandList_Count] = {};
         const RHI_DepthStencilState*    m_Previous_DepthStencilState[g_CommandList_Count] = {};
         const RHI_InputLayout*          m_Previous_InputLayout[g_CommandList_Count] = {};
-        Primitive_Topology              m_Previous_PrimitiveTopology[g_CommandList_Count] = {};
+        RHI_Primitive_Topology              m_Previous_PrimitiveTopology[g_CommandList_Count] = {};
         uint32_t                        m_Previous_SampleMask[g_CommandList_Count] = {};
 
         std::vector<const RHI_SwapChain*> m_SwapChains[g_CommandList_Count] = {};

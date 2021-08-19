@@ -625,23 +625,20 @@ namespace Aurora
         D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
         switch (pipelineDescription.m_PrimitiveTopology)
         {
-        case Primitive_Topology::TriangleList:
+        case RHI_Primitive_Topology::TriangleList:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
             break;
-        case Primitive_Topology::TriangleStrip:
+        case RHI_Primitive_Topology::TriangleStrip:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
             break;
-        case Primitive_Topology::PointList:
+        case RHI_Primitive_Topology::PointList:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
             break;
-        case Primitive_Topology::LineList:
+        case RHI_Primitive_Topology::LineList:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
             break;
-        case Primitive_Topology::LineStrip:
+        case RHI_Primitive_Topology::LineStrip:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-            break;
-        case Primitive_Topology::PatchList:
-            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
             break;
         default:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
@@ -1293,23 +1290,20 @@ namespace Aurora
         D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
         switch (pipelineDescription.m_PrimitiveTopology)
         {
-        case Primitive_Topology::TriangleList:
+        case RHI_Primitive_Topology::TriangleList:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
             break;
-        case Primitive_Topology::TriangleStrip:
+        case RHI_Primitive_Topology::TriangleStrip:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
             break;
-        case Primitive_Topology::PointList:
+        case RHI_Primitive_Topology::PointList:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
             break;
-        case Primitive_Topology::LineList:
+        case RHI_Primitive_Topology::LineList:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
             break;
-        case Primitive_Topology::LineStrip:
+        case RHI_Primitive_Topology::LineStrip:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-            break;
-        case Primitive_Topology::PatchList:
-            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
             break;
         default:
             primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;

@@ -99,20 +99,69 @@ namespace Aurora
                 break;
 
             case ColliderShape::ColliderShape_Cylinder:
-                AURORA_WARNING(LogLayer::Physics, "Cylinder colliders are not supported yet.");
+                m_ShapeInternal = new btBoxShape(ToBulletVector3(XMFLOAT3(m_Size.x * 0.5f, m_Size.y * 0.5f, m_Size.z * 0.5f)));
+                m_ShapeInternal->setLocalScaling(ToBulletVector3(worldScale));
+                AURORA_WARNING(LogLayer::Physics, "Cylinder colliders are not supported yet. Adding box collider...");
                 break;
 
             case ColliderShape::ColliderShape_Capsule:
-                AURORA_WARNING(LogLayer::Physics, "Capsule colliders are not supported yet.");
+                m_ShapeInternal = new btBoxShape(ToBulletVector3(XMFLOAT3(m_Size.x * 0.5f, m_Size.y * 0.5f, m_Size.z * 0.5f)));
+                m_ShapeInternal->setLocalScaling(ToBulletVector3(worldScale));
+                AURORA_WARNING(LogLayer::Physics, "Capsule colliders are not supported yet. Adding box collider...");
                 break;
 
             case ColliderShape::ColliderShape_Cone:
-                AURORA_WARNING(LogLayer::Physics, "Cone colliders are not supported yet.");
+                m_ShapeInternal = new btBoxShape(ToBulletVector3(XMFLOAT3(m_Size.x * 0.5f, m_Size.y * 0.5f, m_Size.z * 0.5f)));
+                m_ShapeInternal->setLocalScaling(ToBulletVector3(worldScale));
+                AURORA_WARNING(LogLayer::Physics, "Cone colliders are not supported yet. Adding box collider...");
                 break;
 
             case ColliderShape::ColliderShape_Mesh:
-                AURORA_WARNING(LogLayer::Physics, "Mesh colliders are not supported yet.");
+                m_ShapeInternal = new btBoxShape(ToBulletVector3(XMFLOAT3(m_Size.x * 0.5f, m_Size.y * 0.5f, m_Size.z * 0.5f)));
+                m_ShapeInternal->setLocalScaling(ToBulletVector3(worldScale));
+                AURORA_WARNING(LogLayer::Physics, "Mesh colliders are not supported yet. Adding box collider...");
+                /*
+                // Get mesh component.
+                Mesh* meshComponent = GetEntity()->GetComponent<Mesh>();
+                if (!meshComponent)
+                {
+                    AURORA_WARNING(LogLayer::Physics, "Entity does not have mesh component to construct a Mesh collider from.");
+                    return;
+                }
+
+                // Validate vertex count.
+                if (meshComponent->m_VertexPositions.size() >= m_VertexLimit)
+                {
+                    AURORA_WARNING(LogLayer::Physics, "No user defined collider with more than %u vertices is allowed.", m_VertexLimit);
+                    return;
+                }
+
+                // Get geometry.
+                auto& meshVertices = meshComponent->m_VertexPositions;
+                if (meshVertices.empty())
+                {
+                    AURORA_WARNING(LogLayer::Physics, "Mesh object has no vertices.");
+                    return;
+                }
+
+                // Construct hull approximation.
+                m_ShapeInternal = new btConvexHullShape(
+                    (btScalar*)&meshVertices[0],
+                    meshComponent->m_MeshData.m_VertexBuffer->GetVertexCount(),
+                    meshComponent->m_MeshData.m_VertexBuffer->GetStride());
+
+                // Scaling has to be done before potential optimization.
+                m_ShapeInternal->setLocalScaling(ToBulletVector3(worldScale));
+
+                // Optimize if needed.
+                if (m_IsOptimizationEnabled)
+                {
+                    auto hull = static_cast<btConvexHullShape*>(m_ShapeInternal);
+                    hull->optimizeConvexHull();
+                    hull->initializePolyhedralFeatures();
+                }
                 break;;
+                */
         }
 
         m_ShapeInternal->setUserPointer(this);

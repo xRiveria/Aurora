@@ -75,12 +75,6 @@ namespace Aurora
         m_DirectionalLight->SetName("Directional Light");
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
-        // m_EngineContext->GetSubsystem<World>()->CreateDefaultObject(DefaultObjectType::DefaultObjectType_Sphere);
-
-        std::shared_ptr<AuroraResource> resource = std::make_shared<AuroraResource>();
-        m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/ShaderBall/ball.obj", resource);
-        resource->m_Entity->m_Transform->Scale({ 0.01, 0.01, 0.01 });
-
         // For scissor rects in our rasterizer set.
         D3D11_RECT pRects[8];
         for (uint32_t i = 0; i < 8; ++i)
@@ -99,6 +93,8 @@ namespace Aurora
 
         m_Skybox = std::make_shared<Skybox>(m_EngineContext);
         m_Skybox->InitializeResources();
+
+        InitializeShaders();
         return true;
     }
 
@@ -346,8 +342,7 @@ namespace Aurora
         RenderScene();
         m_Skybox->Render();
         DrawDebugWorld(m_Camera.get());
-
-        TickPrimitives(deltaTime);
+        Pass_Lines();
 
         m_DeviceContext->ResolveFramebuffer(m_DeviceContext->m_MultisampleFramebuffer.get(), m_DeviceContext->m_ResolveFramebuffer.get(), DXGI_FORMAT_R16G16B16A16_FLOAT);
 
@@ -361,6 +356,8 @@ namespace Aurora
         ID3D11RenderTargetView* RTV = internalState->m_RenderTargetView.Get();
         m_GraphicsDevice->m_DeviceContextImmediate->OMSetRenderTargets(1, &RTV, 0); // Set depth as well here if it exists.    
         // Present is called from our Editor.
+
+        TickPrimitives(deltaTime);
     }
 
     void Renderer::RenderScene()
@@ -499,20 +496,61 @@ namespace Aurora
         m_GraphicsDevice->CreateSampler(&samplerDescription, &m_Depth_Texture_Sampler);
     }
 
-
-
-
-
     // ======================================================================================
+
+    void Renderer::InitializeShaders()
+    {
+        LoadShader(RHI_Shader_Stage::Vertex_Shader, m_ColorShaderVertex, "ColorVS.hlsl");
+        LoadShader(RHI_Shader_Stage::Pixel_Shader, m_ColorShaderPixel, "ColorPS.hlsl");
+
+        DX11_Utility::DX11_VertexShaderPackage* vertexInternal = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_ColorShaderVertex.m_InternalState.get());
+        m_ColorInputLayout = m_DeviceContext->CreateInputLayout(RHI_Vertex_Type::VertexType_PositionColor, vertexInternal->m_ShaderCode);
+
+        AURORA_INFO(LogLayer::Graphics, "Successfully created Color Shaders.");
+    }
 
     void Renderer::Pass_Lines()
     {
+        Stopwatch stopwatch("Lines Pass");
+        m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Debug[DebugRenderer_Type::DebugRenderer_Grid], 0);
+
         const bool isLineDrawingEnabled = !m_Lines_DepthDisabled.empty() || !m_Lines_DepthEnabled.empty(); // Any kind of lines, physics, user debug or whatsoever.
         const bool drawLinesState = isLineDrawingEnabled;
 
         if (!drawLinesState)
         {
             return;
+        }
+
+        // Draw Lines
+        {
+            uint32_t lineVertexBufferSize = static_cast<uint32_t>(m_Lines_DepthEnabled.size());
+            if (lineVertexBufferSize != 0)
+            {
+                m_Lines_VertexBuffer = m_DeviceContext->CreateVertexBuffer(RHI_Vertex_Type::VertexType_PositionColor, m_Lines_DepthEnabled);
+                // Grow vertex buffer (if needed).
+                if (lineVertexBufferSize > m_Lines_VertexBuffer->GetVertexCount() || m_Lines_VertexBuffer == nullptr)
+                {
+                    m_Lines_VertexBuffer = m_DeviceContext->CreateVertexBuffer(RHI_Vertex_Type::VertexType_PositionColor, m_Lines_DepthEnabled);
+                }
+
+                // Update vertex buffer.
+                memcpy(m_Lines_VertexBuffer->Map(), m_Lines_DepthEnabled.data(), lineVertexBufferSize);
+                m_Lines_VertexBuffer->Unmap();
+
+                // Set render state.
+                m_DeviceContext->BindRasterizerState(RasterizerState_Types::RasterizerState_CullBackWireframe);
+                m_DeviceContext->BindPrimitiveTopology(RHI_Primitive_Topology::LineList);
+                m_DeviceContext->BindInputLayout(m_ColorInputLayout.get());
+                m_DeviceContext->BindVertexBuffer(m_Lines_VertexBuffer.get());
+
+                ID3D11VertexShader* shaderInternalVS = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_ColorShaderVertex.m_InternalState.get())->m_Resource.Get();
+                m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(shaderInternalVS, nullptr, 0);
+                ID3D11PixelShader* shaderInternalPS = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_ColorShaderPixel.m_InternalState.get())->m_Resource.Get();
+                m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(shaderInternalPS, nullptr, 0);
+
+                m_GraphicsDevice->m_DeviceContextImmediate->Draw(m_Lines_VertexBuffer->GetVertexCount(), 0);
+            }
         }
     }
 

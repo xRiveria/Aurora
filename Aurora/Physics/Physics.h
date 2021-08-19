@@ -50,7 +50,7 @@ namespace Aurora
     private:
         bool m_IsEnabled = true;
         bool m_IsSimulationEnabled = true;
-        int m_Accuracy = 10;
+        int m_Accuracy = 1000;
     };
 }
 

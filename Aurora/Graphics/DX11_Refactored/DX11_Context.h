@@ -38,7 +38,7 @@ namespace Aurora
 
         // ==== Vertex Buffers ====
         template<typename T>
-        inline std::shared_ptr<DX11_VertexBuffer> CreateVertexBuffer(RHI_Vertex_Type vertexType, std::vector<T>& vertices)
+        inline std::shared_ptr<DX11_VertexBuffer> CreateVertexBuffer(RHI_Vertex_Type vertexType, std::vector<T>& vertices = nullptr)
         {
             std::shared_ptr<DX11_VertexBuffer> vertexBuffer = std::make_shared<DX11_VertexBuffer>();
             vertexBuffer->Initialize(vertexType, vertices, m_Devices.get());
@@ -72,6 +72,7 @@ namespace Aurora
         // ==== Rasterizer States ====
         std::shared_ptr<DX11_RasterizerState> CreateRasterizerState(D3D11_RASTERIZER_DESC& rasterizerStateDescription);
         void BindRasterizerState(RasterizerState_Types rasterizerState) const;
+        void BindPrimitiveTopology(RHI_Primitive_Topology topology) const;
 
         // ==== Misc ====
         void SetMultisampleLevel(uint32_t multisampleLevel); // #

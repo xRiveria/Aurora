@@ -245,7 +245,7 @@ namespace Aurora
         ShaderStage_Count
     };
 
-    enum Primitive_Topology
+    enum RHI_Primitive_Topology
     {
         Undefined,
         TriangleList,
@@ -253,7 +253,6 @@ namespace Aurora
         PointList,
         LineList,
         LineStrip,
-        PatchList
     };
 
     enum Subresource_Type
@@ -707,7 +706,7 @@ namespace Aurora
         const RHI_RasterizerState* m_RasterizerState = nullptr;
         const RHI_DepthStencilState* m_DepthStencilState = nullptr;
         const RHI_InputLayout* m_InputLayout = nullptr;
-        Primitive_Topology m_PrimitiveTopology = Primitive_Topology::TriangleList;
+        RHI_Primitive_Topology m_PrimitiveTopology = RHI_Primitive_Topology::TriangleList;
         uint32_t m_SampleMask = 0xFFFFFFFF;
     };
 

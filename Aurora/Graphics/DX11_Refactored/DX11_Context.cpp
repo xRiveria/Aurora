@@ -218,6 +218,31 @@ namespace Aurora
         m_Devices->m_DeviceContextImmediate->RSSetState(m_RasterizerStates[rasterizerState]->GetRasterizerState().Get());
     }
 
+    void DX11_Context::BindPrimitiveTopology(RHI_Primitive_Topology topology) const
+    {
+        switch (topology)
+        {
+            case RHI_Primitive_Topology::PointList:
+                m_Devices->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+                break;
+            case RHI_Primitive_Topology::LineList:
+                m_Devices->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+                break;
+            case RHI_Primitive_Topology::LineStrip:
+                m_Devices->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+                break;
+            case RHI_Primitive_Topology::TriangleList:
+                m_Devices->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                break;
+            case RHI_Primitive_Topology::TriangleStrip:
+                m_Devices->m_DeviceContextImmediate->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+                break;
+            case RHI_Primitive_Topology::Undefined:
+                AURORA_WARNING(LogLayer::Graphics, "Selected Primitive Topology type is undefined.");
+                break;
+        }
+    }
+
     void DX11_Context::SetMultisampleLevel(uint32_t multisampleLevel)
     {
         if (multisampleLevel > m_MaxSupportedMultisamplingLevelCount || 0 > multisampleLevel)

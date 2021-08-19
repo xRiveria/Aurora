@@ -27,6 +27,26 @@ namespace Aurora
         return XMFLOAT4(vector.getX(), vector.getY(), vector.getZ(), vector.getW());
     }
 
+    inline XMFLOAT3 operator*(XMFLOAT3& vector, float scalar)
+    {
+        return XMFLOAT3(vector.x * scalar, vector.y * scalar, vector.z * scalar);
+    }
+
+    inline XMFLOAT3 operator*(const XMFLOAT3& vector, float scalar)
+    {
+        return XMFLOAT3(vector.x * scalar, vector.y * scalar, vector.z * scalar);
+    }
+
+    inline XMFLOAT3 operator*(const XMFLOAT3& vector, XMFLOAT3 vectorMultiply)
+    {
+        return XMFLOAT3(vector.x * vectorMultiply.x, vector.y * vectorMultiply.y, vector.z * vectorMultiply.z);
+    }
+
+    inline XMFLOAT3 operator*(XMFLOAT3& vector, XMFLOAT3 vectorMultiply)
+    {
+        return XMFLOAT3(vector.x * vectorMultiply.x, vector.y * vectorMultiply.y, vector.z * vectorMultiply.z);
+    }
+
     inline bool operator==(XMFLOAT3& setA, XMFLOAT3& setB)
     {
         if (setA.x == setB.x && setA.y == setB.y && setA.z == setB.z)
