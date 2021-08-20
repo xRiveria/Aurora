@@ -2,6 +2,7 @@
 #include <string>
 #include "../Graphics/RHI_Vertex.h"
 #include "../Graphics/DX11_Refactored/DX11_IndexBuffer.h"
+#include "../Renderer/Material.h"
 
 struct aiNode;
 struct aiMesh;
@@ -46,7 +47,7 @@ namespace Aurora
 
         // Loading
         void LoadMesh(aiMesh* assimpMesh, Entity* parentEntity, const ModelParameters& modelParameters);
-        void LoadMaterial(aiMaterial* assimpMaterial, const ModelParameters& modelParameters, Entity* materialEntity);
+        std::shared_ptr<Material> LoadMaterial(aiMaterial* assimpMaterial, const ModelParameters& modelParameters, Entity* materialEntity);
 
         // Helpers
         std::string TextureTryMultipleExtensions(const std::string& filePath);

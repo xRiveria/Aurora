@@ -1,6 +1,7 @@
 #include "FileDialog.h"
 #include "Settings.h"
 #include "../Source/imgui_internal.h"
+#include "../Renderer/Material.h"
 
 FileDialog::FileDialog(Aurora::EngineContext* engineContext, Editor* editorContext, bool isStandaloneWindow)
 {
@@ -390,6 +391,11 @@ void FileDialog::OnItemDrag(FileDialogItem* item) const
             SetPayload(EditorExtensions::DragPayloadType::DragPayloadType_Model, item->GetPath());
         }
 
+        if (Aurora::FileSystem::IsEngineMaterialFile(item->GetPath()))
+        {
+            SetPayload(EditorExtensions::DragPayloadType::DragPayloadType_Material, item->GetPath());
+        }
+
         // Preview
         EditorExtensions::Image(item->GetTexture(), { 50, 50 });
         ImGui::Text(item->GetLabel().c_str());
@@ -484,6 +490,11 @@ bool FileDialog::DialogUpdateFromDirectory(const std::string& directoryPath)
             m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_ObjectPanel_Cube, static_cast<int>(m_HierarchyItemSize.x)));
             continue;
         }
+
+        if (Aurora::FileSystem::IsEngineMaterialFile(childItem))
+        {
+            m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Material, static_cast<int>(m_HierarchyItemSize.x)));
+        }
     }
 
     return true;
@@ -504,6 +515,17 @@ void FileDialog::EmptyAreaContextMenu()
     if (ImGui::MenuItem("Create Folder"))
     {
         Aurora::FileSystem::CreateDirectory_(m_NavigationContext.m_CurrentPath + "/New Folder");
+        m_IsDirty = true;
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Create Material"))
+    {
+        Aurora::Material material = Aurora::Material(m_EngineContext);
+        const std::string filePath = m_NavigationContext.m_CurrentPath + "/New_Material" + Aurora::EXTENSION_MATERIAL;
+        material.SetResourceFilePath(filePath);
+        material.SaveToFile(filePath);
         m_IsDirty = true;
     }
 

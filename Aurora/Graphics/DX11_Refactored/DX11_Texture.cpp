@@ -1,6 +1,8 @@
 #include "Aurora.h"
 #include "DX11_Texture.h"
 #include "DX11_Utilities.h"
+#include "../Resource/Importers/Importer_Image.h"
+#include "../Resource/ResourceCache.h"
 
 namespace Aurora
 {
@@ -21,6 +23,56 @@ namespace Aurora
 
     bool DX11_Texture::LoadFromFile(const std::string& filePath)
     {
+        // Validate file path.
+        if (!FileSystem::IsFile(filePath))
+        {
+            AURORA_ERROR(LogLayer::Engine, "Requested texture path of \"%s\" is not valid.", filePath.c_str());
+            return false;
+        }
+
+        m_LoadState = LoadState::LoadState_Started;
+
+        // Load from disk.
+        bool textureDataLoaded = false;
+        if (FileSystem::IsEngineTextureFile(filePath)) // Engine Format
+        {
+         
+        }
+        else if (FileSystem::IsSupportedImageFile(filePath)) // Foreign Format (PNG, JPG etc)
+        {
+            textureDataLoaded = LoadFromFile_ForeignFormat(filePath);
+        }
+
+        // Ensure that our file has been loaded.
+        if (!textureDataLoaded)
+        {
+            AURORA_ERROR(LogLayer::Engine, "Failed to load texture at \"%s\".", filePath.c_str());
+            m_LoadState = LoadState::LoadState_Failed;
+        }
+
+        // Create GPU Resource
+
+        m_LoadState = LoadState::LoadState_Completed;
+
+        return true;
+    }
+
+    bool DX11_Texture::LoadFromFile_NativeFormat(const std::string& filePath)
+    {
+        return false;
+    }
+
+    bool DX11_Texture::LoadFromFile_ForeignFormat(const std::string& filePath)
+    {
+        Importer_Image* imageImporter = m_EngineContext->GetSubsystem<ResourceCache>()->GetImageImporter();
+        if (!imageImporter->LoadTexture(filePath, this))
+        {
+            return false;
+        }
+
+        // Set resource file path so it can be used by the resource cache.
+        SetResourceFilePath(filePath);
+
         return true;
     }
 

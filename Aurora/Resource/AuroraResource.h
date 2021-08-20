@@ -1,6 +1,6 @@
 #pragma once
-#include "../Resource/AuroraObject.h"
 #include "FileSystem.h"
+#include "../Resource/AuroraObject.h"
 #include "../Graphics/DX11_Refactored/DX11_VertexBuffer.h"
 #include "../Graphics/DX11_Refactored/DX11_IndexBuffer.h"
 #include "../Scene/Entity.h"
@@ -17,7 +17,8 @@ namespace Aurora
         ResourceType_Empty,
         ResourceType_Image,
         ResourceType_Audio,
-        ResourceType_Model
+        ResourceType_Model,
+        ResourceType_Material
     };
 
     enum class LoadState
@@ -37,7 +38,7 @@ namespace Aurora
 
         void SetResourceFilePath(const std::string& filePath)
         {
-            const bool isNativeFile = FileSystem::IsEngineMaterialFile(filePath) || FileSystem::IsEngineModelFile(filePath);
+            const bool isNativeFile = FileSystem::IsEngineMaterialFile(filePath) || FileSystem::IsEngineModelFile(filePath) || FileSystem::IsEngineTextureFile(filePath);
 
             // If this is a native engine file, don't do a file check as no actual foreign material exists (it was created on the fly).
             if (!isNativeFile)
@@ -55,7 +56,8 @@ namespace Aurora
             if (!FileSystem::IsEngineFile(filePath))
             {
                 m_ResourceFilePathForeign = filePathRelative;
-                m_ResourceFilePathNative = FileSystem::NativizeFilePath(filePathRelative);
+                m_ResourceFilePathNative = filePathRelative;
+                // m_ResourceFilePathNative = FileSystem::NativizeFilePath(filePathRelative);
             }
             // Native File
             else

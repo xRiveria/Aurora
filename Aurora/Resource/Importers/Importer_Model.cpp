@@ -5,7 +5,6 @@
 #include "../Scene/Entity.h"
 #include "../Resource/ResourceCache.h"
 #include "../Scene/Components/Mesh.h"
-#include "../Scene/Components/Material.h"
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
@@ -134,6 +133,7 @@ namespace Aurora
         resource->SetResourceType(ResourceType::ResourceType_Model);
         resource->m_FilePath = filePath;
         resource->SetObjectName(FileSystem::GetFileNameFromFilePath(filePath));
+        resource->SetResourceFilePath(filePath);
 
         // Model Parameters
         ModelParameters modelParameters;
@@ -347,26 +347,30 @@ namespace Aurora
         if (modelParameters.m_AssimpScene->HasMaterials())
         {
             const auto assimpMaterial = modelParameters.m_AssimpScene->mMaterials[assimpMesh->mMaterialIndex];   // Get aiMaterial for this specific mesh.
-            LoadMaterial(assimpMaterial, modelParameters, parentEntity);                                         // Convert it and add it to the model.
+            
+            std::shared_ptr<Material> material = LoadMaterial(assimpMaterial, modelParameters, parentEntity); // Convert it and add it to the model.
+            meshComponent->AddMaterial(material);
         }
 
         /// Bones.
     }
 
-    void Importer_Model::LoadMaterial(aiMaterial* assimpMaterial, const ModelParameters& modelParameters, Entity* materialEntity)
+    std::shared_ptr<Material> Importer_Model::LoadMaterial(aiMaterial* assimpMaterial, const ModelParameters& modelParameters, Entity* materialEntity)
     {
         if (!assimpMaterial)
         {
             AURORA_WARNING(LogLayer::Graphics, "One of the provided materials is null. LoadMaterial cannot be executed.");
-            return;
+            return nullptr;
         }
 
-        Material* material = materialEntity->AddComponent<Material>();
+        std::shared_ptr<Material> material = std::make_shared<Material>(m_EngineContext);
 
         // Name
         aiString materialName;
         aiGetMaterialString(assimpMaterial, AI_MATKEY_NAME, &materialName);
-        /// Set a resource file path so it can be used by the resource cache.
+        
+        // Set a resource file path so it can be used by the resource cache.
+        material->SetResourceFilePath(FileSystem::GetDirectoryFromFilePath(modelParameters.m_FilePath) + std::string(materialName.C_Str()) + EXTENSION_MATERIAL);
 
         // Diffuse Color
         aiColor4D diffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -376,14 +380,16 @@ namespace Aurora
         aiColor4D opacity(1.0f, 1.0f, 1.0f, 1.0f);
         aiGetMaterialColor(assimpMaterial, AI_MATKEY_OPACITY, &opacity);
 
-        material->SetBaseColor({ diffuseColor.r, diffuseColor.g, diffuseColor.b, opacity.r });
+        material->SetAlbedoColor({ diffuseColor.r, diffuseColor.g, diffuseColor.b, opacity.r });
 
-        const auto LoadMaterialTexture = [this, &modelParameters, &assimpMaterial, &material](TextureSlot engineSlotType, const aiTextureType assimpTextureTypePBR, const aiTextureType assimpTextureTypeLegacy)
+        const auto LoadMaterialTexture = [this, &modelParameters, &assimpMaterial, &material](MaterialSlot engineSlotType, const aiTextureType assimpTextureTypePBR, const aiTextureType assimpTextureTypeLegacy)
         {
             aiTextureType typeAssimp = assimpMaterial->GetTextureCount(assimpTextureTypePBR) > 0 ? assimpTextureTypePBR : aiTextureType_NONE;
             typeAssimp = assimpMaterial->GetTextureCount(assimpTextureTypeLegacy) > 0 ? assimpTextureTypeLegacy : typeAssimp;
 
             aiString texturePath;
+
+            /*
             if (assimpMaterial->GetTextureCount(typeAssimp) > 0)
             {
                 if (AI_SUCCESS == assimpMaterial->GetTexture(typeAssimp, 0, &texturePath))
@@ -405,19 +411,21 @@ namespace Aurora
                     }
                 }
             }
-
+            */
             AURORA_WARNING(LogLayer::Graphics, "Could not find texture of appropriate type. Binding default texture...");
-            material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Image);
-            m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture->m_FilePath, material->m_Textures[engineSlotType]);
-            // material->m_Textures[engineSlotType] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
+            // material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Image)->m_Texture;
+            // m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture->m_FilePath, material->m_Textures[engineSlotType]);
+            material->m_Textures[engineSlotType] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
         };
 
         // Engine Texture, Assimp PBR Texture, Assimp Legacy Texture (Fallback)
-        LoadMaterialTexture(TextureSlot::BaseColorMap, aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE);
-        LoadMaterialTexture(TextureSlot::RoughnessMap, aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SHININESS); // Use specular as fallback.
-        LoadMaterialTexture(TextureSlot::MetalnessMap, aiTextureType_METALNESS, aiTextureType_AMBIENT); // Use ambient as fallback.
-        LoadMaterialTexture(TextureSlot::NormalMap, aiTextureType_NORMAL_CAMERA, aiTextureType_NORMALS);
-        LoadMaterialTexture(TextureSlot::OcclusionMap, aiTextureType_AMBIENT_OCCLUSION, aiTextureType_AMBIENT); // Use ambient as fallback.
+        LoadMaterialTexture(MaterialSlot::MaterialSlot_Albedo, aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE);
+        LoadMaterialTexture(MaterialSlot::MaterialSlot_Roughness, aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SHININESS); // Use specular as fallback.
+        LoadMaterialTexture(MaterialSlot::MaterialSlot_Metallic, aiTextureType_METALNESS, aiTextureType_AMBIENT); // Use ambient as fallback.
+        LoadMaterialTexture(MaterialSlot::MaterialSlot_Normal, aiTextureType_NORMAL_CAMERA, aiTextureType_NORMALS);
+        LoadMaterialTexture(MaterialSlot::MaterialSlot_Occlusion, aiTextureType_AMBIENT_OCCLUSION, aiTextureType_AMBIENT); // Use ambient as fallback.
+
+        return material;
     }
 
     std::string Importer_Model::TextureTryMultipleExtensions(const std::string& filePath)

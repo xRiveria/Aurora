@@ -166,11 +166,9 @@ namespace Aurora
         return texture;
     }
 
-    std::shared_ptr<DX11_Texture> DX11_Context::CreateTexture2DFromData(const void* sourceData, uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice)
+    void DX11_Context::CreateTexture2DFromData(DX11_Texture* texture, const void* sourceData, uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t sampleLevels, uint32_t textureFlags, uint32_t mipSlice)
     {
-        std::shared_ptr<DX11_Texture> texture = std::make_shared<DX11_Texture>(m_EngineContext);
         texture->Initialize2DTextureFromFile(sourceData, textureWidth, textureHeight, format, sampleLevels, textureFlags, mipSlice, m_Devices.get());
-        return texture;
     }
 
     std::shared_ptr<DX11_Texture> DX11_Context::CreateTextureCube(uint32_t textureWidth, uint32_t textureHeight, DXGI_FORMAT format, uint32_t mipLevels)

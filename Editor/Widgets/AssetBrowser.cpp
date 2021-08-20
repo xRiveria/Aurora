@@ -2,6 +2,9 @@
 #include "../Backend/Utilities/Extensions.h"
 #include "Settings.h"
 #include "../Backend/Utilities/FileDialog.h"
+#include "../Resource/ResourceCache.h"
+#include "../Renderer/Material.h"
+#include "Properties.h"
 
 namespace AssetBrowserGlobals
 {
@@ -18,7 +21,7 @@ AssetBrowser::AssetBrowser(Editor * editorContext, Aurora::EngineContext * engin
     m_WidgetFlags |= ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
     // Just clicked, not selected.
-
+    m_FileDialog->SetOnItemClickedCallback([this](const std::string& filePath) { OnPathClicked(filePath); });
 }
 
 void AssetBrowser::OnTickVisible()
@@ -28,4 +31,14 @@ void AssetBrowser::OnTickVisible()
 
 void AssetBrowser::OnPathClicked(const std::string& filePath) const
 {
+    if (!Aurora::FileSystem::IsFile(filePath))
+    {
+        return;
+    }
+
+    if (Aurora::FileSystem::IsEngineMaterialFile(filePath))
+    {
+        const auto material = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::Material>(filePath);
+        Properties::Inspect(material);
+    }
 }

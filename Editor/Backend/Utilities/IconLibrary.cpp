@@ -39,28 +39,29 @@ void IconLibrary::Initialize(Aurora::EngineContext* engineContext, Editor* edito
     LoadIcon_(resourceDirectory + "AssetBrowser_Next.png", IconType::IconType_AssetBrowser_Next);
     LoadIcon_(resourceDirectory + "AssetBrowser_Previous.png", IconType::IconType_AssetBrowser_Previous);
     LoadIcon_(resourceDirectory + "AssetBrowser_Refresh.png", IconType::IconType_AssetBrowser_Refresh);
+    LoadIcon_(resourceDirectory + "AssetBrowser_Material.png", IconType::IconType_AssetBrowser_Material);
 
     // Assets
     LoadIcon_(resourceDirectory + "Assets_Cube.png", IconType::IconType_ObjectPanel_Cube);
 
     // Default
-    g_NoIcon = LoadIcon_(resourceDirectory + "Icons/AssetBrowser_Unknown.png", IconType::IconType_Custom);
+    g_NoIcon = LoadIcon_(resourceDirectory + "AssetBrowser_Unknown.png", IconType::IconType_Custom);
 
     // Ensure that all loading is complete.
     m_EngineContext->GetSubsystem<Aurora::Threading>()->Wait();
 }
 
-Aurora::AuroraResource* IconLibrary::GetTextureByType(IconType iconType)
+Aurora::DX11_Texture* IconLibrary::GetTextureByType(IconType iconType)
 {
     return LoadIcon_("", iconType).m_Texture.get();
 }
 
-Aurora::AuroraResource* IconLibrary::GetTextureByFilePath(const std::string& filePath)
+Aurora::DX11_Texture* IconLibrary::GetTextureByFilePath(const std::string& filePath)
 {
     return LoadIcon_(filePath).m_Texture.get();
 }
 
-Aurora::AuroraResource* IconLibrary::GetTextureByIcon(const Icon& icon)
+Aurora::DX11_Texture* IconLibrary::GetTextureByIcon(const Icon& icon)
 {
     for (const Icon& storedIcon : m_Icons)
     {
@@ -100,12 +101,12 @@ const Icon& IconLibrary::LoadIcon_(const std::string& filePath, IconType iconTyp
     // Deduce File Path Type
     if (Aurora::FileSystem::IsSupportedImageFile(filePath))
     {
-        std::shared_ptr<Aurora::AuroraResource> texture = std::make_shared<Aurora::AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Image);
+        std::shared_ptr<Aurora::DX11_Texture> texture = std::make_shared<Aurora::DX11_Texture>(m_EngineContext);
 
         // Make a cheap texture.
         //m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath, texture](Aurora::JobInformation jobArguments)
         //{
-        m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(filePath, texture);
+        texture->LoadFromFile(filePath);
         //});
 
         // std::shared_ptr<Aurora::AuroraResource> texture = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(filePath, Aurora::FileSystem::GetFileNameFromFilePath(filePath));

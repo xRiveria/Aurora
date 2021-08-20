@@ -1,6 +1,7 @@
 #include "Aurora.h"
 #include "Mesh.h"
 #include "../Renderer/Renderer.h"
+#include "../Resource/ResourceCache.h"
 
 namespace Aurora
 {
@@ -206,5 +207,41 @@ namespace Aurora
         // Vertex Buffer - UV Set 1
         // Raytracing
         // Bindless Descriptors
+    }
+
+    void Mesh::AddMaterial(const std::shared_ptr<Material>& material)
+    {
+        // Create a file path for this material.
+        const std::string assetPath = FileSystem::GetDirectoryFromFilePath(m_EngineContext->GetSubsystem<Settings>()->GetProjectDirectory()) + material->GetResourceName() + EXTENSION_MATERIAL;
+        material->SetResourceFilePath(assetPath);
+
+        // In order for the component to guarentee serialization/deserialization, we cache the material.
+        std::shared_ptr<Material> cachedMaterial = m_EngineContext->GetSubsystem<ResourceCache>()->CacheResource(material);
+        m_Material = cachedMaterial.get();
+    }
+
+    std::shared_ptr<Material> Mesh::SetMaterial(const std::shared_ptr<Material>& material)
+    {
+        // In order for the component to guarentee serialization/deserialization, we cache the material.
+        std::shared_ptr<Material> cachedMaterial = m_EngineContext->GetSubsystem<ResourceCache>()->CacheResource(material);
+        m_Material = cachedMaterial.get();
+
+        return cachedMaterial;
+    }
+
+    std::shared_ptr<Material> Mesh::SetMaterial(const std::string& filePath)
+    {
+        // Load the material.
+        std::shared_ptr<Material> material = std::make_shared<Material>(m_EngineContext);
+        material->SetResourceFilePath(filePath);
+
+        if (!material->LoadFromFile(filePath))
+        {
+            AURORA_WARNING(LogLayer::Engine, "Failed to load material from path \"%s\".", filePath.c_str());
+            return nullptr;
+        }
+
+        // Set it as the current material.
+        return SetMaterial(material);
     }
 }

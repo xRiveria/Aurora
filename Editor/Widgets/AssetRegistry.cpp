@@ -47,7 +47,7 @@ void AssetRegistry::OnTickVisible()
         sprintf_s(resourceHandle, "%u", resource->GetObjectID());
         std::string buffer = resourceHandle;
 
-        std::string objectName = resource->GetObjectName();
+        std::string objectName = resource->GetResourceName();
         std::string resourceType = resource->GetResourceTypeInCString();
 
         PropertyInput("Handle", buffer);

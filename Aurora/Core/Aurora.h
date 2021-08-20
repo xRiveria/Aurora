@@ -24,6 +24,7 @@
 
 // Serializations
 #include "../Serializer/SerializerUtilities.h"
+#include "../Serializer/FileSerializer.h"
 
 // Threading
 #include "../Threading/Threading.h"

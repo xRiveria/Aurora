@@ -33,7 +33,6 @@ namespace Aurora
 
         bool Initialize() override;
 
-        bool LoadTexture(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource = true);
         bool LoadModel(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource = true);
         
         // =========================================================================================================
@@ -85,11 +84,11 @@ namespace Aurora
             }
 
             // Validate resource file path.
-            if (!FileSystem::IsEngineFile(resource->GetResourceFilePathNative()))
-            {
-                AURORA_ERROR(LogLayer::Engine, "A resource must have a native file format in order to be cached. The provided format was %s.", FileSystem::GetExtensionFromFilePath(resource->GetResourceFilePathNative()).c_str());
-                return nullptr;
-            }
+            //if (!FileSystem::IsEngineFile(resource->GetResourceFilePathNative()))
+            //{
+            //    AURORA_ERROR(LogLayer::Engine, "A resource must have a native file format in order to be cached. The provided format was %s.", FileSystem::GetExtensionFromFilePath(resource->GetResourceFilePathNative()).c_str());
+            //    return nullptr;
+            //}
 
             // Ensure that this resource is not already cached.
             if (IsResourceCached(resource->GetResourceName(), resource->GetResourceType()))

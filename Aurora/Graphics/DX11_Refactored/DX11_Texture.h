@@ -54,6 +54,10 @@ namespace Aurora
 
         bool CreateUnorderedAccessView(uint32_t mipSlice);
 
+    protected:
+        bool LoadFromFile_NativeFormat(const std::string& filePath);
+        bool LoadFromFile_ForeignFormat(const std::string& filePath);
+
     private:
         bool CreateShaderResourceView(D3D11_SRV_DIMENSION viewDimension);
         bool CreateRenderTargetView();

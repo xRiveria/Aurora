@@ -47,6 +47,7 @@ namespace Aurora
             }
         }
 
+        AURORA_INFO(LogLayer::Engine, "Empty Resource not found!");
         static std::shared_ptr<AuroraResource> emptyResource;
         return emptyResource;
     }
@@ -126,26 +127,10 @@ namespace Aurora
 
     void ResourceCache::LoadResourcesFromFiles()
     {
+
     }
 
     // =========================================================================================
-
-
-
-    bool ResourceCache::LoadTexture(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource /*= true*/)
-    {
-        if (FileSystem::IsSupportedImageFile(filePath))
-        {
-            if (cacheResource)
-            {
-                m_CachedResources.push_back(resource);
-            }
-            return m_Importer_Image->LoadTexture(filePath, resource.get());
-        }
-
-        AURORA_ERROR(LogLayer::Engine, "Requested image file is not supported: %s.", filePath.c_str());
-        return false;
-    }
 
     bool ResourceCache::LoadModel(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource /*= true*/)
     {

@@ -108,7 +108,7 @@ namespace EditorExtensions
 
 	inline bool ImageButton(const IconType iconType, const float iconSize)
 	{
-		return ImGui::ImageButton((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->m_Texture->GetShaderResourceView().Get(),
+		return ImGui::ImageButton((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->GetShaderResourceView().Get(),
 			ImVec2(iconSize, iconSize),
 			ImVec2(0, 0),
 			ImVec2(1, 1),
@@ -119,7 +119,7 @@ namespace EditorExtensions
 
 	inline void Image(const IconType iconType, const float iconSize)
 	{
-		return ImGui::Image((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->m_Texture->GetShaderResourceView().Get(),
+		return ImGui::Image((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->GetShaderResourceView().Get(),
 			ImVec2(iconSize, iconSize),
 			ImVec2(0, 0),
 			ImVec2(1, 1),

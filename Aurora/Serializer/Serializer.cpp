@@ -1,6 +1,5 @@
 #include "Aurora.h"
 #include "../Scene/Components/Mesh.h"
-#include "../Scene/Components/Material.h"
 
 #include "Serializer.h"
 #include "SerializerUtilities.h"
@@ -12,9 +11,9 @@
 namespace Aurora
 {
     // Remember to not have spacings in your YAML keys.
-    Serializer::Serializer(EngineContext* engineContext, World* world) : m_World(world), m_EngineContext(engineContext)
+    Serializer::Serializer(EngineContext* engineContext) : m_EngineContext(engineContext)
     {
-
+        m_World = m_EngineContext->GetSubsystem<World>();
     }
 
     void Serializer::SerializeEntity(YAML::Emitter& outputStream, Entity* entity)
@@ -157,16 +156,16 @@ namespace Aurora
                     meshComponent->Deserialize(meshNode);
                 }
 
-                // A mesh comes with a material precreated with it. Hence, we don't need to add any as they're already added. Likewise, we don't have to bother with it if a mesh doesn't exist.
-                if (meshNode)
-                {
-                    YAML::Node materialNode = entity["MaterialComponent"];
-                    if (materialNode)
-                    {
-                        Material* materialComponent = deserializedEntity->AddComponent<Material>();
-                        materialComponent->Deserialize(materialNode);
-                    }
-                }
+                //// A mesh comes with a material precreated with it. Hence, we don't need to add any as they're already added. Likewise, we don't have to bother with it if a mesh doesn't exist.
+                //if (meshNode)
+                //{
+                //    YAML::Node materialNode = entity["MaterialComponent"];
+                //    if (materialNode)
+                //    {
+                //        Material* materialComponent = deserializedEntity->AddComponent<Material>();
+                //        materialComponent->Deserialize(materialNode);
+                //    }
+                //}
             }
         }
 

@@ -13,6 +13,7 @@ enum IconType
     IconType_Console_Error,
     IconType_AssetBrowser_Folder,
     IconType_AssetBrowser_Script,
+    IconType_AssetBrowser_Material,
     IconType_AssetBrowser_Next,
     IconType_AssetBrowser_Previous,
     IconType_AssetBrowser_Refresh,
@@ -32,14 +33,14 @@ class Editor;
 struct Icon
 {
     Icon() = default;
-    Icon(IconType iconType, std::shared_ptr<Aurora::AuroraResource> texture)
+    Icon(IconType iconType, std::shared_ptr<Aurora::DX11_Texture> texture)
     {
         this->m_IconType = iconType;
         this->m_Texture = texture;
     }
 
     IconType m_IconType = IconType::IconType_NotAssigned;
-    std::shared_ptr<Aurora::AuroraResource> m_Texture;
+    std::shared_ptr<Aurora::DX11_Texture> m_Texture;
 };
 
 class IconLibrary
@@ -56,9 +57,9 @@ public:
 
     void Initialize(Aurora::EngineContext* engineContext, Editor* editorContext);
 
-    Aurora::AuroraResource* GetTextureByType(IconType iconType);
-    Aurora::AuroraResource* GetTextureByFilePath(const std::string& filePath);
-    Aurora::AuroraResource* GetTextureByIcon(const Icon& icon);
+    Aurora::DX11_Texture* GetTextureByType(IconType iconType);
+    Aurora::DX11_Texture* GetTextureByFilePath(const std::string& filePath);
+    Aurora::DX11_Texture* GetTextureByIcon(const Icon& icon);
 
     const Icon& LoadIcon_(const std::string& filePath, IconType iconType = IconType::IconType_Custom, int iconSize = 100);
 

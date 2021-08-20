@@ -1,7 +1,6 @@
 #include "Properties.h"
 #include "../Scene/Entity.h"
 #include "../Scene/Components/Transform.h"
-#include "../Scene/Components/Material.h"
 #include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Light.h"
 #include "../Scene/Components/RigidBody.h"
@@ -14,6 +13,7 @@
 
 std::weak_ptr<Aurora::Entity> Properties::m_InspectedEntity;
 std::weak_ptr<Aurora::Material> Properties::m_InspectedMaterial;
+
 XMFLOAT4 g_DefaultColor = { 1, 1, 1, 1 };
 float g_ForceAmount[3] = { 0.0f, 0.0f, 50.0f };
 
@@ -29,7 +29,7 @@ void Properties::OnTickVisible()
     {
         Aurora::Entity* entityPointer = m_InspectedEntity.lock().get();
         Aurora::Mesh* meshPointer = entityPointer->GetComponent<Aurora::Mesh>();
-        Aurora::Material* materialPointer = meshPointer ? entityPointer->GetComponent<Aurora::Material>() : nullptr;
+        Aurora::Material* materialPointer = meshPointer ? meshPointer->m_Material : nullptr;
 
         ImGui::Checkbox("##EntityCheckbox", &entityPointer->m_IsActive);
         ImGui::SameLine();
@@ -48,6 +48,22 @@ void Properties::OnTickVisible()
         ImGui::Text("Entity ID: %d", entityPointer->GetObjectID());
         ImGui::PopStyleColor();
 
+        if (meshPointer)
+        {
+            // Temporary
+            std::string materialName = materialPointer ? materialPointer->GetResourceName() : "N/A";
+
+            char materialNameBuffer[256] = "Material";
+            memset(materialNameBuffer, 0, sizeof(materialNameBuffer));
+            strcpy_s(materialNameBuffer, sizeof(materialNameBuffer), materialName.c_str());
+
+            ImGui::InputText("", materialNameBuffer, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
+            if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Material))
+            {
+                meshPointer->SetMaterial(std::get<const char*>(payload->m_Data));
+            }
+        }
+
         ShowTransformProperties(entityPointer->GetComponent<Aurora::Transform>());
         ShowMaterialProperties(materialPointer);
         ShowLightProperties(entityPointer->GetComponent<Aurora::Light>());
@@ -56,13 +72,22 @@ void Properties::OnTickVisible()
 
         ShowAddComponentButton();
     }
+    else if (!m_InspectedMaterial.expired())
+    {
+        ShowMaterialProperties(m_InspectedMaterial.lock().get());
+    }
 }
 
 void Properties::Inspect(const std::weak_ptr<Aurora::Entity>& entity)
 {
     m_InspectedEntity = entity;
 
-    /// Rotation.
+    // If we were previously inspecting a material, save its changes.
+    if (!m_InspectedMaterial.expired())
+    {
+        m_InspectedMaterial.lock()->SaveToFile(m_InspectedMaterial.lock()->GetResourceFilePathNative());
+    }
+    m_InspectedMaterial.reset();
 }
 
 void Properties::Inspect(const std::weak_ptr<Aurora::Material>& material)
@@ -194,7 +219,7 @@ static void DrawVector3Control(const std::string& label, XMFLOAT3& values, float
     ImGui::PopID();
 }
 
-static void DrawMaterialControl(const std::string& label, std::shared_ptr<Aurora::AuroraResource>& materialTexture, Aurora::EngineContext* engineContext, bool drawColorControls = false, XMFLOAT4& colorValues = g_DefaultColor)
+static void DrawMaterialControl(const std::string& label, Aurora::DX11_Texture* materialTexture, Aurora::EngineContext* engineContext, const std::function<void(const std::shared_ptr<Aurora::DX11_Texture>&)> TextureSetter, bool drawColorControls = false, XMFLOAT4& colorValues = g_DefaultColor)
 {
     ImGui::PushID(label.c_str());
     ImGuiIO& io = ImGui::GetIO();
@@ -203,13 +228,15 @@ static void DrawMaterialControl(const std::string& label, std::shared_ptr<Aurora
     ImGui::Text(label.c_str());
     ImGui::PopFont();
 
-    if (materialTexture->m_Texture != nullptr)
+    Aurora::DX11_Texture* texture = (materialTexture != nullptr) ? materialTexture : engineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture.get();
+
+    if (materialTexture != nullptr)
     {
-        ImGui::Image((void*)materialTexture->m_Texture->GetShaderResourceView().Get(), ImVec2(60, 60));
+        ImGui::Image((void*)texture->GetShaderResourceView().Get(), ImVec2(60, 60));
     }
     else
     {
-        ImGui::Image((void*)engineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->m_Texture->GetShaderResourceView().Get(), ImVec2(60, 60));
+        ImGui::Image((void*)texture->GetShaderResourceView().Get(), ImVec2(60, 60));
     }
 
     ImGui::SameLine();
@@ -225,7 +252,10 @@ static void DrawMaterialControl(const std::string& label, std::shared_ptr<Aurora
         if (filePath.has_value())
         {
             std::string path = filePath.value();
-            engineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(path, materialTexture);
+            if (const std::shared_ptr<Aurora::DX11_Texture> texture = engineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::DX11_Texture>(path))
+            {
+                TextureSetter(texture);
+            }
         }
     }
 
@@ -246,8 +276,8 @@ static void DrawMaterialControl(const std::string& label, std::shared_ptr<Aurora
     }
 
     ImGui::SameLine(); ImGui::NewLine();
-    ImGui::Text("File: %s", materialTexture->m_FilePath.c_str());
-
+    ImGui::Text("File: %s", texture->GetResourceFilePathNative().c_str());
+    
     ImGui::Separator();
     ImGui::PopID();
 }
@@ -290,15 +320,19 @@ void Properties::ShowMaterialProperties(Aurora::Material* materialComponent) con
     {
         ImGui::PushID(materialComponent->GetObjectID());
 
-        DrawMaterialControl("Albedo Map", materialComponent->m_Textures[Aurora::TextureSlot::BaseColorMap], m_EngineContext, true, materialComponent->m_BaseColor);
-        DrawMaterialControl("Roughness Map", materialComponent->m_Textures[Aurora::TextureSlot::RoughnessMap], m_EngineContext);
-        DrawMaterialControl("Normal Map", materialComponent->m_Textures[Aurora::TextureSlot::NormalMap], m_EngineContext);
-        DrawMaterialControl("Metallic Map", materialComponent->m_Textures[Aurora::TextureSlot::MetalnessMap], m_EngineContext);
-        DrawMaterialControl("Occlusion Map", materialComponent->m_Textures[Aurora::TextureSlot::OcclusionMap], m_EngineContext);
+        DrawMaterialControl("Albedo Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Albedo].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Albedo, texture); }, true, materialComponent->m_AlbedoColor);
+        DrawMaterialControl("Roughness Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Roughness].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Roughness, texture); });
+        DrawMaterialControl("Normal Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Normal].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Normal, texture); });
+        DrawMaterialControl("Metallic Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Metallic].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Metallic, texture); });
+        DrawMaterialControl("Occlusion Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Occlusion].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Occlusion, texture); });
 
-        ImGui::SliderFloat("Roughness", &materialComponent->m_Roughness, 0.0, 1.0);
-        ImGui::SliderFloat("Metalness", &materialComponent->m_Metalness, 0.0, 1.0);
+        ImGui::SliderFloat("Roughness", &materialComponent->m_Properties[Aurora::MaterialSlot::MaterialSlot_Roughness], 0.0, 1.0);
+        ImGui::SliderFloat("Metalness", &materialComponent->m_Properties[Aurora::MaterialSlot::MaterialSlot_Metallic], 0.0, 1.0);
 
+        if (ImGui::Button("Deserializing Test"))
+        {
+            materialComponent->LoadFromFile(materialComponent->GetResourceFilePathNative());
+        }
         ImGui::PopID();
     }
 

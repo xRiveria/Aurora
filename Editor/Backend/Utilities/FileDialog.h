@@ -140,7 +140,7 @@ public:
     const std::string& GetPath() const { return m_Path; }
     const std::string& GetLabel() const { return m_Label; }
     uint32_t GetID() const { return m_ID; }
-    Aurora::DX11_Texture* GetTexture() const { return IconLibrary::GetInstance().GetTextureByIcon(m_Icon)->m_Texture.get(); }
+    Aurora::DX11_Texture* GetTexture() const { return IconLibrary::GetInstance().GetTextureByIcon(m_Icon); }
     bool IsDirectory() const { return m_IsDirectory; }
     float GetTimeSinceLastClickInMilliseconds() const { return static_cast<float>(m_TimeSinceLastClick.count()); }
 

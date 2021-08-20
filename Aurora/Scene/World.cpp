@@ -32,7 +32,7 @@ namespace Aurora
             entity->Start();
         }
 
-        m_Serializer = std::make_shared<Serializer>(m_EngineContext, this);
+        m_Serializer = std::make_shared<Serializer>(m_EngineContext);
 
         return true;
     }

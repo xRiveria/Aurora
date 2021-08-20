@@ -8,7 +8,7 @@
 #include "ShaderCompiler.h"
 #include "../_Shaders/ShaderUtilities.h"
 #include "../Resource/Importers/Importer_Model.h"
-#include "../Scene/Components/Material.h"
+#include "Material.h"
 #include "../Scene/Components/Mesh.h"
 #include "../Graphics/DX11_Refactored/DX11_Context.h"
 #include "../Graphics/DX11_Refactored/DX11_Texture.h"
@@ -63,7 +63,7 @@ namespace Aurora
         void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
         void UpdateLightConstantBuffer();
         void UpdateMaterialConstantBuffer(Material* materialComponent);
-        int BindMaterialTexture(TextureSlot slotType, int slotIndex, Material* material);
+        int BindMaterialTexture(MaterialSlot slotType, int slotIndex, Material* material);
         int BindSkyboxTexture(int slotNumber, RHI_Texture* texture);
         int BindSkyboxTexture(int slotNumber, ID3D11ShaderResourceView* shaderResourceView);
 
@@ -124,7 +124,7 @@ namespace Aurora
 
         // Default Textures
         ResourceCache* m_ResourceCache;
-        std::shared_ptr<AuroraResource> m_DefaultWhiteTexture;
+        std::shared_ptr<DX11_Texture> m_DefaultWhiteTexture;
 
         // Entities
         std::vector<std::shared_ptr<Entity>> m_SceneEntities;

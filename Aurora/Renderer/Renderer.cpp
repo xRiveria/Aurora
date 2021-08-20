@@ -7,7 +7,6 @@
 #include "RendererResources.h"
 #include "../Scene/Components/Light.h"
 #include "../Scene/Components/Mesh.h"
-#include "../Scene/Components/Material.h"
 #include "../Resource/Importers/Importer_Image.h"
 #include "../Time/Timer.h"
 #include "../Graphics/DX11_Refactored/DX11_Texture.h"
@@ -98,10 +97,10 @@ namespace Aurora
         return true;
     }
 
-    int Renderer::BindMaterialTexture(TextureSlot slotType, int slotIndex, Material* material)
+    int Renderer::BindMaterialTexture(MaterialSlot slotType, int slotIndex, Material* material)
     {
         // Remember that our slot type's enum corresponds to our shader material.
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(slotIndex, 1, material->m_Textures[slotType]->m_Texture->GetShaderResourceView().GetAddressOf());
+        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(slotIndex, 1, material->m_Textures[slotType]->GetShaderResourceView().GetAddressOf());
 
         return (int)slotType;
     }
@@ -126,19 +125,19 @@ namespace Aurora
     {
         ConstantBufferData_Material constantBuffer;
 
-        constantBuffer.g_Material.g_ObjectColor = materialComponent->m_BaseColor;
-        constantBuffer.g_Material.g_Roughness = materialComponent->m_Roughness;
-        constantBuffer.g_Material.g_Metalness = materialComponent->m_Metalness;
+        constantBuffer.g_Material.g_ObjectColor = materialComponent->GetAlbedoColor();
+        constantBuffer.g_Material.g_Roughness = materialComponent->m_Properties[MaterialSlot::MaterialSlot_Roughness];
+        constantBuffer.g_Material.g_Metalness = materialComponent->m_Properties[MaterialSlot::MaterialSlot_Metallic];
         if (m_Camera != nullptr)
         {
             constantBuffer.g_Camera_Position = m_Camera->GetComponent<Transform>()->m_TranslationLocal;
         }
 
-        constantBuffer.g_Texture_BaseColorMap_Index = BindMaterialTexture(TextureSlot::BaseColorMap, m_BaseMap, materialComponent);
-        constantBuffer.g_Texture_NormalMap_Index = BindMaterialTexture(TextureSlot::NormalMap, m_NormalMapIndex, materialComponent);
-        constantBuffer.g_Texture_MetalnessMap_Index = BindMaterialTexture(TextureSlot::MetalnessMap, m_MetalMapIndex, materialComponent);
-        constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(TextureSlot::RoughnessMap, m_RoughnessMapIndex, materialComponent);
-        constantBuffer.g_Texture_AOMap_Index = BindMaterialTexture(TextureSlot::OcclusionMap, m_AOMapIndex, materialComponent);
+        constantBuffer.g_Texture_BaseColorMap_Index = BindMaterialTexture(MaterialSlot::MaterialSlot_Albedo, m_BaseMap, materialComponent);
+        constantBuffer.g_Texture_NormalMap_Index = BindMaterialTexture(MaterialSlot::MaterialSlot_Normal, m_NormalMapIndex, materialComponent);
+        constantBuffer.g_Texture_MetalnessMap_Index = BindMaterialTexture(MaterialSlot::MaterialSlot_Metallic, m_MetalMapIndex, materialComponent);
+        constantBuffer.g_Texture_RoughnessMap_Index = BindMaterialTexture(MaterialSlot::MaterialSlot_Roughness, m_RoughnessMapIndex, materialComponent);
+        constantBuffer.g_Texture_AOMap_Index = BindMaterialTexture(MaterialSlot::MaterialSlot_Occlusion, m_AOMapIndex, materialComponent);
 
         constantBuffer.g_Texture_IrradianceMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_IRRADIANCE, m_Skybox->m_IrradianceMapTexture->GetShaderResourceView().Get());
         constantBuffer.g_Texture_PrefilterMap_Index = BindSkyboxTexture(TEXSLOT_RENDERER_SKYCUBE_PREFILTER, m_Skybox->m_EnvironmentTexture->GetShaderResourceView().Get());
@@ -389,9 +388,9 @@ namespace Aurora
             m_DeviceContext->BindVertexBuffer(meshComponent.m_MeshData->m_VertexBuffer.get());
             m_DeviceContext->BindIndexBuffer(meshComponent.m_MeshData->m_IndexBuffer.get());
 
-            if (meshComponent.GetEntity()->HasComponent<Material>())
+            if (meshComponent.m_Material)
             {
-                UpdateMaterialConstantBuffer(meshComponent.GetEntity()->GetComponent<Material>());
+                UpdateMaterialConstantBuffer(meshComponent.m_Material);
             }
 
             m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(meshComponent.m_Indices.size(), 0, 0);

@@ -4,7 +4,6 @@
 #include "Camera.h"
 #include "Light.h"
 #include "Mesh.h"
-#include "Material.h"
 #include "RigidBody.h"
 #include "Collider.h"
 
@@ -44,7 +43,6 @@ namespace Aurora
     REGISTER_COMPONENT(Light, ComponentType::Light);
     REGISTER_COMPONENT(Mesh, ComponentType::Mesh);
     REGISTER_COMPONENT(Transform, ComponentType::Transform);
-    REGISTER_COMPONENT(Material, ComponentType::Material);
     REGISTER_COMPONENT(RigidBody, ComponentType::RigidBody);
     REGISTER_COMPONENT(Collider, ComponentType::Collider);
 }

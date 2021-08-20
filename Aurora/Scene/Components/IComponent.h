@@ -13,7 +13,6 @@ namespace Aurora
         Light,
         Mesh,
         Transform,
-        Material,
         RigidBody,
         Collider,
         Unknown

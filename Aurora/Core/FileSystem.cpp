@@ -347,7 +347,7 @@ namespace Aurora
 
     std::string FileSystem::NativizeFilePath(const std::string& filePath)
     {
-        const std::string filePathWithoutExtension = GetFileNameWithoutExtensionFromFilePath(filePath);
+        const std::string filePathWithoutExtension = GetFilePathWithoutExtension(filePath);
 
         if (IsSupportedModelFile(filePath)) { return filePathWithoutExtension + EXTENSION_MODEL; }
         if (IsSupportedImageFile(filePath)) { return filePathWithoutExtension + EXTENSION_TEXTURE; }
@@ -386,6 +386,11 @@ namespace Aurora
     bool FileSystem::IsEngineModelFile(const std::string& filePath)
     {
         return GetExtensionFromFilePath(filePath) == EXTENSION_MODEL;
+    }
+
+    bool FileSystem::IsEngineTextureFile(const std::string& filePath)
+    {
+        return GetExtensionFromFilePath(filePath) == EXTENSION_TEXTURE;
     }
 
     bool FileSystem::IsSupportedImageFile(const std::string& filePath)
@@ -427,6 +432,7 @@ namespace Aurora
     {
         return IsEngineModelFile(filePath)    ||
                IsEngineMaterialFile(filePath) ||
+               IsEngineTextureFile(filePath)  ||
                IsEngineSceneFile(filePath);
     }
 }
