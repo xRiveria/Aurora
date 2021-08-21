@@ -15,6 +15,7 @@ namespace Aurora
     class Entity;
     class World;
     class Material;
+    class Model;
     class AuroraResource;
 
     struct ModelParameters
@@ -28,6 +29,7 @@ namespace Aurora
         std::string m_Name;
         bool m_HasAnimations;
 
+        Model* m_Model = nullptr;
         const aiScene* m_AssimpScene = nullptr;
     };
 
@@ -38,7 +40,7 @@ namespace Aurora
         ~Importer_Model() = default;
 
         // std::shared_ptr<Entity> Load(const std::string& filePath, const std::string& fileName = "");
-        bool LoadModel(const std::string& filePath, AuroraResource* resource);
+        bool LoadModel(const std::string& filePath, Model* model);
 
     private:
         // Parsing

@@ -2,7 +2,6 @@
 #include "EngineContext.h"
 #include "ISubsystem.h"
 #include "../Scene/Components/Transform.h"
-#include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/RigidBody.h"
 #include "Bullet/btBulletDynamicsCommon.h"
 

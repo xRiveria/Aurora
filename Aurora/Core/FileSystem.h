@@ -31,6 +31,7 @@ namespace Aurora
         static void OpenItem(const std::string& directoryPath);
         static std::string GetWorkingDirectory();
         static std::string ReplaceOrAddExtension(const std::string& filePath, const std::string& fileExtension);
+        static std::string RemoveIllegalCharacters(const std::string& filePath);
         
         // Path Absolute
         static std::string MakePathAbsolute(const std::string& filePath);
@@ -45,6 +46,7 @@ namespace Aurora
         static bool IsEngineSceneFile(const std::string& filePath);
         static bool IsEngineModelFile(const std::string& filePath);
         static bool IsEngineTextureFile(const std::string& filePath);
+        static bool IsEngineCacheFile(const std::string& filePath);
 
         static bool IsSupportedImageFile(const std::string& filePath);
         static bool IsSupportedModelFile(const std::string& filePath);
@@ -55,6 +57,7 @@ namespace Aurora
     static const char* EXTENSION_MODEL = ".model";
     static const char* EXTENSION_SCENE = ".aurora";
     static const char* EXTENSION_MATERIAL = ".material";
+    static const char* EXTENSION_CACHE = ".dat";
 
     static const std::vector<std::string> g_Supported_Model_Formats
     {

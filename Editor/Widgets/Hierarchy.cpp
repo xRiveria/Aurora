@@ -1,8 +1,8 @@
 #include "Hierarchy.h"
 #include "../Scene/World.h"
-#include "../Scene/Components/Mesh.h"
 #include "../Input/Input.h"
 #include "../Input/InputUtilities.h"
+#include "../Scene/Components/Renderable.h"
 #include "../Backend/Source/imgui_internal.h"
 #include "../Backend/Utilities/Extensions.h"
 #include "Properties.h"
@@ -65,10 +65,10 @@ bool Hierarchy::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
         case AURORA_KEY_TAB:
             if (EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.lock())
             {
-                if (const Aurora::Mesh* entityWithMesh = EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.lock()->GetComponentInChildren<Aurora::Mesh>())
+                if (const Aurora::Renderable* entityWithRenderable = EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.lock()->GetComponentInChildren<Aurora::Renderable>())
                 {
-                    EditorExtensions::ContextHelper::GetInstance().SetSelectedEntity(entityWithMesh->GetEntity()->GetPointerShared());
-                    Properties::m_InspectedEntity = entityWithMesh->GetEntity()->GetPointerShared();
+                    EditorExtensions::ContextHelper::GetInstance().SetSelectedEntity(entityWithRenderable->GetEntity()->GetPointerShared());
+                    Properties::m_InspectedEntity = entityWithRenderable->GetEntity()->GetPointerShared();
                     return true;
                 }
             }

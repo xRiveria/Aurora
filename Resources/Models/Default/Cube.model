@@ -1,0 +1,312 @@
+Type: Model
+Model_Path: ../Resources/Models/Default/Cube.fbx
+Model_Indices:
+  - 0
+  - 1
+  - 2
+  - 0
+  - 2
+  - 3
+  - 1
+  - 4
+  - 5
+  - 1
+  - 5
+  - 2
+  - 3
+  - 2
+  - 6
+  - 2
+  - 5
+  - 8
+  - 2
+  - 8
+  - 6
+  - 3
+  - 6
+  - 7
+  - 9
+  - 10
+  - 11
+  - 9
+  - 11
+  - 12
+  - 10
+  - 13
+  - 14
+  - 10
+  - 14
+  - 11
+  - 12
+  - 11
+  - 15
+  - 11
+  - 14
+  - 17
+  - 11
+  - 17
+  - 15
+  - 12
+  - 15
+  - 16
+  - 18
+  - 19
+  - 20
+  - 18
+  - 20
+  - 21
+  - 19
+  - 22
+  - 23
+  - 19
+  - 23
+  - 20
+  - 21
+  - 20
+  - 24
+  - 20
+  - 23
+  - 26
+  - 20
+  - 26
+  - 24
+  - 21
+  - 24
+  - 25
+  - 27
+  - 28
+  - 29
+  - 27
+  - 29
+  - 30
+  - 28
+  - 31
+  - 32
+  - 28
+  - 32
+  - 29
+  - 30
+  - 29
+  - 33
+  - 29
+  - 32
+  - 35
+  - 29
+  - 35
+  - 33
+  - 30
+  - 33
+  - 34
+  - 36
+  - 37
+  - 38
+  - 36
+  - 38
+  - 39
+  - 40
+  - 36
+  - 39
+  - 39
+  - 38
+  - 42
+  - 40
+  - 39
+  - 41
+  - 39
+  - 42
+  - 43
+  - 41
+  - 39
+  - 43
+  - 41
+  - 43
+  - 44
+  - 45
+  - 46
+  - 47
+  - 45
+  - 47
+  - 48
+  - 46
+  - 49
+  - 50
+  - 46
+  - 50
+  - 47
+  - 48
+  - 47
+  - 51
+  - 47
+  - 50
+  - 53
+  - 47
+  - 53
+  - 51
+  - 48
+  - 51
+  - 52
+Model_VertexPositions_Count: 54
+Model_VertexPositions_0: [-0.5, -0.5, -0.5]
+Model_VertexPositions_1: [0, -0.5, -0.5]
+Model_VertexPositions_2: [0, 0, -0.5]
+Model_VertexPositions_3: [-0.5, 0, -0.5]
+Model_VertexPositions_4: [0.5, -0.5, -0.5]
+Model_VertexPositions_5: [0.5, 0, -0.5]
+Model_VertexPositions_6: [0, 0.5, -0.5]
+Model_VertexPositions_7: [-0.5, 0.5, -0.5]
+Model_VertexPositions_8: [0.5, 0.5, -0.5]
+Model_VertexPositions_9: [-0.5, 0.5, -0.5]
+Model_VertexPositions_10: [0, 0.5, -0.5]
+Model_VertexPositions_11: [0, 0.5, -0]
+Model_VertexPositions_12: [-0.5, 0.5, -0]
+Model_VertexPositions_13: [0.5, 0.5, -0.5]
+Model_VertexPositions_14: [0.5, 0.5, -0]
+Model_VertexPositions_15: [0, 0.5, 0.5]
+Model_VertexPositions_16: [-0.5, 0.5, 0.5]
+Model_VertexPositions_17: [0.5, 0.5, 0.5]
+Model_VertexPositions_18: [-0.5, 0.5, 0.5]
+Model_VertexPositions_19: [0, 0.5, 0.5]
+Model_VertexPositions_20: [0, 0, 0.5]
+Model_VertexPositions_21: [-0.5, 0, 0.5]
+Model_VertexPositions_22: [0.5, 0.5, 0.5]
+Model_VertexPositions_23: [0.5, 0, 0.5]
+Model_VertexPositions_24: [0, -0.5, 0.5]
+Model_VertexPositions_25: [-0.5, -0.5, 0.5]
+Model_VertexPositions_26: [0.5, -0.5, 0.5]
+Model_VertexPositions_27: [-0.5, -0.5, 0.5]
+Model_VertexPositions_28: [0, -0.5, 0.5]
+Model_VertexPositions_29: [0, -0.5, -0]
+Model_VertexPositions_30: [-0.5, -0.5, -0]
+Model_VertexPositions_31: [0.5, -0.5, 0.5]
+Model_VertexPositions_32: [0.5, -0.5, -0]
+Model_VertexPositions_33: [0, -0.5, -0.5]
+Model_VertexPositions_34: [-0.5, -0.5, -0.5]
+Model_VertexPositions_35: [0.5, -0.5, -0.5]
+Model_VertexPositions_36: [0.5, -0.5, -0]
+Model_VertexPositions_37: [0.5, -0.5, 0.5]
+Model_VertexPositions_38: [0.5, 0, 0.5]
+Model_VertexPositions_39: [0.5, 0, -0]
+Model_VertexPositions_40: [0.5, -0.5, -0.5]
+Model_VertexPositions_41: [0.5, 0, -0.5]
+Model_VertexPositions_42: [0.5, 0.5, 0.5]
+Model_VertexPositions_43: [0.5, 0.5, -0]
+Model_VertexPositions_44: [0.5, 0.5, -0.5]
+Model_VertexPositions_45: [-0.5, -0.5, 0.5]
+Model_VertexPositions_46: [-0.5, -0.5, -0]
+Model_VertexPositions_47: [-0.5, 0, -0]
+Model_VertexPositions_48: [-0.5, 0, 0.5]
+Model_VertexPositions_49: [-0.5, -0.5, -0.5]
+Model_VertexPositions_50: [-0.5, 0, -0.5]
+Model_VertexPositions_51: [-0.5, 0.5, -0]
+Model_VertexPositions_52: [-0.5, 0.5, 0.5]
+Model_VertexPositions_53: [-0.5, 0.5, -0.5]
+Model_VertexNormals_Count: 54
+Model_VertexNormals_0: [0, 0, -1]
+Model_VertexNormals_1: [0, 0, -1]
+Model_VertexNormals_2: [0, 0, -1]
+Model_VertexNormals_3: [0, 0, -1]
+Model_VertexNormals_4: [0, 0, -1]
+Model_VertexNormals_5: [0, 0, -1]
+Model_VertexNormals_6: [0, 0, -1]
+Model_VertexNormals_7: [0, 0, -1]
+Model_VertexNormals_8: [0, 0, -1]
+Model_VertexNormals_9: [0, 1, -0]
+Model_VertexNormals_10: [0, 1, -0]
+Model_VertexNormals_11: [0, 1, -0]
+Model_VertexNormals_12: [0, 1, -0]
+Model_VertexNormals_13: [0, 1, -0]
+Model_VertexNormals_14: [0, 1, -0]
+Model_VertexNormals_15: [0, 1, -0]
+Model_VertexNormals_16: [0, 1, -0]
+Model_VertexNormals_17: [0, 1, -0]
+Model_VertexNormals_18: [0, 0, 1]
+Model_VertexNormals_19: [0, 0, 1]
+Model_VertexNormals_20: [0, 0, 1]
+Model_VertexNormals_21: [0, 0, 1]
+Model_VertexNormals_22: [0, 0, 1]
+Model_VertexNormals_23: [0, 0, 1]
+Model_VertexNormals_24: [0, 0, 1]
+Model_VertexNormals_25: [0, 0, 1]
+Model_VertexNormals_26: [0, 0, 1]
+Model_VertexNormals_27: [0, -1, -0]
+Model_VertexNormals_28: [0, -1, -0]
+Model_VertexNormals_29: [0, -1, -0]
+Model_VertexNormals_30: [0, -1, -0]
+Model_VertexNormals_31: [0, -1, -0]
+Model_VertexNormals_32: [0, -1, -0]
+Model_VertexNormals_33: [0, -1, -0]
+Model_VertexNormals_34: [0, -1, -0]
+Model_VertexNormals_35: [0, -1, -0]
+Model_VertexNormals_36: [1, 0, -0]
+Model_VertexNormals_37: [1, 0, -0]
+Model_VertexNormals_38: [1, 0, -0]
+Model_VertexNormals_39: [1, 0, -0]
+Model_VertexNormals_40: [1, 0, -0]
+Model_VertexNormals_41: [1, 0, -0]
+Model_VertexNormals_42: [1, 0, -0]
+Model_VertexNormals_43: [1, 0, -0]
+Model_VertexNormals_44: [1, 0, -0]
+Model_VertexNormals_45: [-1, 0, -0]
+Model_VertexNormals_46: [-1, 0, -0]
+Model_VertexNormals_47: [-1, 0, -0]
+Model_VertexNormals_48: [-1, 0, -0]
+Model_VertexNormals_49: [-1, 0, -0]
+Model_VertexNormals_50: [-1, 0, -0]
+Model_VertexNormals_51: [-1, 0, -0]
+Model_VertexNormals_52: [-1, 0, -0]
+Model_VertexNormals_53: [-1, 0, -0]
+Model_VertexUVs_Count: 54
+Model_VertexUVs_0: [0.375, 1]
+Model_VertexUVs_1: [0.5, 1]
+Model_VertexUVs_2: [0.5, 0.875]
+Model_VertexUVs_3: [0.375, 0.875]
+Model_VertexUVs_4: [0.625, 1]
+Model_VertexUVs_5: [0.625, 0.875]
+Model_VertexUVs_6: [0.5, 0.75]
+Model_VertexUVs_7: [0.375, 0.75]
+Model_VertexUVs_8: [0.625, 0.75]
+Model_VertexUVs_9: [0.375, 0.75]
+Model_VertexUVs_10: [0.5, 0.75]
+Model_VertexUVs_11: [0.5, 0.625]
+Model_VertexUVs_12: [0.375, 0.625]
+Model_VertexUVs_13: [0.625, 0.75]
+Model_VertexUVs_14: [0.625, 0.625]
+Model_VertexUVs_15: [0.5, 0.5]
+Model_VertexUVs_16: [0.375, 0.5]
+Model_VertexUVs_17: [0.625, 0.5]
+Model_VertexUVs_18: [0.375, 0.5]
+Model_VertexUVs_19: [0.5, 0.5]
+Model_VertexUVs_20: [0.5, 0.375]
+Model_VertexUVs_21: [0.375, 0.375]
+Model_VertexUVs_22: [0.625, 0.5]
+Model_VertexUVs_23: [0.625, 0.375]
+Model_VertexUVs_24: [0.5, 0.25]
+Model_VertexUVs_25: [0.375, 0.25]
+Model_VertexUVs_26: [0.625, 0.25]
+Model_VertexUVs_27: [0.375, 0.25]
+Model_VertexUVs_28: [0.5, 0.25]
+Model_VertexUVs_29: [0.5, 0.125]
+Model_VertexUVs_30: [0.375, 0.125]
+Model_VertexUVs_31: [0.625, 0.25]
+Model_VertexUVs_32: [0.625, 0.125]
+Model_VertexUVs_33: [0.5, 0]
+Model_VertexUVs_34: [0.375, 0]
+Model_VertexUVs_35: [0.625, 0]
+Model_VertexUVs_36: [0.75, 1]
+Model_VertexUVs_37: [0.875, 1]
+Model_VertexUVs_38: [0.875, 0.875]
+Model_VertexUVs_39: [0.75, 0.875]
+Model_VertexUVs_40: [0.625, 1]
+Model_VertexUVs_41: [0.625, 0.875]
+Model_VertexUVs_42: [0.875, 0.75]
+Model_VertexUVs_43: [0.75, 0.75]
+Model_VertexUVs_44: [0.625, 0.75]
+Model_VertexUVs_45: [0.125, 1]
+Model_VertexUVs_46: [0.25, 1]
+Model_VertexUVs_47: [0.25, 0.875]
+Model_VertexUVs_48: [0.125, 0.875]
+Model_VertexUVs_49: [0.375, 1]
+Model_VertexUVs_50: [0.375, 0.875]
+Model_VertexUVs_51: [0.25, 0.75]
+Model_VertexUVs_52: [0.125, 0.75]
+Model_VertexUVs_53: [0.375, 0.75]

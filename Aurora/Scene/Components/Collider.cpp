@@ -1,5 +1,6 @@
 #include "Aurora.h"
 #include "Collider.h"
+#include "../Scene/Entity.h"
 #include "../Physics/Physics.h"
 #include "../Physics/PhysicsUtilities.h"
 #include "../Math/MathUtilities.h"

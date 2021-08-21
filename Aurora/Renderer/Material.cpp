@@ -59,9 +59,12 @@ namespace Aurora
     bool Material::LoadFromFile(const std::string& filePath)
     {
         std::unique_ptr<FileSerializer> fileSerializer = std::make_unique<FileSerializer>(m_EngineContext);
+
         if (fileSerializer->LoadFromFile(filePath))
         {
-            if (fileSerializer->KeyExists("Type"))
+            SetResourceFilePath(filePath);
+
+            if (fileSerializer->ValidateFileType("Material"))
             {
                 fileSerializer->GetProperty("Albedo_Color", &m_AlbedoColor);
                 fileSerializer->GetProperty("Roughness_Multiplier", &GetProperty(MaterialSlot::MaterialSlot_Roughness));
@@ -70,13 +73,14 @@ namespace Aurora
                 fileSerializer->GetProperty("Occlusion_Multiplier", &GetProperty(MaterialSlot::MaterialSlot_Occlusion));
             }
 
-            if (fileSerializer->KeyExists("Textures"))
+            if (fileSerializer->ValidateKey("Textures"))
             {
                 uint32_t textureCount = 0;
-                fileSerializer->GetPropertyFromSubNode("Textures", "Textures_Count", &textureCount);
                 std::string materialName;
                 std::string materialPath;
                 uint32_t materialSlot;
+                
+                fileSerializer->GetPropertyFromSubNode("Textures", "Textures_Count", &textureCount);
 
                 for (int i = 0; i < textureCount; i++)
                 {

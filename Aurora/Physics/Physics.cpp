@@ -45,7 +45,7 @@ namespace Aurora
             return;
         }
 
-        Stopwatch physicsProfiler("Physics");
+        Stopwatch physicsProfiler("Physics", true);
 
         /// Render option to enable or disable drawing of physics debugging systems.
         //if (true)

@@ -1,6 +1,7 @@
 #include "Aurora.h"
 #include "AuroraResource.h"
 #include "../Graphics/DX11_Refactored/DX11_Texture.h"
+#include "../Renderer/Model.h"
 #include "../Renderer/Material.h"
 
 namespace Aurora
@@ -10,16 +11,6 @@ namespace Aurora
         m_EngineContext = engineContext;
         m_ResourceType = resourceType;
         m_LoadState = LoadState::LoadState_Idle;
-    }
-
-    DX11_MeshData::DX11_MeshData(EngineContext* engineContext) : AuroraResource(engineContext, ResourceType::ResourceType_Model)
-    {
-
-    }
-
-    DX11_MeshData::~DX11_MeshData()
-    {
-
     }
 
     template <typename T>
@@ -33,6 +24,6 @@ namespace Aurora
 
     // To add a new resource type to the engine, simply register it here.
     INSTANTIATE_TO_RESOURCE_TYPE(DX11_Texture, ResourceType::ResourceType_Image)
-    INSTANTIATE_TO_RESOURCE_TYPE(DX11_MeshData, ResourceType::ResourceType_Model)
+    INSTANTIATE_TO_RESOURCE_TYPE(Model, ResourceType::ResourceType_Model)
     INSTANTIATE_TO_RESOURCE_TYPE(Material, ResourceType::ResourceType_Material)
 }

@@ -26,7 +26,7 @@ namespace Aurora
     protected:
         // Critical. The version history is logged in the ArchiveVersionHistory.txt file.
         uint64_t m_SerializerVersion = 1;        // This should always be only incremented and only if a new serialization is implemented somewhere.
-        uint64_t m_SerializerVersionBarrier = 0; // This is the version number of which any below will not be compatible with the current version.
+        uint64_t m_SerializerVersionBarrier = 2; // This is the version number of which any below will not be compatible with the current version.
 
         World* m_World;
         EngineContext* m_EngineContext;

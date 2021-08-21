@@ -8,7 +8,7 @@ namespace Aurora
     class Stopwatch
     {
     public:
-        Stopwatch(const std::string& queryName) : m_QueryName(queryName)
+        Stopwatch(const std::string& queryName, bool logToProfiler) : m_QueryName(queryName), m_LogToProfiler(logToProfiler)
         {
             StartTimer();
         }
@@ -32,7 +32,10 @@ namespace Aurora
         {
             char buffer[256];
             sprintf_s(buffer, "%s: %.3fms", m_QueryName.c_str(), GetElapsedTimeInMilliseconds());
-            Profiler::GetInstance().AddEntry(std::string(buffer));
+            if (m_LogToProfiler)
+            {
+                Profiler::GetInstance().AddEntry(std::string(buffer));
+            }
         }
 
         inline float GetElapsedTimeInSeconds() const
@@ -51,5 +54,6 @@ namespace Aurora
         std::chrono::time_point<std::chrono::high_resolution_clock> m_Start;
         std::string m_QueryName;
         bool m_IsWatchRunning = false;
+        bool m_LogToProfiler = false;
     };
 }

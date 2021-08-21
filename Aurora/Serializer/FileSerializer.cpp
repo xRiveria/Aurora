@@ -49,9 +49,9 @@ namespace Aurora
         return true;
     }
 
-    bool FileSerializer::KeyExists(const std::string& nodeName)
+    bool FileSerializer::ValidateFileType(const std::string& fileType)
     {
-        if (!m_ActiveNode[nodeName]) // Is this really the type of file we're looking for? If there's no node for it within, we return immediately.
+        if (m_ActiveNode["Type"].as<std::string>() != fileType)
         {
             return false;
         }
@@ -59,9 +59,29 @@ namespace Aurora
         return true;
     }
 
+    bool FileSerializer::ValidateKey(const std::string& keyName)
+    {
+        if (!m_ActiveNode[keyName])
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool FileSerializer::ValidateKeyAndValue(const std::string& keyName, const std::string& keyValue)
+    {
+        if (m_ActiveNode[keyName].as<std::string>() == keyValue) // Is this really the type of file we're looking for? If there's no node for it within, we return immediately.
+        {
+            return true;
+        }
+
+        return false;;
+    }
+
     bool FileSerializer::GetProperty(const std::string& keyName, std::string* value)
     {
-        *value = m_ActiveNode.as<std::string>();
+        *value = m_ActiveNode[keyName].as<std::string>();
         return true;
     }
 
@@ -110,6 +130,14 @@ namespace Aurora
     bool FileSerializer::GetProperty(const std::string& keyName, XMFLOAT4* value)
     {
         *value = m_ActiveNode[keyName].as<XMFLOAT4>();
+        return true;
+    }
+
+    bool FileSerializer::GetPropertyFromSubNode(const std::string& subNode, const std::string& keyName, std::string * value)
+    {
+        YAML::Node node = m_ActiveNode[subNode];
+        *value = node[keyName].as<std::string>();
+
         return true;
     }
 
@@ -189,5 +217,63 @@ namespace Aurora
     {
         m_ActiveEmitter << YAML::Key << keyName;
         m_ActiveEmitter << YAML::Value << keyValue;
+    }
+
+    void FileSerializer::AddProperty(const std::string& keyName, std::vector<uint32_t>& keyValues)
+    {
+        m_ActiveEmitter << YAML::Key << keyName;
+        m_ActiveEmitter << YAML::Value << keyValues;
+    }
+
+    bool FileSerializer::GetProperty(const std::string& keyName, std::vector<uint32_t>* values)
+    {
+        *values = m_ActiveNode[keyName].as<std::vector<uint32_t>>();
+        return true;
+    }
+
+    bool FileSerializer::GetProperty(const std::string& keyName, std::vector<XMFLOAT2>* values)
+    {
+        uint32_t vectorCount = m_ActiveNode[(keyName + "_" + "Count")].as<uint32_t>();
+        *values = std::vector<XMFLOAT2>(vectorCount);
+
+        for (uint32_t i = 0; i < vectorCount; i++)
+        {
+            (*values)[i] = m_ActiveNode[(keyName + "_" + std::to_string(i))].as<XMFLOAT2>();
+        }
+
+        return true;
+    }
+
+    bool FileSerializer::GetProperty(const std::string& keyName, std::vector<XMFLOAT3>* values)
+    {
+        uint32_t vectorCount = m_ActiveNode[(keyName + "_" + "Count")].as<uint32_t>();
+        *values = std::vector<XMFLOAT3>(vectorCount);
+
+        for (uint32_t i = 0; i < vectorCount; i++)
+        {
+            (*values)[i] = m_ActiveNode[(keyName + "_" + std::to_string(i))].as<XMFLOAT3>();
+        }
+
+        return true;
+    }
+
+    void FileSerializer::AddProperty(const std::string& keyName, std::vector<XMFLOAT2>& keyValues)
+    {
+        m_ActiveEmitter << YAML::Key << (keyName + "_" + "Count") << YAML::Value << static_cast<uint32_t>(keyValues.size());
+        for (int i = 0; i < keyValues.size(); i++)
+        {
+            m_ActiveEmitter << YAML::Key << (keyName + "_" + std::to_string(i));
+            m_ActiveEmitter << YAML::Value << keyValues[i];
+        }
+    }
+
+    void FileSerializer::AddProperty(const std::string& keyName, std::vector<XMFLOAT3>& keyValues)
+    {
+        m_ActiveEmitter << YAML::Key << (keyName + "_" + "Count") << YAML::Value << static_cast<uint32_t>(keyValues.size());
+        for (int i = 0; i < keyValues.size(); i++)
+        {
+            m_ActiveEmitter << YAML::Key << keyName + "_" + std::to_string(i);
+            m_ActiveEmitter << YAML::Value << keyValues[i];
+        }
     }
 }

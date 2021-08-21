@@ -279,6 +279,23 @@ namespace Aurora
         return 0;
     }
 
+    std::string FileSystem::RemoveIllegalCharacters(const std::string& filePath)
+    {
+        std::string legalText = filePath;
+
+        // Remove characters that are illegal.
+        std::string illegalCharacters = ":?\"<>|";
+        for (auto iterator = legalText.begin(); iterator < legalText.end(); ++iterator)
+        {
+            if (illegalCharacters.find(*iterator) != std::string::npos)
+            {
+                *iterator = '_';
+            }
+        }
+
+        return legalText;
+    }
+
     std::string FileSystem::MakePathAbsolute(const std::string& filePath)
     {
         std::filesystem::path path = filePath;
@@ -388,6 +405,11 @@ namespace Aurora
         return GetExtensionFromFilePath(filePath) == EXTENSION_MODEL;
     }
 
+    bool FileSystem::IsEngineCacheFile(const std::string& filePath)
+    {
+        return GetExtensionFromFilePath(filePath) == EXTENSION_CACHE;
+    }
+
     bool FileSystem::IsEngineTextureFile(const std::string& filePath)
     {
         return GetExtensionFromFilePath(filePath) == EXTENSION_TEXTURE;
@@ -432,6 +454,7 @@ namespace Aurora
     {
         return IsEngineModelFile(filePath)    ||
                IsEngineMaterialFile(filePath) ||
+               IsEngineCacheFile(filePath) ||
                IsEngineTextureFile(filePath)  ||
                IsEngineSceneFile(filePath);
     }

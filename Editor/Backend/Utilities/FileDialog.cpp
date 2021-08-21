@@ -301,7 +301,7 @@ void FileDialog::ShowMiddleUI()
                 // Label
                 {
                     const char* labelText = item.GetLabel().c_str();
-                    const ImVec2 labelSize = ImGui::CalcTextSize(labelText, nullptr, true);
+                    ImVec2 labelSize = ImGui::CalcTextSize(labelText, nullptr, true);
 
                     // Draw text background.
                     ImGui::SetCursorScreenPos(ImVec2(rectLabel.Min.x + textOffset, rectLabel.Min.y + textOffset));
@@ -494,6 +494,11 @@ bool FileDialog::DialogUpdateFromDirectory(const std::string& directoryPath)
         if (Aurora::FileSystem::IsEngineMaterialFile(childItem))
         {
             m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Material, static_cast<int>(m_HierarchyItemSize.x)));
+        }
+
+        if (Aurora::FileSystem::IsEngineCacheFile(childItem))
+        {
+            m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Cache, static_cast<int>(m_HierarchyItemSize.x)));
         }
     }
 

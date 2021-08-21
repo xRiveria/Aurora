@@ -6,7 +6,6 @@
 #include "ShaderInternals.h"
 #include "RendererResources.h"
 #include "../Scene/Components/Light.h"
-#include "../Scene/Components/Mesh.h"
 #include "../Resource/Importers/Importer_Image.h"
 #include "../Time/Timer.h"
 #include "../Graphics/DX11_Refactored/DX11_Texture.h"
@@ -14,6 +13,8 @@
 #include "../Graphics/DX11/Skybox.h"
 #include <iostream>
 #include "../Input/Input.h"
+#include "../Scene/Components/Renderable.h"
+#include "Model.h"
 
 namespace Aurora
 {
@@ -235,7 +236,7 @@ namespace Aurora
 
     void Renderer::Tick(float deltaTime)
     {
-        Stopwatch widgetStopwatch("Renderer Pass");
+        Stopwatch widgetStopwatch("Renderer Pass", true);
 
         if (static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture->GetWidth()) != m_RenderWidth ||
             static_cast<float>(m_DeviceContext->m_MultisampleFramebuffer->m_RenderTargetTexture->GetHeight()) != m_RenderHeight)
@@ -365,41 +366,41 @@ namespace Aurora
 
         /// Render Queue Feature?
         std::vector<std::shared_ptr<Entity>> sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
-        std::vector<Mesh> meshComponents;
+        std::vector<Renderable> renderableComponents;
         for (auto& entity : sceneEntities)
         {
             if (entity->IsActive() && entity->m_EntityType == EntityType::Renderable)
             {
-                if (entity->HasComponent<Mesh>())
+                if (entity->HasComponent<Renderable>())
                 {
-                    meshComponents.push_back(*entity->GetComponent<Mesh>());
+                    renderableComponents.push_back(*entity->GetComponent<Renderable>());
                 }
             }
         }
 
         // We can play around with the below flow by binding the right pipeline depending on the material extracted from the mesh's information.
-        for (auto& meshComponent : meshComponents)
+        for (auto& renderableComponent : renderableComponents)
         {
-            UpdateEntityConstantBuffer(meshComponent.GetEntity());
+            UpdateEntityConstantBuffer(renderableComponent.GetEntity());
 
             UINT offset = 0;
             UINT modelStride = 8 * sizeof(float);
 
-            m_DeviceContext->BindVertexBuffer(meshComponent.m_MeshData->m_VertexBuffer.get());
-            m_DeviceContext->BindIndexBuffer(meshComponent.m_MeshData->m_IndexBuffer.get());
+            m_DeviceContext->BindVertexBuffer(renderableComponent.GetGeometryModel()->GetVertexBuffer());
+            m_DeviceContext->BindIndexBuffer(renderableComponent.GetGeometryModel()->GetIndexBuffer());
 
-            if (meshComponent.m_Material)
+            if (renderableComponent.GetMaterial())
             {
-                UpdateMaterialConstantBuffer(meshComponent.m_Material);
+                UpdateMaterialConstantBuffer(renderableComponent.GetMaterial());
             }
 
-            m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(meshComponent.m_Indices.size(), 0, 0);
+            m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(renderableComponent.GetGeometryModel()->GetIndexBuffer()->GetIndexCount(), 0, 0);
         }
     }
 
     void Renderer::DrawDebugWorld(Entity* entity)
     {
-        Stopwatch stopwatch("Debug World Pass");
+        Stopwatch stopwatch("Debug World Pass", true);
         m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Debug[DebugRenderer_Type::DebugRenderer_Grid], 0);
         // Bind Grid Pipeline
         Camera* camera = entity->GetComponent<Camera>();
@@ -510,7 +511,7 @@ namespace Aurora
 
     void Renderer::Pass_Lines()
     {
-        Stopwatch stopwatch("Lines Pass");
+        Stopwatch stopwatch("Lines Pass", true);
         m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Debug[DebugRenderer_Type::DebugRenderer_Grid], 0);
 
         const bool isLineDrawingEnabled = !m_Lines_DepthDisabled.empty() || !m_Lines_DepthEnabled.empty(); // Any kind of lines, physics, user debug or whatsoever.

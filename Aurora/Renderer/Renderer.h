@@ -9,7 +9,6 @@
 #include "../_Shaders/ShaderUtilities.h"
 #include "../Resource/Importers/Importer_Model.h"
 #include "Material.h"
-#include "../Scene/Components/Mesh.h"
 #include "../Graphics/DX11_Refactored/DX11_Context.h"
 #include "../Graphics/DX11_Refactored/DX11_Texture.h"
 

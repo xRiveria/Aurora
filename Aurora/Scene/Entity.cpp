@@ -2,7 +2,7 @@
 #include "Entity.h"
 #include "Components/Camera.h"
 #include "Components/Light.h"
-#include "Components/Mesh.h"
+#include "Components/Renderable.h"
 #include "Components/RigidBody.h"
 #include "Components/Collider.h"
 #include <type_traits>
@@ -128,7 +128,7 @@ namespace Aurora
             case ComponentType::Camera: return AddComponent<Camera>(componentID);
             case ComponentType::Light: return AddComponent<Light>(componentID);
             case ComponentType::Transform: return AddComponent<Transform>(componentID);
-            case ComponentType::Mesh: return AddComponent<Mesh>(componentID);
+            case ComponentType::Renderable: return AddComponent<Renderable>(componentID);
             case ComponentType::RigidBody: return AddComponent<RigidBody>(componentID);
             case ComponentType::Collider: return AddComponent<Collider>(componentID);
             default: nullptr;

@@ -40,6 +40,7 @@ void IconLibrary::Initialize(Aurora::EngineContext* engineContext, Editor* edito
     LoadIcon_(resourceDirectory + "AssetBrowser_Previous.png", IconType::IconType_AssetBrowser_Previous);
     LoadIcon_(resourceDirectory + "AssetBrowser_Refresh.png", IconType::IconType_AssetBrowser_Refresh);
     LoadIcon_(resourceDirectory + "AssetBrowser_Material.png", IconType::IconType_AssetBrowser_Material);
+    LoadIcon_(resourceDirectory + "AssetBrowser_Cache.png", IconType::IconType_AssetBrowser_Cache);
 
     // Assets
     LoadIcon_(resourceDirectory + "Assets_Cube.png", IconType::IconType_ObjectPanel_Cube);
@@ -91,7 +92,7 @@ const Icon& IconLibrary::LoadIcon_(const std::string& filePath, IconType iconTyp
     {
         for (Icon& icon : m_Icons)
         {
-            if (icon.m_Texture->m_FilePath == filePath)
+            if (icon.m_Texture->GetResourceFilePathNative() == filePath)
             {
                 return icon;
             }
@@ -106,16 +107,15 @@ const Icon& IconLibrary::LoadIcon_(const std::string& filePath, IconType iconTyp
         // Make a cheap texture.
         //m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath, texture](Aurora::JobInformation jobArguments)
         //{
-        texture->LoadFromFile(filePath);
+            texture->LoadFromFile(filePath);
         //});
 
-        // std::shared_ptr<Aurora::AuroraResource> texture = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTexture(filePath, Aurora::FileSystem::GetFileNameFromFilePath(filePath));
         m_Icons.emplace_back(iconType, texture);
 
         return m_Icons.back();
     }
 
-    return GetIconByType(IconType::IconType_Custom); // Can't find anything. Hence, we desperate retrieve something...
+    return GetIconByType(IconType::IconType_Custom); // Can't find anything. Hence, we desperately retrieve something...
 }
 
 const Icon& IconLibrary::GetIconByType(IconType iconType)

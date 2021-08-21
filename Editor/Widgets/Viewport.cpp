@@ -1,6 +1,7 @@
 #include "Viewport.h"
 #include "../Scene/World.h"
 #include "../Input/Input.h"
+#include "../Renderer/Model.h"
 #include "../Scene/Components/Light.h"
 #include "../Renderer/Renderer.h"
 #include "../Backend/Utilities/Extensions.h"
@@ -55,9 +56,7 @@ void Viewport::OnTickVisible()
     }
     else if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Model))
     {
-        std::shared_ptr<Aurora::AuroraResource> resource = std::make_shared<Aurora::AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Model);
-        m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadModel(std::get<const char*>(payload->m_Data), resource);
-        resource->m_Entity->m_Transform->Scale({ 0.01, 0.01, 0.01 });
+        std::shared_ptr<Aurora::Model> loadedModel = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::Model>(std::get<const char*>(payload->m_Data));
     }
           
     m_EditorContext->GetWidget<EditorTools>()->OnTickViewport();

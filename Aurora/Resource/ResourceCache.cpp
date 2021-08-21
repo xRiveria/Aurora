@@ -2,8 +2,10 @@
 #include "ResourceCache.h"
 #include "FileSystem.h"
 #include "../Scene/World.h"
+#include "../Renderer/Model.h"
 #include "Importers/Importer_Model.h"
 #include "Importers/Importer_Image.h"
+#include "../Scene/Components/Renderable.h"
 
 namespace Aurora
 {
@@ -33,7 +35,7 @@ namespace Aurora
                 return true;
             }
         }
-
+        
         return false;
     }
 
@@ -43,7 +45,29 @@ namespace Aurora
         {
             if (resourceName == cachedResource->GetResourceName())
             {
-                return cachedResource;
+                if (cachedResource->GetResourceType() == ResourceType::ResourceType_Model)
+                {
+                    /*
+                    /// Create cloning.
+                        // If we are attempting to load in a model with data already in memory, we simply create a brand new Entity.
+                        AURORA_INFO(LogLayer::Engine, "Model Already Loaded!");
+                        Model* model = new Model(m_EngineContext);
+                        model->LoadFromFile(cachedResource->GetResourceFilePathNative());
+
+                        auto entity = m_EngineContext->GetSubsystem<World>()->EntityCreate(true);
+                        Renderable* renderable = entity->AddComponent<Renderable>();
+                        renderable->GeometrySet(cachedResource->GetResourceName(), model);
+                        // renderable->SetMaterial("Project")
+
+                        // =========================================================
+                        static std::shared_ptr<AuroraResource> emptyResource;
+                        return emptyResource;
+                    */
+                }
+                else
+                {
+                    return cachedResource;
+                }
             }
         }
 
@@ -52,13 +76,13 @@ namespace Aurora
         return emptyResource;
     }
 
-    std::vector<std::shared_ptr<AuroraResource>> ResourceCache::GetResourcesByType(ResourceType resourceType)
+    std::vector<std::shared_ptr<AuroraResource>> ResourceCache::GetResourcesByType(ResourceType resourceType /*= ResourceType::Unknown */)
     {
         std::vector<std::shared_ptr<AuroraResource>> resources;
 
         for (std::shared_ptr<AuroraResource>& cachedResource : m_CachedResources)
         {
-            if (cachedResource->GetResourceType() == resourceType)
+            if (cachedResource->GetResourceType() == resourceType || resourceType == ResourceType::ResourceType_Empty) // Allows us to pass in Empty and instead retrieve the total resource count.
             {
                 resources.emplace_back(cachedResource);
             }
@@ -121,29 +145,80 @@ namespace Aurora
     {
         /// Progress tracker.
 
-        // Create resource list file.
-        std::string filePath = m_EngineContext->GetSubsystem<Settings>()->GetProjectDirectoryAbsolute() + m_EngineContext->GetSubsystem<World>()->GetWorldName() + "_Resources.dat";       
+        std::unique_ptr<FileSerializer> fileSerializer = std::make_unique<FileSerializer>(m_EngineContext);
+        if (fileSerializer->BeginSerialization("ResourceCache"))
+        {
+            // Save resource count.
+            const uint32_t resourceCount = GetResourceCount();
+            fileSerializer->AddProperty("Resource_Count", resourceCount);
+
+            uint32_t i = 0;
+
+            // Save all currently used resources to disk.
+            for (std::shared_ptr<AuroraResource>& resource : m_CachedResources)
+            {
+                if (!resource->HasFilePathNative())
+                {
+                    continue;
+                }
+
+                // Save file.
+                std::string keyName = "Resource_" + std::to_string(i);
+
+                fileSerializer->AddMapKey(keyName);
+                fileSerializer->AddProperty("Resource_Path", resource->GetResourceFilePathNative());
+                fileSerializer->AddProperty("Resource_Type", static_cast<uint32_t>(resource->GetResourceType()));
+                fileSerializer->EndMapKey();
+
+                // Save the state of the individual resource to ensure serialization/deserialization.
+                resource->SaveToFile(resource->GetResourceFilePathNative());
+
+                i++;
+            }
+        }
+   
+        fileSerializer->EndSerialization(m_EngineContext->GetSubsystem<Settings>()->GetProjectDirectoryAbsolute() + m_EngineContext->GetSubsystem<World>()->GetWorldName() + "_Resources.dat");
     }
 
     void ResourceCache::LoadResourcesFromFiles()
     {
+        std::unique_ptr<FileSerializer> fileSerializer = std::make_unique<FileSerializer>(m_EngineContext);
+        uint32_t resourceCount = 0;
+        uint32_t resourceType = 0;
+        std::string filePath;
 
-    }
-
-    // =========================================================================================
-
-    bool ResourceCache::LoadModel(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource /*= true*/)
-    {
-        if (FileSystem::IsSupportedModelFile(filePath))
+        if (fileSerializer->LoadFromFile(m_EngineContext->GetSubsystem<Settings>()->GetProjectDirectoryAbsolute() + m_EngineContext->GetSubsystem<World>()->GetWorldName() + "_Resources.dat"))
         {
-            if (cacheResource)
+            if (fileSerializer->ValidateFileType("ResourceCache"))
             {
-                m_CachedResources.push_back(resource);
-            }
-            return m_Importer_Model->LoadModel(filePath, resource.get());
-        }
+                // Load resource count.
+                fileSerializer->GetProperty("Resource_Count", &resourceCount);
 
-        AURORA_ERROR(LogLayer::Engine, "Requested model file is not supported: %s.", filePath.c_str());
-        return false;
+                for (uint32_t i = 0; i < resourceCount; i++)
+                {
+                    // Create resource key.
+                    std::string keyName = "Resource_" + std::to_string(i);
+                    // Get resource type.
+                    fileSerializer->GetPropertyFromSubNode(keyName, "Resource_Type", &resourceType);
+                    // Get resource path.
+                    fileSerializer->GetPropertyFromSubNode(keyName, "Resource_Path", &filePath);
+                   
+                    const ResourceType resourceIdentified = static_cast<ResourceType>(resourceType);
+
+                    switch (resourceIdentified)
+                    {
+                        case ResourceType::ResourceType_Material:
+                            Load<Material>(filePath);
+                            break;
+
+                        case ResourceType::ResourceType_Model:
+                            break;
+
+                        case ResourceType::ResourceType_Image:
+                            break;
+                    }
+                }
+            }
+        }
     }
 }

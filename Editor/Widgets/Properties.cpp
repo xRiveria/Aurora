@@ -1,10 +1,11 @@
 #include "Properties.h"
 #include "../Scene/Entity.h"
 #include "../Scene/Components/Transform.h"
-#include "../Scene/Components/Mesh.h"
 #include "../Scene/Components/Light.h"
 #include "../Scene/Components/RigidBody.h"
+#include "../Scene/Components/Renderable.h"
 #include "../Scene/Components/Collider.h"
+#include "../Renderer/Material.h"
 #include "../Physics/Physics.h"
 #include "../Backend/Source/imgui_internal.h"
 #include "../Renderer/Renderer.h"
@@ -28,8 +29,8 @@ void Properties::OnTickVisible()
     if (!m_InspectedEntity.expired())
     {
         Aurora::Entity* entityPointer = m_InspectedEntity.lock().get();
-        Aurora::Mesh* meshPointer = entityPointer->GetComponent<Aurora::Mesh>();
-        Aurora::Material* materialPointer = meshPointer ? meshPointer->m_Material : nullptr;
+        Aurora::Renderable* meshPointer = entityPointer->GetComponent<Aurora::Renderable>();
+        Aurora::Material* materialPointer = meshPointer ? meshPointer->GetMaterial() : nullptr;
 
         ImGui::Checkbox("##EntityCheckbox", &entityPointer->m_IsActive);
         ImGui::SameLine();

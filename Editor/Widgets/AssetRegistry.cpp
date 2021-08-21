@@ -49,10 +49,14 @@ void AssetRegistry::OnTickVisible()
 
         std::string objectName = resource->GetResourceName();
         std::string resourceType = resource->GetResourceTypeInCString();
+        std::string resourceFilePathForeign = resource->GetResourceFilePath();
+        std::string resourceFilePathNative = resource->GetResourceFilePathNative();
 
         PropertyInput("Handle", buffer);
-        PropertyInput("File Path", objectName);
+        PropertyInput("File Name", objectName);
         PropertyInput("Resource Type", resourceType);
+        PropertyInput("Resource Path (Foreign)", resourceFilePathForeign);
+        PropertyInput("Resource Path (Native)", resourceFilePathNative);
 
         if (i + 1 != cacheSize)
         {

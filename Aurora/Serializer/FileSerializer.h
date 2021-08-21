@@ -24,10 +24,15 @@ namespace Aurora
         void AddProperty(const std::string& keyName, XMFLOAT2& keyValue);
         void AddProperty(const std::string& keyName, XMFLOAT3& keyValue);
         void AddProperty(const std::string& keyName, XMFLOAT4& keyValue);
+        void AddProperty(const std::string& keyName, std::vector<uint32_t>& keyValues);
+        void AddProperty(const std::string& keyName, std::vector<XMFLOAT3>& keyValues);
+        void AddProperty(const std::string& keyName, std::vector<XMFLOAT2>& keyValues);
 
         // Deserialization
         bool LoadFromFile(const std::string& fileType);
-        bool KeyExists(const std::string& nodeName);
+        bool ValidateFileType(const std::string& fileType);
+        bool ValidateKey(const std::string& keyName);
+        bool ValidateKeyAndValue(const std::string& keyName, const std::string& keyValue);
 
         // Deserializable Types
         bool GetProperty(const std::string& keyName, std::string* value);
@@ -39,7 +44,11 @@ namespace Aurora
         bool GetProperty(const std::string& keyName, XMFLOAT2* value);
         bool GetProperty(const std::string& keyName, XMFLOAT3* value);
         bool GetProperty(const std::string& keyName, XMFLOAT4* value);
+        bool GetProperty(const std::string& keyName, std::vector<uint32_t>* values);
+        bool GetProperty(const std::string& keyName, std::vector<XMFLOAT2>* values);
+        bool GetProperty(const std::string& keyName, std::vector<XMFLOAT3>* values);
 
+        bool GetPropertyFromSubNode(const std::string& subNode, const std::string& keyName, std::string* value);
         bool GetPropertyFromSubNode(const std::string& subNode, const std::string& keyName, uint32_t* value);
         bool GetPropertyFromSubNode(const std::string& subNode, const std::string& mapNode, const std::string& keyName, std::string* value);
         bool GetPropertyFromSubNode(const std::string& subNode, const std::string& mapNode, const std::string& keyName, uint32_t* value);

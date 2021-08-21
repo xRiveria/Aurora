@@ -11,6 +11,16 @@ ProjectSettings::ProjectSettings(Editor* editorContext, Aurora::EngineContext* e
 
 void ProjectSettings::OnTickVisible()
 {
+    if (ImGui::Button("Save Resources to Disk"))
+    {
+        m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->SaveResourcesToFiles();
+    }
+
+    if (ImGui::Button("Load Resources from Disk"))
+    {
+        m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadResourcesFromFiles();
+    }
+
     ImGui::Columns(2);
     ImGui::AlignTextToFramePadding();
 

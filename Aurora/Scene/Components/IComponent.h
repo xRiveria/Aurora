@@ -11,7 +11,6 @@ namespace Aurora
         Camera,
         Renderable,
         Light,
-        Mesh,
         Transform,
         RigidBody,
         Collider,

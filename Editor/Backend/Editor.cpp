@@ -97,7 +97,7 @@ void Editor::Tick()
 
 		// Editor Tick
 		{
-			Aurora::Stopwatch widgetStopwatch("Widget Pass");
+			Aurora::Stopwatch widgetStopwatch("Widget Pass", true);
 			for (std::shared_ptr<Widget>& widget : m_Widgets) // Tick each individual widget. Each widget contains its own ImGui::Begin and ImGui::End behavior (based on visibility/constantness).
 			{
 				widget->Tick();

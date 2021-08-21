@@ -108,23 +108,29 @@ namespace EditorExtensions
 
 	inline bool ImageButton(const IconType iconType, const float iconSize)
 	{
-		return ImGui::ImageButton((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->GetShaderResourceView().Get(),
-			ImVec2(iconSize, iconSize),
-			ImVec2(0, 0),
-			ImVec2(1, 1),
-			-1,
-			ImColor(0, 0, 0, 0), // Border
-			g_DefaultTint);
+		if (ComPtr<ID3D11ShaderResourceView> shaderResourceView = IconLibrary::GetInstance().GetTextureByType(iconType)->GetShaderResourceView())
+		{
+			return ImGui::ImageButton((void*)shaderResourceView.Get(),
+				ImVec2(iconSize, iconSize),
+				ImVec2(0, 0),
+				ImVec2(1, 1),
+				-1,
+				ImColor(0, 0, 0, 0), // Border
+				g_DefaultTint);
+		}
 	}
 
 	inline void Image(const IconType iconType, const float iconSize)
 	{
-		return ImGui::Image((void*)IconLibrary::GetInstance().GetTextureByType(iconType)->GetShaderResourceView().Get(),
-			ImVec2(iconSize, iconSize),
-			ImVec2(0, 0),
-			ImVec2(1, 1),
-			g_DefaultTint,
-			ImColor(0, 0, 0, 0)); // Border
+		if (ComPtr<ID3D11ShaderResourceView> shaderResourceView = IconLibrary::GetInstance().GetTextureByType(iconType)->GetShaderResourceView())
+		{
+			return ImGui::Image((void*)shaderResourceView.Get(),
+				ImVec2(iconSize, iconSize),
+				ImVec2(0, 0),
+				ImVec2(1, 1),
+				g_DefaultTint,
+				ImColor(0, 0, 0, 0)); // Border
+		}
 	}
 
 	inline void Image(Aurora::DX11_Texture* texture, const ImVec2& size, bool border = false)
@@ -134,7 +140,10 @@ namespace EditorExtensions
 			ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 		}
 
-		ImGui::Image((void*)texture->GetShaderResourceView().Get(), size, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), g_DefaultTint, ImColor(0.0f, 0.0f, 0.0f, 0.0f));
+		if (ComPtr<ID3D11ShaderResourceView> shaderResourceView = texture->GetShaderResourceView())
+		{
+			ImGui::Image((void*)shaderResourceView.Get(), size, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), g_DefaultTint, ImColor(0.0f, 0.0f, 0.0f, 0.0f));
+		}
 		
 		if (!border)
 		{

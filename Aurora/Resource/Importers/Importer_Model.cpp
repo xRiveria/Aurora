@@ -4,7 +4,9 @@
 #include "../Scene/World.h"
 #include "../Scene/Entity.h"
 #include "../Resource/ResourceCache.h"
-#include "../Scene/Components/Mesh.h"
+#include "../Renderer/Model.h"
+#include "../Renderer/Mesh.h"
+#include "../Scene/Components/Renderable.h"
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
@@ -114,8 +116,6 @@ std::shared_ptr<MeshDerp> MeshDerp::fromString(const std::string& data)
 
 namespace Aurora
 {
-    AuroraResource* g_CurrentResource = nullptr;
-
     Importer_Model::Importer_Model(EngineContext* engineContext) : m_EngineContext(engineContext)
     {
         m_WorldContext = m_EngineContext->GetSubsystem<World>();
@@ -123,17 +123,14 @@ namespace Aurora
         /// Get Version Information.
     }
 
-    bool Importer_Model::LoadModel(const std::string& filePath, AuroraResource* resource)
+    bool Importer_Model::LoadModel(const std::string& filePath, Model* model)
     {
+        AURORA_ASSERT(model != nullptr);
+
         if (!FileSystem::Exists(filePath))
         {
             return false;
         }
-
-        resource->SetResourceType(ResourceType::ResourceType_Model);
-        resource->m_FilePath = filePath;
-        resource->SetObjectName(FileSystem::GetFileNameFromFilePath(filePath));
-        resource->SetResourceFilePath(filePath);
 
         // Model Parameters
         ModelParameters modelParameters;
@@ -143,12 +140,13 @@ namespace Aurora
         modelParameters.m_MaxTangentSmoothingAngle = 80.0f;   // Tangents exceeding this limit are not smoothed. Default is 45, max is 175.
         modelParameters.m_FilePath = filePath;
         modelParameters.m_Name = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath);
+        modelParameters.m_Model = model;
 
         // Setup an Assimp Importer.
         Importer importer;
-        // Maximum number of triangles in a mesh (before splitting)    
+        // Maximum number of triangles in a mesh (before splitting)
         importer.SetPropertyInteger(AI_CONFIG_PP_SLM_TRIANGLE_LIMIT, modelParameters.m_TriangleLimit);
-        // Maximum number of vertices in a mesh (before splitting)    
+        // Maximum number of vertices in a mesh (before splitting)
         importer.SetPropertyInteger(AI_CONFIG_PP_SLM_VERTEX_LIMIT, modelParameters.m_VertexLimit);
         // Remove points and lines.
         importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
@@ -177,10 +175,6 @@ namespace Aurora
             aiProcess_ValidateDataStructure |
             aiProcess_Debone;
 
-        g_CurrentResource = resource;
-
-        std::shared_ptr<Entity> newEntity;
-
         // Read the 3D model file from disk.
         if (const aiScene* scene = importer.ReadFile(filePath, importerFlags))
         {
@@ -190,17 +184,18 @@ namespace Aurora
 
             // Create root entity to match Assimp's root node.
             const bool isActive = true;
-            newEntity = m_WorldContext->EntityCreate(isActive);
-            newEntity->SetName(resource->GetObjectName());
-            g_CurrentResource->m_Entity = newEntity.get();
-            /// Set root entity.
+            std::shared_ptr<Entity> newEntity = m_WorldContext->EntityCreate(isActive);
+            newEntity->SetName(modelParameters.m_Name);
+            modelParameters.m_Model->SetRootEntity(newEntity);
 
             // Parse all nodes, starting from the root node and continuing recursively.
             ParseNode(scene->mRootNode, modelParameters, nullptr, newEntity.get());
+
             /// Parse Animations.
 
-            // Update model geometry.
-            /// Create Render Data.
+            // Update model geometry. In the future, we would create this function in our Model class for more complex behavior, such as modifying bounding boxes.
+            // For now, we will simply create our buffers here.
+            modelParameters.m_Model->CreateBuffers();
         }
         else
         {
@@ -209,10 +204,7 @@ namespace Aurora
 
         importer.FreeScene();
 
-        // if (newEntity) 
-        // { 
-        //    return newEntity; 
-        // }
+        return modelParameters.m_AssimpScene != nullptr;
     }
 
     void Importer_Model::ParseNode(const aiNode* assimpNode, const ModelParameters& modelParameters, Entity* parentEntity, Entity* newEntity)
@@ -282,36 +274,27 @@ namespace Aurora
         const uint32_t vertexCount = assimpMesh->mNumVertices;
         const uint32_t indexCount = assimpMesh->mNumFaces * 3;
 
-        Mesh* meshComponent = parentEntity->AddComponent<Mesh>();
+        // What we are attempting to retrieve from the model:
+        std::vector<XMFLOAT3> vertexPositions = std::vector<XMFLOAT3>(vertexCount);
+        std::vector<XMFLOAT3> vertexNormals = std::vector<XMFLOAT3>(vertexCount);
+        std::vector<XMFLOAT2> vertexUVs = std::vector<XMFLOAT2>(vertexCount);
 
-        // Load objects, meshes. Each of our shapes (meshes) is created as a seperate entity in our architecture.  
+        // Vertices
         for (uint32_t i = 0; i < vertexCount; i++)
         {
-            XMFLOAT3 storedPosition;
-            XMFLOAT3 storedNormal;
-            XMFLOAT2 storedTextureCoordinates;
-
             // Position
             const auto& position = assimpMesh->mVertices[i];
-            storedPosition.x = position.x;
-            storedPosition.y = position.y;
-            storedPosition.z = position.z;
-
-            meshComponent->m_VertexPositions.push_back(storedPosition);
+            vertexPositions[i].x = position.x;
+            vertexPositions[i].y = position.y;
+            vertexPositions[i].z = position.z;
 
             // Normal
             if (assimpMesh->mNormals)
             {
                 const auto& normal = assimpMesh->mNormals[i];
-                storedNormal.x = normal.x;
-                storedNormal.y = normal.y;
-                storedNormal.z = normal.z;
-
-                meshComponent->m_VertexNormals.push_back(storedNormal);
-            }
-            else
-            {
-                AURORA_ERROR(LogLayer::Graphics, "Object has no normals!");
+                vertexNormals[i].x = normal.x;
+                vertexNormals[i].y = normal.y;
+                vertexNormals[i].z = normal.z;
             }
 
             // Texture Coordinates
@@ -319,10 +302,8 @@ namespace Aurora
             if (assimpMesh->HasTextureCoords(uvChannel))
             {
                 const auto& texCoords = assimpMesh->mTextureCoords[uvChannel][i];
-                storedTextureCoordinates.x = texCoords.x;
-                storedTextureCoordinates.y = texCoords.y;
-
-                meshComponent->m_UVSet_0.push_back(storedTextureCoordinates);
+                vertexUVs[i].x = texCoords.x;
+                vertexUVs[i].y = texCoords.y;
             }
         }
 
@@ -338,18 +319,29 @@ namespace Aurora
             indices[indicesIndex + 2] = face.mIndices[2];
         }
 
-        meshComponent->m_Indices = indices;
+        /// Compute AABB
 
-        meshComponent->CreateRenderData();
-        g_CurrentResource->m_Meshes.push_back(meshComponent->m_MeshData);
+        /// Scale down.
+        parentEntity->GetTransform()->Scale(XMFLOAT3(0.1f, 0.1f, 0.1f));
+
+        /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // Add the mesh to the model. 
+        modelParameters.m_Model->AppendGeometry(std::move(indices), std::move(vertexPositions), std::move(vertexNormals), std::move(vertexUVs));
+
+        // Add a renderable component to the entity.
+        Renderable* renderable = parentEntity->AddComponent<Renderable>();
+
+        // Set the geometry within our renderable component.
+        renderable->GeometrySet(parentEntity->GetObjectName(), modelParameters.m_Model);
 
         // Material
         if (modelParameters.m_AssimpScene->HasMaterials())
         {
             const auto assimpMaterial = modelParameters.m_AssimpScene->mMaterials[assimpMesh->mMaterialIndex];   // Get aiMaterial for this specific mesh.
             
+            // Convert it to our material and add it to the model.
             std::shared_ptr<Material> material = LoadMaterial(assimpMaterial, modelParameters, parentEntity); // Convert it and add it to the model.
-            meshComponent->AddMaterial(material);
+            modelParameters.m_Model->AddMaterial(material, parentEntity->GetPointerShared());
         }
 
         /// Bones.
@@ -370,7 +362,7 @@ namespace Aurora
         aiGetMaterialString(assimpMaterial, AI_MATKEY_NAME, &materialName);
         
         // Set a resource file path so it can be used by the resource cache.
-        material->SetResourceFilePath(FileSystem::GetDirectoryFromFilePath(modelParameters.m_FilePath) + std::string(materialName.C_Str()) + EXTENSION_MATERIAL);
+        material->SetResourceFilePath(FileSystem::RemoveIllegalCharacters(FileSystem::GetDirectoryFromFilePath(modelParameters.m_FilePath) + std::string(materialName.C_Str())) + EXTENSION_MATERIAL);
 
         // Diffuse Color
         aiColor4D diffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -497,218 +489,4 @@ namespace Aurora
         AURORA_WARNING(LogLayer::Graphics, "Model Texture could not be found: %s.", fullTexturePath.c_str());
         return "";
     }
-
-
-
-    /*
-        std::shared_ptr<Entity> Importer_Model::Load(const std::string& filePath, const std::string& fileName)
-        {
-            if (!FileSystem::Exists(filePath))
-            {
-                return nullptr;
-            }
-
-            // Model Parameters
-            ModelParameters modelParameters;
-            modelParameters.m_TriangleLimit = 1000000;
-            modelParameters.m_VertexLimit = 1000000;
-            modelParameters.m_MaxNormalSmoothingAngle = 80.0f;    // Normals exceeding this limit are not smoothed.
-            modelParameters.m_MaxTangentSmoothingAngle = 80.0f;   // Tangents exceeding this limit are not smoothed. Default is 45, max is 175.
-            modelParameters.m_FilePath = filePath;
-            modelParameters.m_Name = fileName == "" ? FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath) : fileName;
-
-            // Setup an Assimp Importer.
-            Importer importer;
-            // Maximum number of triangles in a mesh (before splitting)
-            importer.SetPropertyInteger(AI_CONFIG_PP_SLM_TRIANGLE_LIMIT, modelParameters.m_TriangleLimit);
-            // Maximum number of vertices in a mesh (before splitting)
-            importer.SetPropertyInteger(AI_CONFIG_PP_SLM_VERTEX_LIMIT, modelParameters.m_VertexLimit);
-            // Remove points and lines.
-            importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
-            // Remove cameras and lights
-            importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_CAMERAS | aiComponent_LIGHTS);
-
-            const uint32_t importerFlags =
-                aiProcess_Triangulate |
-                aiProcess_MakeLeftHanded |
-                aiProcess_FlipUVs |
-                aiProcess_JoinIdenticalVertices |
-                aiProcess_FindDegenerates |
-                aiProcess_SortByPType |
-                // aiProcess_FlipWindingOrder          |
-                aiProcess_CalcTangentSpace |
-                aiProcess_GenSmoothNormals |
-                aiProcess_OptimizeMeshes |
-                aiProcess_ImproveCacheLocality |
-                aiProcess_RemoveRedundantMaterials |
-                aiProcess_LimitBoneWeights |
-                aiProcess_SplitLargeMeshes |
-                aiProcess_GenUVCoords |
-                aiProcess_FindDegenerates |
-                aiProcess_FindInvalidData |
-                aiProcess_FindInstances |
-                aiProcess_ValidateDataStructure |
-                aiProcess_Debone;
-
-            std::shared_ptr<Entity> newEntity;
-
-            // Read the 3D model file from disk.
-            if (const aiScene* scene = importer.ReadFile(filePath, importerFlags))
-            {
-                /// Progress Tracking.
-                modelParameters.m_AssimpScene = scene;
-                modelParameters.m_HasAnimations = scene->mNumAnimations != 0;
-
-                // Create root entity to match Assimp's root node.
-                const bool isActive = true;
-                newEntity = m_WorldContext->EntityCreate(isActive);
-                if (fileName == "") { newEntity->SetName(modelParameters.m_Name); }
-                else { newEntity->SetName(modelParameters.m_Name); }
-                /// Set root entity.
-
-                // Parse all nodes, starting from the root node and continuing recursively.
-                ParseNode(scene->mRootNode, modelParameters, nullptr, newEntity.get());
-                /// Parse Animations.
-
-                // Update model geometry.
-                /// Create Render Data.
-            }
-            else
-            {
-                AURORA_ERROR(LogLayer::Engine, "Failed to load model at %s", filePath.c_str());
-            }
-
-            importer.FreeScene();
-
-            if (newEntity) { return newEntity; }
-        }
-
-        Old Model Loading with TinyOBJ
-
-        void Importer_Model::ImportModel_OBJ(const std::string& filePath, const std::string& albedoPath)
-        {
-            World* worldContext = m_EngineContext->GetSubsystem<World>();
-
-            // Automatically create an Entity and add a mesh component.
-            Entity* entity = worldContext->EntityCreate().get();
-            Mesh* meshComponent = entity->AddComponent<Mesh>();
-
-            meshComponent->m_BaseTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load("Hollow_Knight_Albedo.png", albedoPath); // Temporary.
-
-            // Transform the data from OBJ space to engine-space.
-            static const bool transformToLeftHanded = true;
-            bool success = false;
-
-            tinyobj::attrib_t object_Attributes;
-            std::vector<tinyobj::shape_t> object_Shapes;
-            std::vector<tinyobj::material_t> object_Materials;
-
-            std::string objectLoadErrors;
-            std::string objectLoadWarnings;
-
-            success = tinyobj::LoadObj(&object_Attributes, &object_Shapes, &object_Materials, &objectLoadWarnings, &objectLoadErrors, filePath.c_str());
-
-            if (success)
-            {
-                if (!objectLoadWarnings.empty())
-                {
-                    AURORA_WARNING(objectLoadWarnings);
-                }
-
-                if (!objectLoadErrors.empty())
-                {
-                    AURORA_ERROR(objectLoadErrors);
-                }
-
-                AURORA_INFO("Loaded model at path: %s.", filePath.c_str());
-            }
-            else
-            {
-                AURORA_ERROR("Failed to load model at path: %s.", filePath.c_str());
-                return;
-            }
-
-            // Load objects, meshes. Each of our shapes (meshes) is created as a seperate entity in our architecture.
-            for (tinyobj::shape_t& shape : object_Shapes)
-            {
-                // Create Object.
-                //
-                // Create Mesh
-                entity->SetName(shape.name + "_Mesh");
-                std::unordered_map<size_t, uint32_t> uniqueVertices = {};
-
-                for (size_t i = 0; i < shape.mesh.indices.size(); i += 3)
-                {
-                    tinyobj::index_t reorderedIndices[] =
-                    {
-                        shape.mesh.indices[i + 0],
-                        shape.mesh.indices[i + 1],
-                        shape.mesh.indices[i + 2]
-                    };
-
-                    bool flipCulling = false;
-                    if (flipCulling)
-                    {
-                        reorderedIndices[1] = shape.mesh.indices[i + 2];
-                        reorderedIndices[2] = shape.mesh.indices[i + 1];
-                    }
-
-                    for (auto& index : reorderedIndices)
-                    {
-                        XMFLOAT3 position = XMFLOAT3(
-                            object_Attributes.vertices[index.vertex_index * 3 + 0],
-                            object_Attributes.vertices[index.vertex_index * 3 + 1],
-                            object_Attributes.vertices[index.vertex_index * 3 + 2]
-                        );
-
-                        XMFLOAT2 texCoords = XMFLOAT2(0, 0);
-                        if (index.texcoord_index >= 0 && !object_Attributes.texcoords.empty())
-                        {
-                            texCoords = XMFLOAT2(
-                                object_Attributes.texcoords[index.texcoord_index * 2 + 0],
-                                1 - object_Attributes.texcoords[index.texcoord_index * 2 + 1]
-                            );
-                        }
-
-                        XMFLOAT3 normals = XMFLOAT3(0, 0, 0);
-                        if (!object_Attributes.normals.empty())
-                        {
-                            normals = XMFLOAT3(
-                                object_Attributes.normals[index.normal_index * 3 + 0],
-                                object_Attributes.normals[index.normal_index * 3 + 1],
-                                object_Attributes.normals[index.normal_index * 3 + 2]
-                            );
-                        }
-
-                        /// Material Indexing.
-
-                        if (transformToLeftHanded)
-                        {
-                            position.z *= -1;
-                            normals.z *= -1;
-                        }
-
-                        meshComponent->m_VertexPositions.push_back(position);
-                        meshComponent->m_UVSet_0.push_back(texCoords);
-                        meshComponent->m_VertexNormals.push_back(normals);
-
-                        // Eliminate duplicate vertices by means of hashing.
-                        // size_t vertexHash = 0;
-                        // Aurora::Utilities::Hash_Combine(vertexHash, index.vertex_index);
-
-                        // if (uniqueVertices.count(vertexHash) == 0)
-                        // {
-                        // uniqueVertices[vertexHash] = (uint32_t)m_MeshComponent.m_VertexPositions.size();
-
-
-                        // }
-
-                        // m_MeshComponent.m_Indices.push_back(uniqueVertices[vertexHash]);
-                    }
-                }
-
-                meshComponent->CreateRenderData();
-            }
-        }
-    */
 }

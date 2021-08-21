@@ -52,7 +52,6 @@ namespace Aurora
     {
         Renderer* renderer = m_EngineContext->GetSubsystem<Renderer>();
 
-        texture->m_FilePath = filePath;
         texture->SetObjectName(FileSystem::GetFileNameFromFilePath(filePath));
         texture->SetResourceType(ResourceType::ResourceType_Image);
 

@@ -1,6 +1,7 @@
 #include "Aurora.h"
 #include "RigidBody.h"
 #include "Collider.h"
+#include "../Scene/Entity.h"
 #include "../Physics/Physics.h"
 #include "../Physics/PhysicsUtilities.h"
 

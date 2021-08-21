@@ -1,5 +1,4 @@
 #include "Aurora.h"
-#include "../Scene/Components/Mesh.h"
 
 #include "Serializer.h"
 #include "SerializerUtilities.h"
@@ -146,14 +145,6 @@ namespace Aurora
                 {
                     Light* lightComponent = deserializedEntity->AddComponent<Light>();
                     lightComponent->Deserialize(lightNode);
-                }
-
-                // Mesh
-                YAML::Node meshNode = entity["MeshComponent"];
-                if (meshNode)
-                {
-                    Mesh* meshComponent = deserializedEntity->AddComponent<Mesh>();
-                    meshComponent->Deserialize(meshNode);
                 }
 
                 //// A mesh comes with a material precreated with it. Hence, we don't need to add any as they're already added. Likewise, we don't have to bother with it if a mesh doesn't exist.

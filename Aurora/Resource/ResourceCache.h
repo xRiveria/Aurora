@@ -32,8 +32,6 @@ namespace Aurora
         ~ResourceCache();
 
         bool Initialize() override;
-
-        bool LoadModel(const std::string& filePath, std::shared_ptr<AuroraResource> resource, bool cacheResource = true);
         
         // =========================================================================================================
 
@@ -122,6 +120,8 @@ namespace Aurora
 
             // Create a new resource and set its file path.
             auto typedResource = std::make_shared<T>(m_EngineContext);
+
+            // Set a default file path in case it's not overridden by LoadFromFile()
             typedResource->SetResourceFilePath(filePath);
 
             // Load
@@ -147,12 +147,12 @@ namespace Aurora
         Importer_Image* GetImageImporter() const { return m_Importer_Image.get(); }
 
     public:
-        // Cache
-        std::vector<std::shared_ptr<AuroraResource>> m_CachedResources;
-
-    private:
         void SaveResourcesToFiles();
         void LoadResourcesFromFiles();
+
+    public:
+        // Cache
+        std::vector<std::shared_ptr<AuroraResource>> m_CachedResources;
 
     private:
         // Importers

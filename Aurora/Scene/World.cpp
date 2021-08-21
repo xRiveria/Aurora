@@ -2,8 +2,8 @@
 #include "../Window/WindowContext.h"
 #include "World.h"
 #include "Components/Light.h"
-#include "Components/Mesh.h"
 #include "Components/Camera.h"
+#include "../Renderer/Model.h"
 
 using namespace DirectX;
 
@@ -255,27 +255,27 @@ namespace Aurora
         switch (defaultObjectType)
         {
             case DefaultObjectType::DefaultObjectType_Cube:
-                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Cube.fbx", object, false);
+                m_EngineContext->GetSubsystem<ResourceCache>()->Load<Model>("../Resources/Models/Default/Cube.fbx");
                 return true;
 
             case DefaultObjectType::DefaultObjectType_Sphere:
-                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Sphere.fbx", object, false);
+                m_EngineContext->GetSubsystem<ResourceCache>()->Load<Model>("../Resources/Models/Default/Sphere.fbx");
                 return true;
 
             case DefaultObjectType::DefaultObjectType_Plane:
-                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Plane.fbx", object, false);
+                m_EngineContext->GetSubsystem<ResourceCache>()->Load<Model>("../Resources/Models/Default/Plane.fbx");
                 return true;
 
             case DefaultObjectType::DefaultObjectType_Cylinder:
-                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Cylinder.fbx", object, false);
+                m_EngineContext->GetSubsystem<ResourceCache>()->Load<Model>("../Resources/Models/Default/Cylinder.fbx");
                 return true;
 
             case DefaultObjectType::DefaultObjectType_Torus:
-                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Torus.fbx", object, false);
+                m_EngineContext->GetSubsystem<ResourceCache>()->Load<Model>("../Resources/Models/Default/Torus.fbx");
                 return true;
 
             case DefaultObjectType::DefaultObjectType_Cone:
-                m_EngineContext->GetSubsystem<ResourceCache>()->LoadModel("../Resources/Models/Default/Cone.fbx", object, false);
+                m_EngineContext->GetSubsystem<ResourceCache>()->Load<Model>("../Resources/Models/Default/Cone.fbx");
                 return true;
         }
         

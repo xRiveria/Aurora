@@ -1,5 +1,5 @@
 Type: Material
-Albedo_Color: [1, 0.999989986, 0.999989986, 1]
+Albedo_Color: [0.400000006, 0.400000006, 0.400000006, 1]
 Roughness_Multiplier: 0.899999976
 Normal_Multiplier: 0
 Metallic_Multiplier: 0
