@@ -10,6 +10,8 @@ namespace Aurora
     class RigidBody;
     class Light;
     class Collider;
+    class Renderable;
+    class ResourceCache;
 }
 
 class Properties : public Widget
@@ -30,9 +32,13 @@ public:
     static std::weak_ptr<Aurora::Material> m_InspectedMaterial;
 
 private:
+    void ShowRenderableProperties(Aurora::Renderable* renderableComponent) const;
     void ShowTransformProperties(Aurora::Transform* transformComponent) const;
     void ShowMaterialProperties(Aurora::Material* materialComponent) const;
     void ShowLightProperties(Aurora::Light* lightComponent) const;
     void ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) const;
     void ShowColliderProperties(Aurora::Collider* colliderComponent) const;
+
+private:
+    Aurora::ResourceCache* m_ResourceCache = nullptr;
 };

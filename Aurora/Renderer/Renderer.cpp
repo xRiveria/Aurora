@@ -394,7 +394,7 @@ namespace Aurora
                 UpdateMaterialConstantBuffer(renderableComponent.GetMaterial());
             }
 
-            m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(renderableComponent.GetGeometryModel()->GetIndexBuffer()->GetIndexCount(), 0, 0);
+            m_DeviceContext->DrawIndexed(renderableComponent.GetGeometryModel()->GetIndexBuffer());
         }
     }
 

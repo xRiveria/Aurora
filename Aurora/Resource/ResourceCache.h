@@ -94,6 +94,8 @@ namespace Aurora
                 return GetResourceByName<T>(resource->GetResourceName());
             }
 
+            std::lock_guard<std::mutex> lockGuard(m_Mutex);
+
             // In order to guarentee deserialization, we save it now.
             resource->SaveToFile(resource->GetResourceFilePathNative());
 
@@ -158,5 +160,6 @@ namespace Aurora
         // Importers
         std::shared_ptr<Importer_Model> m_Importer_Model = nullptr;
         std::shared_ptr<Importer_Image> m_Importer_Image = nullptr;
+        std::mutex m_Mutex;
     };
 }

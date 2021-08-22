@@ -5,6 +5,8 @@
 #include "../Scene/Components/RigidBody.h"
 #include "../Scene/Components/Renderable.h"
 #include "../Scene/Components/Collider.h"
+#include "../Threading/Threading.h"
+#include "../Renderer/Model.h"
 #include "../Renderer/Material.h"
 #include "../Physics/Physics.h"
 #include "../Backend/Source/imgui_internal.h"
@@ -22,6 +24,7 @@ Properties::Properties(Editor* editorContext, Aurora::EngineContext* engineConte
 {
     m_WidgetName = "Properties";
     m_WidgetSize.x = 500.0f; // Minimum Width
+    m_ResourceCache = engineContext->GetSubsystem<Aurora::ResourceCache>();
 }
 
 void Properties::OnTickVisible()
@@ -29,8 +32,8 @@ void Properties::OnTickVisible()
     if (!m_InspectedEntity.expired())
     {
         Aurora::Entity* entityPointer = m_InspectedEntity.lock().get();
-        Aurora::Renderable* meshPointer = entityPointer->GetComponent<Aurora::Renderable>();
-        Aurora::Material* materialPointer = meshPointer ? meshPointer->GetMaterial() : nullptr;
+        Aurora::Renderable* renderablePointer = entityPointer->GetComponent<Aurora::Renderable>();
+        Aurora::Material* materialPointer = renderablePointer ? renderablePointer->GetMaterial() : nullptr;
 
         ImGui::Checkbox("##EntityCheckbox", &entityPointer->m_IsActive);
         ImGui::SameLine();
@@ -49,23 +52,8 @@ void Properties::OnTickVisible()
         ImGui::Text("Entity ID: %d", entityPointer->GetObjectID());
         ImGui::PopStyleColor();
 
-        if (meshPointer)
-        {
-            // Temporary
-            std::string materialName = materialPointer ? materialPointer->GetResourceName() : "N/A";
-
-            char materialNameBuffer[256] = "Material";
-            memset(materialNameBuffer, 0, sizeof(materialNameBuffer));
-            strcpy_s(materialNameBuffer, sizeof(materialNameBuffer), materialName.c_str());
-
-            ImGui::InputText("", materialNameBuffer, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
-            if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Material))
-            {
-                meshPointer->SetMaterial(std::get<const char*>(payload->m_Data));
-            }
-        }
-
         ShowTransformProperties(entityPointer->GetComponent<Aurora::Transform>());
+        ShowRenderableProperties(renderablePointer);
         ShowMaterialProperties(materialPointer);
         ShowLightProperties(entityPointer->GetComponent<Aurora::Light>());
         ShowColliderProperties(entityPointer->GetComponent<Aurora::Collider>());
@@ -229,15 +217,19 @@ static void DrawMaterialControl(const std::string& label, Aurora::DX11_Texture* 
     ImGui::Text(label.c_str());
     ImGui::PopFont();
 
-    Aurora::DX11_Texture* texture = (materialTexture != nullptr) ? materialTexture : engineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture.get();
-
     if (materialTexture != nullptr)
     {
-        ImGui::Image((void*)texture->GetShaderResourceView().Get(), ImVec2(60, 60));
-    }
-    else
-    {
-        ImGui::Image((void*)texture->GetShaderResourceView().Get(), ImVec2(60, 60));
+        ImGui::Image((void*)materialTexture->GetShaderResourceView().Get(), ImVec2(60, 60));
+
+        if (auto dragPayload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Texture))
+        {
+            const std::string filePath = std::get<const char*>(dragPayload->m_Data);
+
+            //engineContext->GetSubsystem<Aurora::Threading>()->Execute([filePath, engineContext, TextureSetter](Aurora::JobInformation jobInformation)
+            //{               
+                TextureSetter(engineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::DX11_Texture>(filePath));
+            //});
+        }
     }
 
     ImGui::SameLine();
@@ -277,10 +269,48 @@ static void DrawMaterialControl(const std::string& label, Aurora::DX11_Texture* 
     }
 
     ImGui::SameLine(); ImGui::NewLine();
-    ImGui::Text("File: %s", texture->GetResourceFilePathNative().c_str());
+    if (materialTexture != nullptr)
+    {
+        ImGui::Text("File: %s", materialTexture->GetResourceFilePathNative().c_str());
+    }
     
     ImGui::Separator();
     ImGui::PopID();
+}
+
+void Properties::ShowRenderableProperties(Aurora::Renderable* renderableComponent) const
+{
+    if (!renderableComponent)
+    {
+        return;
+    }
+
+    if (ComponentBegin("Renderable"))
+    {
+        if (Aurora::Model* modelPointer = renderableComponent->GetGeometryModel())
+        {
+            char meshNameBuffer[256] = "Mesh File";
+            memset(meshNameBuffer, 0, sizeof(meshNameBuffer));
+            strcpy_s(meshNameBuffer, renderableComponent->GetGeometryModel()->GetResourceFilePathNative().c_str());
+
+            ImGui::InputText("Mesh File", meshNameBuffer, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
+        }
+
+        if (Aurora::Material* materialPointer = renderableComponent->GetMaterial())
+        {
+            char materialNameBuffer[256] = "Material File";
+            memset(materialNameBuffer, 0, sizeof(materialNameBuffer));
+            strcpy_s(materialNameBuffer, sizeof(materialNameBuffer), materialPointer->GetResourceFilePathNative().c_str());
+
+            ImGui::InputText("Material File", materialNameBuffer, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
+            if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Material))
+            {
+                renderableComponent->SetMaterial(std::get<const char*>(payload->m_Data));
+            }
+        }
+    }
+
+    ComponentEnd();
 }
 
 void Properties::ShowTransformProperties(Aurora::Transform* transformComponent) const

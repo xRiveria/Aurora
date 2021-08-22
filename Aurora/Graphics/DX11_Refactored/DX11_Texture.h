@@ -15,7 +15,7 @@ namespace Aurora
     class DX11_Texture : public AuroraResource
     {
     public:
-        DX11_Texture(EngineContext* engineContext);
+        DX11_Texture(EngineContext* engineContext, uint32_t textureWidth = 0, uint32_t textureHeight = 0);
         ~DX11_Texture() override;
 
         bool SaveToFile(const std::string& filePath) override;
@@ -64,6 +64,11 @@ namespace Aurora
         bool CreateDepthStencilView();
 
         void _DestroyTexture();
+
+    private:
+        // For predictated sizes.
+        uint32_t m_CustomWidth = 0;
+        uint32_t m_CustomHeight = 0;
 
     private:
         uint32_t m_Width = 0;

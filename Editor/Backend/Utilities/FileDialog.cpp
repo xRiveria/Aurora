@@ -396,6 +396,11 @@ void FileDialog::OnItemDrag(FileDialogItem* item) const
             SetPayload(EditorExtensions::DragPayloadType::DragPayloadType_Material, item->GetPath());
         }
 
+        if (Aurora::FileSystem::IsSupportedImageFile(item->GetPath()))
+        {
+            SetPayload(EditorExtensions::DragPayloadType::DragPayloadType_Texture, item->GetPath());
+        }
+
         // Preview
         EditorExtensions::Image(item->GetTexture(), { 50, 50 });
         ImGui::Text(item->GetLabel().c_str());

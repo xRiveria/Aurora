@@ -164,7 +164,7 @@ namespace Aurora
     {
         if (IsBusy())
         {
-            return std::min((unsigned int)0, m_ThreadCountSupported - m_Counter.load());
+            return m_ThreadCountSupported - m_Counter.load();
         }
 
         return m_ThreadCountSupported;

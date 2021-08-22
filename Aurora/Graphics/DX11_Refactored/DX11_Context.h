@@ -81,6 +81,8 @@ namespace Aurora
 
         void ResolveFramebuffer(const DX11_Framebuffer* sourceFramebuffer, const DX11_Framebuffer* destinationFramebuffer, DXGI_FORMAT format);
 
+        void DrawIndexed(DX11_IndexBuffer* indexBuffer);
+
     private:
         uint32_t QuerySupportedMultisamplingLevels(uint32_t requestedLevels); // #
 

@@ -89,9 +89,12 @@ namespace Aurora
 
     void DX11_Context::BindVertexBuffer(DX11_VertexBuffer* vertexBuffer)
     {
-        uint32_t bufferStride = vertexBuffer->GetStride();
-        uint32_t bufferOffset = vertexBuffer->GetOffset();
-        m_Devices->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, (ID3D11Buffer**)vertexBuffer->GetVertexBuffer().GetAddressOf(), (UINT*)(&bufferStride), (UINT*)(&bufferOffset));
+        if (vertexBuffer != nullptr)
+        {
+            uint32_t bufferStride = vertexBuffer->GetStride();
+            uint32_t bufferOffset = vertexBuffer->GetOffset();
+            m_Devices->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, (ID3D11Buffer**)vertexBuffer->GetVertexBuffer().GetAddressOf(), (UINT*)(&bufferStride), (UINT*)(&bufferOffset));
+        }
     }
 
     std::shared_ptr<DX11_IndexBuffer> DX11_Context::CreateIndexBuffer(std::vector<uint32_t>& indices)
@@ -103,7 +106,10 @@ namespace Aurora
 
     void DX11_Context::BindIndexBuffer(DX11_IndexBuffer* indexBuffer)
     {
-        m_Devices->m_DeviceContextImmediate->IASetIndexBuffer(indexBuffer->GetIndexBuffer(), indexBuffer->Is16Bit() ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, (UINT)indexBuffer->GetOffset());
+        if (indexBuffer != nullptr)
+        {
+            m_Devices->m_DeviceContextImmediate->IASetIndexBuffer(indexBuffer->GetIndexBuffer(), indexBuffer->Is16Bit() ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, (UINT)indexBuffer->GetOffset());
+        }
     }
 
     std::shared_ptr<DX11_InputLayout> DX11_Context::CreateInputLayout(RHI_Vertex_Type vertexType, std::vector<uint8_t>& vertexShaderBlob)
@@ -263,6 +269,14 @@ namespace Aurora
         if (sourceFramebuffer->m_RenderTargetTexture->GetTexture() != destinationFramebuffer->m_RenderTargetTexture->GetTexture())
         {
             m_Devices->m_DeviceContextImmediate->ResolveSubresource(destinationFramebuffer->m_RenderTargetTexture->GetTexture().Get(), 0, sourceFramebuffer->m_RenderTargetTexture->GetTexture().Get(), 0, format);
+        }
+    }
+
+    void DX11_Context::DrawIndexed(DX11_IndexBuffer* indexBuffer)
+    {
+        if (indexBuffer != nullptr)
+        {
+            m_Devices->m_DeviceContextImmediate->DrawIndexed(indexBuffer->GetIndexCount(), 0, 0);
         }
     }
 

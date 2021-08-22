@@ -6,9 +6,10 @@
 
 namespace Aurora
 {
-    DX11_Texture::DX11_Texture(EngineContext* engineContext) : AuroraResource(engineContext, ResourceType::ResourceType_Image)
+    DX11_Texture::DX11_Texture(EngineContext* engineContext, uint32_t textureWidth, uint32_t textureHeight) : AuroraResource(engineContext, ResourceType::ResourceType_Image)
     {
-
+        m_CustomWidth = textureWidth;
+        m_CustomHeight = textureHeight;
     }
 
     DX11_Texture::~DX11_Texture()
@@ -375,7 +376,10 @@ namespace Aurora
             return m_ShaderResourceView;
         }
 
-        AURORA_ERROR(LogLayer::Graphics, "Failed to retrieve Shader Resource View.");
+        // We are removing the below warnings for now as they can get quite overwhelming in multithreading situations whereby said resource creation isn't guarenteed to be completed.
+        // Since we are doing another check for nullptr when retrieving the object, it should be okay. 
+        
+        // AURORA_WARNING(LogLayer::Graphics, "Failed to retrieve Shader Resource View. ");
         return nullptr;
     }
 
@@ -386,7 +390,7 @@ namespace Aurora
             return m_DepthStencilView;
         }
 
-        AURORA_ERROR(LogLayer::Graphics, "Failed to retrieve Depth Stencil View.");
+        // AURORA_ERROR(LogLayer::Graphics, "Failed to retrieve Depth Stencil View.");
         return nullptr;
     }
 
@@ -397,7 +401,7 @@ namespace Aurora
             return m_UnorderedAccessView;
         }
 
-        AURORA_ERROR(LogLayer::Graphics, "Failed to retrieve Unordered Access View.");
+        // AURORA_ERROR(LogLayer::Graphics, "Failed to retrieve Unordered Access View.");
         return nullptr;
     }
 
@@ -408,7 +412,7 @@ namespace Aurora
             return m_RenderTargetView;
         }
 
-        AURORA_ERROR(LogLayer::Graphics, "Failed to retrieve Render Target View.");
+        // AURORA_ERROR(LogLayer::Graphics, "Failed to retrieve Render Target View.");
         return nullptr;
     }
 

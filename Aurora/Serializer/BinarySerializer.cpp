@@ -63,7 +63,6 @@ namespace Aurora
         m_OutputStream.write(const_cast<char*>(value.c_str()), length);
     }
 
-
     void BinarySerializer::Write(const std::vector<std::string>& vector)
     {
         const uint32_t size = static_cast<uint32_t>(vector.size());

@@ -1,4 +1,5 @@
 #include "Viewport.h"
+#include "../Threading/Threading.h"
 #include "../Scene/World.h"
 #include "../Input/Input.h"
 #include "../Renderer/Model.h"
@@ -56,7 +57,13 @@ void Viewport::OnTickVisible()
     }
     else if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Model))
     {
-        std::shared_ptr<Aurora::Model> loadedModel = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::Model>(std::get<const char*>(payload->m_Data));
+        const std::string filePath = std::get<const char*>(payload->m_Data); // Retrieve data from main thread
+
+        // Load with seperate thread.
+        m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath](Aurora::JobInformation jobInformation)
+        {
+            m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::Model>(filePath);
+        });
     }
           
     m_EditorContext->GetWidget<EditorTools>()->OnTickViewport();

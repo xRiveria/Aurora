@@ -44,5 +44,5 @@ namespace Aurora
     REGISTER_COMPONENT(Transform, ComponentType::Transform);
     REGISTER_COMPONENT(RigidBody, ComponentType::RigidBody);
     REGISTER_COMPONENT(Collider, ComponentType::Collider);
-    REGISTER_COMPONENT(Renderable, ComponentType::Collider);
+    REGISTER_COMPONENT(Renderable, ComponentType::Renderable);
 }

@@ -102,13 +102,13 @@ const Icon& IconLibrary::LoadIcon_(const std::string& filePath, IconType iconTyp
     // Deduce File Path Type
     if (Aurora::FileSystem::IsSupportedImageFile(filePath))
     {
-        std::shared_ptr<Aurora::DX11_Texture> texture = std::make_shared<Aurora::DX11_Texture>(m_EngineContext);
+        std::shared_ptr<Aurora::DX11_Texture> texture = std::make_shared<Aurora::DX11_Texture>(m_EngineContext, 100, 100);
 
-        // Make a cheap texture.
-        //m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath, texture](Aurora::JobInformation jobArguments)
-        //{
+        // Make a cheap texture. These textures will be cached seperately from our Resource Cache, and are instead within our Editor context.
+        m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath, texture](Aurora::JobInformation jobArguments)
+        {
             texture->LoadFromFile(filePath);
-        //});
+        });
 
         m_Icons.emplace_back(iconType, texture);
 
