@@ -14,22 +14,17 @@ namespace Aurora
 
     }
 
-    void Light::Serialize(SerializationStream& outputStream)
+    void Light::Serialize(BinarySerializer* binarySerializer)
     {
-        outputStream << YAML::Key << "LightComponent";
-        outputStream << YAML::BeginMap;
-
-        outputStream << YAML::Key << "LightColor" << YAML::Value << m_Color;
-        outputStream << YAML::Key << "LightIntensity" << YAML::Value << m_Intensity;
-        outputStream << YAML::Key << "CastShadows" << YAML::Value << IsCastingShadow();
-
-        outputStream << YAML::EndMap;
+        binarySerializer->Write(m_Color);
+        binarySerializer->Write(m_Intensity);
+        binarySerializer->Write(IsCastingShadow());
     }
 
-    void Light::Deserialize(SerializationNode& inputNode)
+    void Light::Deserialize(BinarySerializer* binaryDeserializer)
     {
-        m_Color = inputNode["LightColor"].as<XMFLOAT3>();
-        m_Intensity = inputNode["LightIntensity"].as<float>();
-        SetIsCastingShadow(inputNode["CastShadows"].as<bool>());
+        binaryDeserializer->Read(&m_Color);
+        binaryDeserializer->Read(&m_Intensity);
+        SetIsCastingShadow(binaryDeserializer->ReadAs<bool>());
     }
 }

@@ -1,6 +1,7 @@
 #include "Aurora.h"
 #include "Renderable.h"
 #include "../Renderer/Material.h"
+#include "../Renderer/Model.h"
 #include "../Resource/ResourceCache.h"
 
 namespace Aurora
@@ -8,6 +9,40 @@ namespace Aurora
     Renderable::Renderable(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
 
+    }
+
+    void Renderable::Serialize(BinarySerializer* binarySerializer)
+    {
+        // Mesh
+        binarySerializer->Write(m_Model ? m_Model->GetResourceName() : "");
+
+        // Material
+        binarySerializer->Write(m_IsUsingDefaultMaterial);
+        if (!m_IsUsingDefaultMaterial)
+        {
+            binarySerializer->Write(m_Material ? m_Material->GetResourceName() : "");
+        }
+    }
+
+    void Renderable::Deserialize(BinarySerializer* binaryDeserializer)
+    {
+        // Mesh
+        std::string modelName;
+        binaryDeserializer->Read(&modelName);
+        m_Model = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<Model>(modelName).get();
+
+        // Material
+        binaryDeserializer->Read(&m_IsUsingDefaultMaterial);
+        if (m_IsUsingDefaultMaterial)
+        {
+            UseDefaultMaterial();
+        }
+        else
+        {
+            std::string materialName;
+            binaryDeserializer->Read(&materialName);
+            m_Material = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<Material>(materialName).get();
+        }
     }
 
     void Renderable::GeometrySet(const std::string& renderableName, Model* model)

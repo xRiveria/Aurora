@@ -26,6 +26,10 @@ namespace Aurora
         void Initialize() override;
         void Remove() override;
 
+        // Serialization
+        void Serialize(BinarySerializer* binarySerializer) override;
+        void Deserialize(BinarySerializer* binaryDeserializer) override;
+
         // Bounding Box
         const XMFLOAT3& GetBoundingBox() const { return m_Size; }
         void SetBoundingBox(const XMFLOAT3& boundingBox);

@@ -45,29 +45,7 @@ namespace Aurora
         {
             if (resourceName == cachedResource->GetResourceName())
             {
-                if (cachedResource->GetResourceType() == ResourceType::ResourceType_Model)
-                {
-                    /*
-                    /// Create cloning.
-                        // If we are attempting to load in a model with data already in memory, we simply create a brand new Entity.
-                        AURORA_INFO(LogLayer::Engine, "Model Already Loaded!");
-                        Model* model = new Model(m_EngineContext);
-                        model->LoadFromFile(cachedResource->GetResourceFilePathNative());
-
-                        auto entity = m_EngineContext->GetSubsystem<World>()->EntityCreate(true);
-                        Renderable* renderable = entity->AddComponent<Renderable>();
-                        renderable->GeometrySet(cachedResource->GetResourceName(), model);
-                        // renderable->SetMaterial("Project")
-
-                        // =========================================================
-                        static std::shared_ptr<AuroraResource> emptyResource;
-                        return emptyResource;
-                    */
-                }
-                else
-                {
-                    return cachedResource;
-                }
+                return cachedResource;
             }
         }
 
@@ -177,7 +155,7 @@ namespace Aurora
             }
         }
    
-        fileSerializer->EndSerialization(m_EngineContext->GetSubsystem<Settings>()->GetProjectDirectoryAbsolute() + m_EngineContext->GetSubsystem<World>()->GetWorldName() + "_Resources.dat");
+        fileSerializer->EndSerialization(FileSystem::GetDirectoryFromFilePath(m_EngineContext->GetSubsystem<World>()->GetWorldFilePath()) + m_EngineContext->GetSubsystem<World>()->GetWorldName() + "_Resources.dat");
     }
 
     void ResourceCache::LoadResourcesFromFiles()
@@ -187,7 +165,7 @@ namespace Aurora
         uint32_t resourceType = 0;
         std::string filePath;
 
-        if (fileSerializer->LoadFromFile(m_EngineContext->GetSubsystem<Settings>()->GetProjectDirectoryAbsolute() + m_EngineContext->GetSubsystem<World>()->GetWorldName() + "_Resources.dat"))
+        if (fileSerializer->LoadFromFile(FileSystem::GetDirectoryFromFilePath(m_EngineContext->GetSubsystem<World>()->GetWorldFilePath()) + m_EngineContext->GetSubsystem<World>()->GetWorldName() + "_Resources.dat"))
         {
             if (fileSerializer->ValidateFileType("ResourceCache"))
             {
@@ -212,6 +190,7 @@ namespace Aurora
                             break;
 
                         case ResourceType::ResourceType_Model:
+                            Load<Model>(filePath);
                             break;
 
                         case ResourceType::ResourceType_Image:

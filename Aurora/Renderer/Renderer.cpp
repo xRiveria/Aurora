@@ -66,7 +66,7 @@ namespace Aurora
 
         m_ResourceCache = m_EngineContext->GetSubsystem<ResourceCache>();
 
-        m_Camera = m_EngineContext->GetSubsystem<World>()->GetEntityByName("Default_Camera");
+        m_Camera = m_EngineContext->GetSubsystem<World>()->m_CameraPointer;
         m_Camera->GetComponent<Transform>()->Translate({ 0.0f, 4.0f, 0.0f });
         m_Camera->GetComponent<Camera>()->ComputePerspectiveMatrix(90.0f, m_RenderWidth / m_RenderHeight, 0.1f, 1000.0f);
         m_Camera->GetComponent<Camera>()->ComputeViewMatrix();
@@ -158,7 +158,7 @@ namespace Aurora
         m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Entity], &entityConstantBuffer, 0);
     }
 
-    void Renderer::UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList)
+    void Renderer::UpdateCameraConstantBuffer(Entity* camera, RHI_CommandList commandList)
     {
         ConstantBufferData_Camera constantBuffer;
 
@@ -341,7 +341,7 @@ namespace Aurora
         ///==============================
         RenderScene();
         m_Skybox->Render();
-        DrawDebugWorld(m_Camera.get());
+        DrawDebugWorld(m_Camera);
         Pass_Lines();
 
         m_DeviceContext->ResolveFramebuffer(m_DeviceContext->m_MultisampleFramebuffer.get(), m_DeviceContext->m_ResolveFramebuffer.get(), DXGI_FORMAT_R16G16B16A16_FLOAT);
@@ -369,7 +369,7 @@ namespace Aurora
         std::vector<Renderable> renderableComponents;
         for (auto& entity : sceneEntities)
         {
-            if (entity->IsActive() && entity->m_EntityType == EntityType::Renderable)
+            if (entity->IsActive())
             {
                 if (entity->HasComponent<Renderable>())
                 {
@@ -403,63 +403,64 @@ namespace Aurora
         Stopwatch stopwatch("Debug World Pass", true);
         m_GraphicsDevice->BindPipelineState(&RendererGlobals::m_PSO_Object_Debug[DebugRenderer_Type::DebugRenderer_Grid], 0);
         // Bind Grid Pipeline
-        Camera* camera = entity->GetComponent<Camera>();
-
-        static float col = 0.7f;
-        static uint32_t gridVertexCount = 0;
-        static RHI_GPU_Buffer gridBuffer;
-
-        if (!gridBuffer.IsValid())
+        if (Camera* camera = entity->GetComponent<Camera>())
         {
-            const float h = 0.01f; // avoid z-fight with zero plane
-            const int a = 40;
-            XMFLOAT4 verts[((a + 1) * 2 + (a + 1) * 2) * 2];
+            static float col = 0.7f;
+            static uint32_t gridVertexCount = 0;
+            static RHI_GPU_Buffer gridBuffer;
 
-            int count = 0;
-            for (int i = 0; i <= a; ++i)
+            if (!gridBuffer.IsValid())
             {
-                verts[count++] = XMFLOAT4(i - a * 0.5f, h, -a * 0.5f, 1);
-                verts[count++] = (i == a / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
+                const float h = 0.01f; // avoid z-fight with zero plane
+                const int a = 40;
+                XMFLOAT4 verts[((a + 1) * 2 + (a + 1) * 2) * 2];
 
-                verts[count++] = XMFLOAT4(i - a * 0.5f, h, +a * 0.5f, 1);
-                verts[count++] = (i == a / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
+                int count = 0;
+                for (int i = 0; i <= a; ++i)
+                {
+                    verts[count++] = XMFLOAT4(i - a * 0.5f, h, -a * 0.5f, 1);
+                    verts[count++] = (i == a / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
+
+                    verts[count++] = XMFLOAT4(i - a * 0.5f, h, +a * 0.5f, 1);
+                    verts[count++] = (i == a / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
+                }
+                for (int j = 0; j <= a; ++j)
+                {
+                    verts[count++] = XMFLOAT4(-a * 0.5f, h, j - a * 0.5f, 1);
+                    verts[count++] = (j == a / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
+
+                    verts[count++] = XMFLOAT4(+a * 0.5f, h, j - a * 0.5f, 1);
+                    verts[count++] = (j == a / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
+                }
+
+                gridVertexCount = ARRAYSIZE(verts) / 2;
+
+                RHI_GPU_Buffer_Description bufferDescription;
+                bufferDescription.m_Usage = Usage::Immutable;
+                bufferDescription.m_ByteWidth = sizeof(verts);
+                bufferDescription.m_BindFlags = Bind_Flag::Bind_Vertex_Buffer;
+                bufferDescription.m_CPUAccessFlags = 0;
+
+                RHI_Subresource_Data initializationData;
+                initializationData.m_SystemMemory = verts;
+
+                m_GraphicsDevice->CreateBuffer(&bufferDescription, &initializationData, &gridBuffer);
             }
-            for (int j = 0; j <= a; ++j)
-            {
-                verts[count++] = XMFLOAT4(-a * 0.5f, h, j - a * 0.5f, 1);
-                verts[count++] = (j == a / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
 
-                verts[count++] = XMFLOAT4(+a * 0.5f, h, j - a * 0.5f, 1);
-                verts[count++] = (j == a / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
-            }
+            ConstantBufferData_Misc miscBuffer;
+            XMStoreFloat4x4(&miscBuffer.g_Transform, camera->GetViewProjectionMatrix());
+            miscBuffer.g_Color = float4(1, 1, 1, 1);
 
-            gridVertexCount = ARRAYSIZE(verts) / 2;
+            m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
+            m_GraphicsDevice->BindConstantBuffer(RHI_Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
+            m_GraphicsDevice->BindConstantBuffer(RHI_Shader_Stage::Pixel_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
 
-            RHI_GPU_Buffer_Description bufferDescription;
-            bufferDescription.m_Usage = Usage::Immutable;
-            bufferDescription.m_ByteWidth = sizeof(verts);
-            bufferDescription.m_BindFlags = Bind_Flag::Bind_Vertex_Buffer;
-            bufferDescription.m_CPUAccessFlags = 0;
-
-            RHI_Subresource_Data initializationData;
-            initializationData.m_SystemMemory = verts;
-
-            m_GraphicsDevice->CreateBuffer(&bufferDescription, &initializationData, &gridBuffer);
+            uint32_t offset = 0;
+            const uint32_t stride = sizeof(XMFLOAT4) + sizeof(XMFLOAT4);
+            ID3D11Buffer* vertexBufferDebug = (ID3D11Buffer*)DX11_Utility::ToInternal(&gridBuffer)->m_Resource.Get();
+            m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBufferDebug, &stride, &offset);
+            m_GraphicsDevice->Draw(gridVertexCount, 0, 0);
         }
-
-        ConstantBufferData_Misc miscBuffer;
-        XMStoreFloat4x4(&miscBuffer.g_Transform, camera->GetViewProjectionMatrix());
-        miscBuffer.g_Color = float4(1, 1, 1, 1);
-
-        m_GraphicsDevice->UpdateBuffer(&g_ConstantBuffers[CB_Types::CB_Misc], &miscBuffer, 0);
-        m_GraphicsDevice->BindConstantBuffer(RHI_Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
-        m_GraphicsDevice->BindConstantBuffer(RHI_Shader_Stage::Pixel_Shader, &g_ConstantBuffers[CB_Types::CB_Misc], CB_GETBINDSLOT(ConstantBufferData_Misc), 0);
-
-        uint32_t offset = 0;
-        const uint32_t stride = sizeof(XMFLOAT4) + sizeof(XMFLOAT4);
-        ID3D11Buffer* vertexBufferDebug = (ID3D11Buffer*)DX11_Utility::ToInternal(&gridBuffer)->m_Resource.Get();
-        m_GraphicsDevice->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, &vertexBufferDebug, &stride, &offset);
-        m_GraphicsDevice->Draw(gridVertexCount, 0, 0);
     }
 
     void Renderer::Present()

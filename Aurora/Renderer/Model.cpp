@@ -47,6 +47,7 @@ namespace Aurora
             binarySerializer->Read(&m_Mesh->GetVertexPositions());
             binarySerializer->Read(&m_Mesh->GetVertexNormals());
             binarySerializer->Read(&m_Mesh->GetVertexUVs());
+            binarySerializer->Read(&m_NormalizedScale);
 
             CreateBuffers();
         }
@@ -57,8 +58,9 @@ namespace Aurora
 
             if (m_ResourceCache->GetModelImporter()->LoadModel(filePath, this))
             {
-                /// Set the normalized scale to the root entity's transform.
-
+                // Set the normalized scale to the root entity's transform.
+                m_NormalizedScale = ComputeNormalizedScale();
+                m_RootEntity.lock()->GetTransform()->Scale(XMFLOAT3(m_NormalizedScale, m_NormalizedScale, m_NormalizedScale));
             }
             else
             {
@@ -83,6 +85,7 @@ namespace Aurora
         binarySerializer->Write(m_Mesh->GetVertexPositions());
         binarySerializer->Write(m_Mesh->GetVertexNormals());
         binarySerializer->Write(m_Mesh->GetVertexUVs());
+        binarySerializer->Write(m_NormalizedScale);
 
         binarySerializer->CloseStream();
 
@@ -111,10 +114,35 @@ namespace Aurora
         entity->AddComponent<Renderable>()->SetMaterial(material);
     }
 
+    void Model::AddTexture(std::shared_ptr<Material>& material, MaterialSlot materialSlot, const std::string& filePath)
+    {
+        AURORA_ASSERT(material != nullptr);
+        AURORA_ASSERT(!filePath.empty());
+
+        // Attempt to retrieve the texture from our cache.
+        const std::string textureName = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath);
+        std::shared_ptr<DX11_Texture> texture = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<DX11_Texture>(textureName);
+
+        if (texture)
+        {
+            material->SetTextureSlot(materialSlot, texture);
+        }
+        else // If we didn't get a texture from the cache, we have to load it and cache it.
+        {
+            texture = std::make_shared<DX11_Texture>(m_EngineContext);
+            texture->LoadFromFile(filePath);
+
+            // Set the texture to the provided material.
+            material->SetTextureSlot(materialSlot, texture);
+        }
+    }
+
     bool Model::CreateBuffers()
     {
         AURORA_ASSERT(m_Mesh->GetVerticesCount() != 0);
         AURORA_ASSERT(m_Mesh->GetIndicesCount() != 0);
+
+        m_NormalizedScale = ComputeNormalizedScale();
 
         std::shared_ptr<DX11_Context>& rendererContext = m_EngineContext->GetSubsystem<Renderer>()->m_DeviceContext;
         m_IndexBuffer = rendererContext->CreateIndexBuffer(m_Mesh->GetIndices());
@@ -158,5 +186,11 @@ namespace Aurora
         m_VertexBuffer = rendererContext->CreateVertexBuffer(RHI_Vertex_Type::VertexType_PositionUVNormal, m_VertexPositionUVNormal);
 
         return true;
+    }
+
+    float Model::ComputeNormalizedScale() const
+    {
+        // Compute scale offset.
+        return 0.1f;
     }
 }

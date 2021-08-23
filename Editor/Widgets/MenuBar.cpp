@@ -1,5 +1,6 @@
 #include "MenuBar.h"
 #include "../Scene/World.h"
+#include "../Threading/Threading.h"
 #include "../Backend/Utilities/Extensions.h"
 #include <optional>
 
@@ -119,7 +120,11 @@ void MenuBar::SaveScene()
 	if (filePath.has_value())
 	{
 		AURORA_INFO(Aurora::LogLayer::Serialization, "%s", filePath.value().c_str());
-		m_EngineContext->GetSubsystem<Aurora::World>()->SerializeScene(filePath.value());
+
+		m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath](Aurora::JobInformation jobInformation)
+		{
+			m_EngineContext->GetSubsystem<Aurora::World>()->SerializeScene(filePath.value());
+		});
 	}
 }
 
@@ -130,7 +135,11 @@ void MenuBar::LoadScene()
 	if (filePath.has_value())
 	{
 		AURORA_INFO(Aurora::LogLayer::Serialization, "%s", filePath.value().c_str());
-		m_EngineContext->GetSubsystem<Aurora::World>()->DeserializeScene(filePath.value());
+
+		m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath](Aurora::JobInformation jobInformation)
+		{
+			m_EngineContext->GetSubsystem<Aurora::World>()->DeserializeScene(filePath.value());
+		});
 	}
 }
 

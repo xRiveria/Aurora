@@ -205,6 +205,7 @@ private:
     std::string m_InputBox;
     std::string m_HoveredItemPath;
     uint32_t m_DisplayedItemCount;
+    bool m_ShowCachedFiles = false;
 
     // Internal
     mutable uint32_t m_ContextMenuID;

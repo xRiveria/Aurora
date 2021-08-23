@@ -119,6 +119,16 @@ void FileDialog::ShowTopUI(bool* isVisible)
         }
     }
 
+    ImGui::SameLine();
+
+    const float checkboxWidth = 130.0f;
+    ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - checkboxWidth);
+    ImGui::PushItemWidth(checkboxWidth);
+   if (ImGui::Checkbox("Show Cached", &m_ShowCachedFiles))
+    {
+        DialogUpdateFromDirectory(m_NavigationContext.m_CurrentPath);
+    }
+
     ImGui::Separator();
 }
 
@@ -501,9 +511,17 @@ bool FileDialog::DialogUpdateFromDirectory(const std::string& directoryPath)
             m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Material, static_cast<int>(m_HierarchyItemSize.x)));
         }
 
-        if (Aurora::FileSystem::IsEngineCacheFile(childItem))
+        if (Aurora::FileSystem::IsEngineSceneFile(childItem))
         {
-            m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Cache, static_cast<int>(m_HierarchyItemSize.x)));
+            m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Scene, static_cast<int>(m_HierarchyItemSize.x)));
+        }
+
+        if (m_ShowCachedFiles)
+        {
+            if (Aurora::FileSystem::IsEngineCacheFile(childItem) || Aurora::FileSystem::IsEngineModelFile(childItem) || Aurora::FileSystem::IsEngineTextureFile(childItem))
+            {
+                m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Cache, static_cast<int>(m_HierarchyItemSize.x)));
+            }
         }
     }
 

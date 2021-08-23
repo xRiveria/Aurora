@@ -72,6 +72,128 @@ namespace Aurora
         }
     }
 
+    void Entity::Serialize(BinarySerializer* binarySerializer)
+    {
+        // Basic Data
+        {
+            binarySerializer->Write(m_IsActive);
+            binarySerializer->Write(m_IsVisibleInHierarchy);
+            binarySerializer->Write(GetObjectID());
+            binarySerializer->Write(m_ObjectName);
+        }
+
+        // Components
+        {
+            binarySerializer->Write(static_cast<uint32_t>(m_Components.size()));
+            for (const std::shared_ptr<IComponent>& component : m_Components)
+            {
+                binarySerializer->Write(static_cast<uint32_t>(component->GetType()));
+                binarySerializer->Write(component->GetObjectID());
+            }
+
+            for (const std::shared_ptr<IComponent>& component : m_Components)
+            {
+                component->Serialize(binarySerializer);
+            }
+        }
+
+        // Children
+        {
+            auto children = GetTransform()->GetChildren();
+
+            // Children count.
+            binarySerializer->Write(static_cast<uint32_t>(children.size()));
+
+            // Children IDs.
+            for (const auto& child : children)
+            {
+                binarySerializer->Write(child->GetObjectID());
+            }
+
+            // Children
+            for (const auto& child : children)
+            {
+                if (child->GetEntity())
+                {
+                    child->GetEntity()->Serialize(binarySerializer);
+                }
+                else
+                {
+                    AURORA_ERROR(LogLayer::Serialization, "Aborting... Child entity is a nullptr?");
+                    break;
+                }
+            }
+        }
+    }
+
+    void Entity::Deserialize(BinarySerializer* binaryDeserializer, Transform* parentTransform)
+    {
+        // Basic Info
+        {
+            binaryDeserializer->Read(&m_IsActive);
+            binaryDeserializer->Read(&m_IsVisibleInHierarchy);
+            binaryDeserializer->Read(&m_ObjectID);
+            binaryDeserializer->Read(&m_ObjectName);
+        }
+
+        // Components
+        {
+            const uint32_t componentCount = binaryDeserializer->ReadAs<uint32_t>();
+            for (uint32_t i = 0; i < componentCount; i++)
+            {
+                uint32_t componentType = static_cast<uint32_t>(ComponentType::Unknown);
+                uint32_t componentID = 0;
+
+                binaryDeserializer->Read(&componentType); // Load the component's type.
+                binaryDeserializer->Read(&componentID);   // Load the component's ID.'
+
+                auto addedComponent = AddComponent(static_cast<ComponentType>(componentType), componentID);
+            }
+
+            // Sometimes, there are component dependencies, such as a collider that needs to set its shape for a rigidbody. Hence, its important to create the components first, and then deserialize them.
+            for (const auto& component : m_Components)
+            {
+                component->Deserialize(binaryDeserializer);
+            }
+
+            // Set the transform's parent.
+            if (m_Transform)
+            {
+                m_Transform->SetParentTransform(parentTransform);
+            }
+        }
+
+        World* scene = m_EngineContext->GetSubsystem<World>();
+
+        // Children
+        {
+            // Children Count
+            const uint32_t childrenCount = binaryDeserializer->ReadAs<uint32_t>();
+
+            // Children IDs
+            std::vector<std::weak_ptr<Entity>> childEntities;
+            for (uint32_t i = 0; i < childrenCount; i++)
+            {
+                auto child = scene->EntityCreate();
+                child->SetObjectID(binaryDeserializer->ReadAs<uint32_t>());
+                childEntities.emplace_back(child);
+            }
+
+            // Children
+            for (const auto& child : childEntities)
+            {
+                child.lock()->Deserialize(binaryDeserializer, GetTransform());
+            }
+
+            if (m_Transform)
+            {
+                m_Transform->AcquireChildren();
+            }
+        }
+
+        scene->SetSceneDirty();
+    }
+
     void Entity::Clone()
     {
         auto world = m_EngineContext->GetSubsystem<World>();

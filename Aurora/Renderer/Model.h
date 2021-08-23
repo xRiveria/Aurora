@@ -41,6 +41,7 @@ namespace Aurora
         // Add resources to the model.
         void SetRootEntity(const std::shared_ptr<Entity>& entity) { m_RootEntity = entity; }
         void AddMaterial(std::shared_ptr<Material>& material, const std::shared_ptr<Entity>& entity);
+        void AddTexture(std::shared_ptr<Material>& material, MaterialSlot materialSlot, const std::string& filePath);
 
         // Animations
         bool IsAnimated() const { return m_IsAnimated; }
@@ -54,6 +55,10 @@ namespace Aurora
         bool CreateBuffers();
 
     private:
+        // Geometry
+        float ComputeNormalizedScale() const;
+
+    private:
         // Misc
         std::weak_ptr<Entity> m_RootEntity; // The root entity of the model.
         std::shared_ptr<DX11_IndexBuffer> m_IndexBuffer;
@@ -61,6 +66,8 @@ namespace Aurora
         std::shared_ptr<Mesh> m_Mesh;
         /// Axis-Aligned Bounding Box
         bool m_IsAnimated = false;
+
+        float m_NormalizedScale = 1.0f;
 
         // Dependencies
         ResourceCache* m_ResourceCache;

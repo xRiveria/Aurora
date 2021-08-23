@@ -20,13 +20,28 @@ namespace Aurora
     void Collider::Initialize()
     {
         /// If there is a mesh, use its bounding box.
-
         Shape_Update();
     }
 
     void Collider::Remove()
     {
         Shape_Release();
+    }
+
+    void Collider::Serialize(BinarySerializer* binarySerializer)
+    {
+        binarySerializer->Write((uint32_t)(m_ShapeType));
+        binarySerializer->Write(m_Size);
+        binarySerializer->Write(m_Center);
+    }
+
+    void Collider::Deserialize(BinarySerializer* binaryDeserializer)
+    {
+        m_ShapeType = ColliderShape(binaryDeserializer->ReadAs<uint32_t>());
+        binaryDeserializer->Read(&m_Size);
+        binaryDeserializer->Read(&m_Center);
+
+        Shape_Update();
     }
 
     void Collider::SetBoundingBox(const XMFLOAT3& boundingBox)

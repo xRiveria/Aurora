@@ -35,6 +35,10 @@ namespace Aurora
         void Remove() override;
         void Start() override;
         void Tick(float deltaTime) override;
+
+        // Serialization
+        void Serialize(BinarySerializer* binarySerializer) override;
+        void Deserialize(BinarySerializer* binaryDeserializer) override;
             
         // Mass
         float GetMass() const { return m_Mass; }

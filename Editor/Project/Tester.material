@@ -1,0 +1,12 @@
+Type: Material
+Albedo_Color: [1, 1, 1, 1]
+Roughness_Multiplier: 1
+Normal_Multiplier: 1
+Metallic_Multiplier: 1
+Occlusion_Multiplier: 1
+Textures:
+  Textures_Count: 1
+  Texture_0:
+    Texture_Type: 1
+    Texture_Name: Default
+    Texture_Path: ../Resources/Textures/Default/Default.png

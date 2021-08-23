@@ -14,7 +14,7 @@ void ObjectsPanel::OnTickVisible()
         ImGui::Spacing();
         EditorExtensions::Image(IconType::IconType_ObjectPanel_Cube, m_IconSize);
         ImGui::SameLine();
-        
+
         ImGui::Selectable(objectName.c_str());
 
         ObjectDrag(objectType, objectName);

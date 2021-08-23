@@ -43,7 +43,8 @@ namespace Aurora
             std::is_same<T, long double>::value ||
             std::is_same<T, std::byte>::value ||
             std::is_same<T, XMFLOAT2>::value ||
-            std::is_same<T, XMFLOAT3>::value>::type>
+            std::is_same<T, XMFLOAT3>::value ||
+            std::is_same<T, XMFLOAT4>::value>::type>
         void Write(T value)
         {
             m_OutputStream.write(reinterpret_cast<char*>(&value), sizeof(value));
@@ -76,7 +77,8 @@ namespace Aurora
             std::is_same<T, long double>::value ||
             std::is_same<T, std::byte>::value ||
             std::is_same<T, XMFLOAT2>::value ||
-            std::is_same<T, XMFLOAT3>::value>::type>
+            std::is_same<T, XMFLOAT3>::value ||
+            std::is_same<T, XMFLOAT4>::value>::type>
         void Read(T* value)
         {
             m_InputStream.read(reinterpret_cast<char*>(value), sizeof(T));
@@ -90,7 +92,7 @@ namespace Aurora
         void Read(std::vector<unsigned char>* vector);
         void Read(std::vector<std::byte>* vector);
 
-        // Reading with explicit type definition
+        // Reading with explicit type definition for returns.
         template <class T, class = typename std::enable_if <
             std::is_same<T, bool>::value ||
             std::is_same<T, unsigned char>::value ||

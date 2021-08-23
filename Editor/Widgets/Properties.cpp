@@ -40,7 +40,7 @@ void Properties::OnTickVisible()
 
         char entityNameBuffer[256] = "Entity";
         memset(entityNameBuffer, 0, sizeof(entityNameBuffer));
-        strcpy_s(entityNameBuffer, sizeof(entityNameBuffer), entityPointer->GetObjectName().c_str());
+        strcpy_s(entityNameBuffer, sizeof(entityNameBuffer), entityPointer->m_ObjectName.c_str());
 
         if (ImGui::InputText("##EntityName", entityNameBuffer, sizeof(entityNameBuffer)))
         {
@@ -224,11 +224,17 @@ static void DrawMaterialControl(const std::string& label, Aurora::DX11_Texture* 
         if (auto dragPayload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Texture))
         {
             const std::string filePath = std::get<const char*>(dragPayload->m_Data);
+            TextureSetter(engineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::DX11_Texture>(filePath));
+        }
+    }
+    else
+    {
+        ImGui::Image((void*)engineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->GetShaderResourceView().Get(), ImVec2(60, 60));
 
-            //engineContext->GetSubsystem<Aurora::Threading>()->Execute([filePath, engineContext, TextureSetter](Aurora::JobInformation jobInformation)
-            //{               
-                TextureSetter(engineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::DX11_Texture>(filePath));
-            //});
+        if (auto dragPayload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Texture))
+        {
+            const std::string filePath = std::get<const char*>(dragPayload->m_Data);          
+            TextureSetter(engineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::DX11_Texture>(filePath));
         }
     }
 
@@ -272,6 +278,10 @@ static void DrawMaterialControl(const std::string& label, Aurora::DX11_Texture* 
     if (materialTexture != nullptr)
     {
         ImGui::Text("File: %s", materialTexture->GetResourceFilePathNative().c_str());
+    }
+    else
+    {
+        ImGui::Text("File: %s", "Default");
     }
     
     ImGui::Separator();

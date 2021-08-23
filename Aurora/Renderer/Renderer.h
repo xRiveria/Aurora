@@ -59,7 +59,7 @@ namespace Aurora
         void BindConstantBuffers(RHI_Shader_Stage shaderStage, RHI_CommandList commandList);
 
         void UpdateEntityConstantBuffer(Entity* entity);
-        void UpdateCameraConstantBuffer(const std::shared_ptr<Entity>& camera, RHI_CommandList commandList);
+        void UpdateCameraConstantBuffer(Entity* camera, RHI_CommandList commandList);
         void UpdateLightConstantBuffer();
         void UpdateMaterialConstantBuffer(Material* materialComponent);
         int BindMaterialTexture(MaterialSlot slotType, int slotIndex, Material* material);
@@ -119,7 +119,7 @@ namespace Aurora
         RHI_Sampler m_Depth_Texture_Sampler;
 
         // Camera
-        std::shared_ptr<Entity> m_Camera;
+        Entity* m_Camera;
 
         // Default Textures
         ResourceCache* m_ResourceCache;

@@ -21,8 +21,9 @@ namespace Aurora
         ~Transform() = default;
 
         void Tick(float deltaTime) override;
-        void Serialize(SerializationStream& outputStream) override;
-        void Deserialize(SerializationNode& inputNode) override;
+        // Serialization
+        void Serialize(BinarySerializer* binarySerializer) override;
+        void Deserialize(BinarySerializer* binaryDeserializer) override;
 
         void UpdateTransform();
 

@@ -13,13 +13,6 @@ namespace Aurora
         SetProperty(MaterialSlot::MaterialSlot_Metallic, 0.0f);
         SetProperty(MaterialSlot::MaterialSlot_Normal, 0.0f);
         SetProperty(MaterialSlot::MaterialSlot_Occlusion, 0.0f);
-
-        // Initialize Default Textures
-        m_Textures[MaterialSlot::MaterialSlot_Albedo] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
-        m_Textures[MaterialSlot::MaterialSlot_Metallic] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
-        m_Textures[MaterialSlot::MaterialSlot_Normal] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
-        m_Textures[MaterialSlot::MaterialSlot_Occlusion] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
-        m_Textures[MaterialSlot::MaterialSlot_Roughness] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
     }
 
     bool Material::SaveToFile(const std::string& filePath)
@@ -78,14 +71,15 @@ namespace Aurora
                 uint32_t textureCount = 0;
                 std::string materialName;
                 std::string materialPath;
-                uint32_t materialSlot;
+                uint32_t materialSlot = 0;
                 
                 fileSerializer->GetPropertyFromSubNode("Textures", "Textures_Count", &textureCount);
 
                 for (int i = 0; i < textureCount; i++)
                 {
                     std::string keyName = "Texture_" + std::to_string(i);
-                    const MaterialSlot slot = static_cast<MaterialSlot>(fileSerializer->GetPropertyFromSubNode("Textures", keyName, "Texture_Type", &materialSlot));
+                    fileSerializer->GetPropertyFromSubNode("Textures", keyName, "Texture_Type", &materialSlot);
+                    const MaterialSlot slot = static_cast<MaterialSlot>(materialSlot);
                     fileSerializer->GetPropertyFromSubNode("Textures", keyName, "Texture_Name", &materialName);
                     fileSerializer->GetPropertyFromSubNode("Textures", keyName, "Texture_Path", &materialPath);
 
@@ -111,7 +105,7 @@ namespace Aurora
         {
             // In order for the material to guarentee serialization/deserialization, we cache the texture.
             const std::shared_ptr<DX11_Texture> textureCached = m_EngineContext->GetSubsystem<ResourceCache>()->CacheResource(texture);
-            m_Textures[materialSlot] = (textureCached != nullptr) ? textureCached : texture; // If some oddity happens with caching, we will simply use the raw texture as it is.
+            m_Textures[materialSlot] = textureCached != nullptr ? textureCached : texture; // If some oddity happens with caching, we will simply use the raw texture as it is.
             m_MaterialFlags |= materialSlot;
 
             SetProperty(materialSlot, parameterMultiplier);
@@ -121,6 +115,12 @@ namespace Aurora
             m_Textures.erase(materialSlot);
             m_MaterialFlags &= ~materialSlot;
         }
+
+        // Serialize our changes.
+       // m_EngineContext->GetSubsystem<Threading>()->Execute([this](JobInformation jobInformation)
+       // {
+            SaveToFile(GetResourceFilePathNative());
+       // });
     }
 
     void Material::SetAlbedoColor(const XMFLOAT4& albedoColor)

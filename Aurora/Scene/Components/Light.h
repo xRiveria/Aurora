@@ -26,8 +26,9 @@ namespace Aurora
         Light(EngineContext* engineContext, Entity* entity, uint32_t componentID = 0);
         ~Light();
 
-        void Serialize(SerializationStream& outputStream) override;
-        void Deserialize(SerializationNode& inputNode) override;
+        // Serialization
+        void Serialize(BinarySerializer* binarySerializer) override;
+        void Deserialize(BinarySerializer* binaryDeserializer) override;
 
         void SetLightingType(Lighting_Type type) { m_LightType = type; }
         Lighting_Type GetLightingType() const { return m_LightType; }

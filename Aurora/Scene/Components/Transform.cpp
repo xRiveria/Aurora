@@ -18,33 +18,32 @@ namespace Aurora
         UpdateTransform();
     }
 
-    void Transform::Serialize(SerializationStream& outputStream)
+    void Transform::Serialize(BinarySerializer* binarySerializer)
     {
-        outputStream << YAML::Key << "TransformComponent";
-        outputStream << YAML::BeginMap;
-
-        outputStream << YAML::Key << "Translation" << YAML::Value << m_TranslationLocal;
-        outputStream << YAML::Key << "Scale" << YAML::Value << m_ScaleLocal;
-        outputStream << YAML::Key << "Rotation" << YAML::Value << m_RotationLocal;
-
-        if (HasParentTransform())
-        {
-            outputStream << YAML::Key << "ParentEntity" << YAML::Value << GetParentTransform()->GetEntity()->GetObjectID();  /// Save by ID?
-        }
-
-        outputStream << YAML::EndMap;
+        binarySerializer->Write(m_TranslationLocal);
+        binarySerializer->Write(m_RotationLocal);
+        binarySerializer->Write(m_ScaleLocal);
+        binarySerializer->Write(m_ParentTransform ? m_ParentTransform->GetEntity()->GetObjectID() : 0);
     }
 
-    void Transform::Deserialize(SerializationNode& inputNode)
+    void Transform::Deserialize(BinarySerializer* binaryDeserializer)
     {
-        m_TranslationLocal = inputNode["Translation"].as<XMFLOAT3>();
-        m_ScaleLocal = inputNode["Scale"].as<XMFLOAT3>();
-        m_RotationLocal = inputNode["Rotation"].as<XMFLOAT4>();
+        binaryDeserializer->Read(&m_TranslationLocal);
+        binaryDeserializer->Read(&m_RotationLocal);
+        binaryDeserializer->Read(&m_ScaleLocal);
+        
+        uint32_t parentEntityID = 0;
+        binaryDeserializer->Read(&parentEntityID);
 
-        if (inputNode["ParentEntity"])
+        if (parentEntityID != 0)
         {
-            SetParentTransform(m_EngineContext->GetSubsystem<World>()->GetEntityByID(inputNode["ParentEntity"].as<uint32_t>())->GetComponent<Transform>());
+            if (const auto parent = m_EngineContext->GetSubsystem<World>()->GetEntityByID(parentEntityID))
+            {
+                parent->GetTransform()->AddChildTransform(this);
+            }
         }
+
+        UpdateTransform();
     }
 
     void Transform::UpdateTransform()

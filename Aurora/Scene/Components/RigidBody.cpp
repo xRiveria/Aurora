@@ -103,6 +103,31 @@ namespace Aurora
         }     
     }
 
+    void RigidBody::Serialize(BinarySerializer* binarySerializer)
+    {
+        binarySerializer->Write(m_Mass);
+        binarySerializer->Write(m_Friction);
+        binarySerializer->Write(m_FrictionRolling);
+        binarySerializer->Write(m_Restitution);
+        binarySerializer->Write(GetGravityState());
+        binarySerializer->Write(GetKinematicState());
+        binarySerializer->Write(m_IsInPhysicsWorld);
+    }
+
+    void RigidBody::Deserialize(BinarySerializer* binaryDeserializer)
+    {
+        binaryDeserializer->Read(&m_Mass);
+        binaryDeserializer->Read(&m_Friction);
+        binaryDeserializer->Read(&m_FrictionRolling);
+        binaryDeserializer->Read(&m_Restitution);
+        SetUseGravity(binaryDeserializer->ReadAs<bool>());
+        SetKinematicState(binaryDeserializer->ReadAs<bool>());
+        binaryDeserializer->Read(&m_IsInPhysicsWorld);
+
+        RigidBody_AcquireShape();
+        RigidBody_AddToWorld();
+    }
+
     void RigidBody::SetMass(float mass)
     {
         mass = XMMax(mass, 0.0f);

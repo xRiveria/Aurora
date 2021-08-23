@@ -32,8 +32,6 @@ namespace Aurora
             entity->Start();
         }
 
-        m_Serializer = std::make_shared<Serializer>(m_EngineContext);
-
         return true;
     }
 
@@ -150,7 +148,7 @@ namespace Aurora
         AURORA_INFO(LogLayer::ECS, "%f", static_cast<float>(m_Entities.size()));
         for (int i = 0; i < m_Entities.size(); i++)
         {
-            if (m_Entities[i]->m_EntityType == EntityType::Skybox || m_Entities[i]->GetObjectName() == "Directional Light" || m_Entities[i]->GetObjectName() == "Default_Camera") // Skip all of them for now.
+            if (m_Entities[i]->m_ObjectName == "Directional Light" || m_Entities[i]->m_ObjectName == "Default_Camera") // Skip all of them for now.
             {
                 continue;
             }
@@ -164,6 +162,11 @@ namespace Aurora
         // Clear our entities.
         // m_Entities.clear();
 
+        m_IsSceneDirty = true;
+    }
+
+    void World::SetSceneDirty()
+    {
         m_IsSceneDirty = true;
     }
 
@@ -208,12 +211,13 @@ namespace Aurora
     {
         for (const std::shared_ptr<Entity>& entity : m_Entities)
         {
-            if (entity->GetObjectName() == entityName)
+            if (entity->m_ObjectName == entityName)
             {
                 return entity;
             }
         }
         
+        AURORA_ERROR(LogLayer::ECS, "Entity not found!");
         static std::shared_ptr<Entity> emptyEntity;
         return emptyEntity;
     }
@@ -247,11 +251,143 @@ namespace Aurora
         return rootEntities;
     }
 
+    bool World::SerializeScene(const std::string& filePath)
+    {
+        const Stopwatch stopwatch("Scene Saving", false);
+
+        // Add scene file extension to the file path if its missing.
+        std::string filePathIn = filePath;
+        if (FileSystem::GetExtensionFromFilePath(filePath) != EXTENSION_SCENE)
+        {
+            filePathIn += EXTENSION_SCENE;
+        }
+
+        m_WorldName = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePathIn);
+        m_WorldFilePath = filePathIn;
+        m_EngineContext->GetSubsystem<WindowContext>()->SetCurrentContextTitle_Scene(m_WorldName);
+
+        /// Notify all subsystems that we are now saving data. For now, just our cache.
+        m_EngineContext->GetSubsystem<ResourceCache>()->SaveResourcesToFiles();
+
+        // Create a scene file.
+        std::unique_ptr<BinarySerializer> fileSerializer = std::make_unique<BinarySerializer>(filePathIn, SerializerFlag::SerializerMode_Write);
+        if (!fileSerializer->IsStreamOpen())
+        {
+            AURORA_ERROR(LogLayer::Serialization, "Failed to open file stream for scene serialization.");
+            return false;
+        }
+
+        // Only save root entities as they will also save their descendants.
+        auto rootEntities = EntityGetRoots();
+        const uint32_t rootEntityCount = static_cast<uint32_t>(rootEntities.size());
+
+        /// Progress tracking.
+
+        // Save root entity count.
+        fileSerializer->Write(rootEntityCount);
+
+        // Save root entity IDs.
+        for (const auto& rootEntity : rootEntities)
+        {
+            fileSerializer->Write(rootEntity->GetObjectID());
+        }
+
+        // Save the root entities themselves.
+        for (const auto& rootEntity : rootEntities)
+        {
+            rootEntity->Serialize(fileSerializer.get());
+            /// Progress tracking.
+        }
+
+        /// Notify subsystems waiting for us to finish.
+
+        return true;
+    }
+
+    bool World::DeserializeScene(const std::string& filePath)
+    {
+        if (!FileSystem::Exists(filePath))
+        {
+            AURORA_ERROR(LogLayer::Serialization, "%s was not found.", filePath.c_str());
+            return false;
+        }
+
+        // Very file extension.
+        if (FileSystem::GetExtensionFromFilePath(filePath) != EXTENSION_SCENE)
+        {
+            AURORA_ERROR(LogLayer::Serialization, "Scene files end with a (.aurora) extension. Is \"%s\" a valid scene file?.", filePath.c_str());
+            return false;
+        }
+
+        // Open file.
+        std::unique_ptr<BinarySerializer> binaryDeserializer = std::make_unique<BinarySerializer>(filePath, SerializerFlag::SerializerMode_Read);
+        if (!binaryDeserializer->IsStreamOpen())
+        {
+            return false;
+        }
+
+        m_WorldName = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath);
+        m_WorldFilePath = filePath;
+        m_EngineContext->GetSubsystem<WindowContext>()->SetCurrentContextTitle_Scene(m_WorldName);
+
+        const Stopwatch stopwatch("Deserializing Scene", false);
+
+        // Clear current entities.
+        Clear();
+
+
+        // Notify subsystems that we are loading data.
+        m_EngineContext->GetSubsystem<ResourceCache>()->LoadResourcesFromFiles();
+
+        // Load root entity count.
+        const uint32_t rootEntityCount = binaryDeserializer->ReadAs<uint32_t>();
+
+        // Load root entity IDs.
+        for (uint32_t i = 0; i < rootEntityCount; i++)
+        {
+            std::shared_ptr<Entity> entity = EntityCreate();
+            entity->SetObjectID(binaryDeserializer->ReadAs<uint32_t>());
+        }
+
+        // Deserialize root entities.
+        for (uint32_t i = 0; i < rootEntityCount; i++)
+        {
+            m_Entities[i]->Deserialize(binaryDeserializer.get(), nullptr);
+            /// Tracker.
+        }
+
+        return true;
+    }
+
+    void World::SetWorldName(const std::string& worldName)
+    {
+        m_WorldName = worldName;
+        m_EngineContext->GetSubsystem<WindowContext>()->SetCurrentContextTitle_Scene(GetWorldName());
+    }
+
+    void World::CreateDirectionalLight()
+    {
+        std::shared_ptr<Entity> entity = EntityCreate();
+        entity->SetName("Directional_Light");
+        entity->AddComponent<Light>();
+    }
+
+    void World::CreateCamera()
+    {
+        std::shared_ptr<Entity> entity = EntityCreate();
+        entity->SetName("Default_Camera");
+        entity->AddComponent<Camera>(); 
+
+        m_CameraPointer = entity.get();
+    }
+
+    void World::CreateEnvironment()
+    {
+
+    }
+
     bool World::CreateDefaultObject(DefaultObjectType defaultObjectType)
     {
-        m_EngineContext->GetSubsystem<ResourceCache>()->m_CachedResources.push_back(std::make_shared<AuroraResource>(m_EngineContext, ResourceType::ResourceType_Model));
-        auto& object = m_EngineContext->GetSubsystem<ResourceCache>()->m_CachedResources.back();
-
         switch (defaultObjectType)
         {
             case DefaultObjectType::DefaultObjectType_Cube:
@@ -278,42 +414,7 @@ namespace Aurora
                 m_EngineContext->GetSubsystem<ResourceCache>()->Load<Model>("../Resources/Models/Default/Cone.fbx");
                 return true;
         }
-        
+
         return false;
-    }
-
-    void World::SerializeScene(const std::string& filePath)
-    {
-        m_Serializer->SerializeScene(filePath);
-    }
-
-    void World::DeserializeScene(const std::string& filePath)
-    {
-        m_Serializer->DeserializeScene(filePath);
-    }
-
-    void World::SetWorldName(const std::string& worldName)
-    {
-        m_WorldName = worldName;
-        m_EngineContext->GetSubsystem<WindowContext>()->SetCurrentContextTitle_Scene(GetWorldName());
-    }
-
-    void World::CreateDirectionalLight()
-    {
-        std::shared_ptr<Entity> entity = EntityCreate();
-        entity->SetName("Directional_Light");
-        entity->AddComponent<Light>();
-    }
-
-    void World::CreateCamera()
-    {
-        std::shared_ptr<Entity> entity = EntityCreate();
-        entity->SetName("Default_Camera");
-        entity->AddComponent<Camera>(); 
-    }
-
-    void World::CreateEnvironment()
-    {
-
     }
 }

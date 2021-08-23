@@ -15,6 +15,7 @@ namespace Aurora
         m_World = m_EngineContext->GetSubsystem<World>();
     }
 
+    /*
     void Serializer::SerializeEntity(YAML::Emitter& outputStream, Entity* entity)
     {
         outputStream << YAML::BeginMap; // Entity
@@ -162,4 +163,5 @@ namespace Aurora
 
         return true;
     }
+    */
 }

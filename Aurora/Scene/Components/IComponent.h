@@ -3,6 +3,7 @@
 #include "EngineContext.h"
 #include <any>
 #include <functional>
+#include "../Serializer/BinarySerializer.h"
 
 namespace Aurora
 {
@@ -40,8 +41,8 @@ namespace Aurora
         // Runs every frame.
         virtual void Tick(float deltaTime) {}
 
-        virtual void Serialize(SerializationStream& outputStream) {}
-        virtual void Deserialize(SerializationNode& inputNode) {}
+        virtual void Serialize(BinarySerializer* binarySerializer) {}
+        virtual void Deserialize(BinarySerializer* binaryDeserializer) {}
 
         // Type
         template <typename T>

@@ -321,9 +321,6 @@ namespace Aurora
 
         /// Compute AABB
 
-        /// Scale down.
-        parentEntity->GetTransform()->Scale(XMFLOAT3(0.1f, 0.1f, 0.1f));
-
         /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Add the mesh to the model. 
         modelParameters.m_Model->AppendGeometry(std::move(indices), std::move(vertexPositions), std::move(vertexNormals), std::move(vertexUVs));
@@ -381,16 +378,16 @@ namespace Aurora
 
             aiString texturePath;
 
-            /*
             if (assimpMaterial->GetTextureCount(typeAssimp) > 0)
             {
                 if (AI_SUCCESS == assimpMaterial->GetTexture(typeAssimp, 0, &texturePath))
                 {
-                    const std::string deducedPath = ValidateTexturePath(texturePath.data, modelParameters.m_FilePath);
-                    if (FileSystem::IsSupportedImageFile(deducedPath))
+                    const std::string filePath = ValidateTexturePath(texturePath.data, modelParameters.m_FilePath);
+                    if (FileSystem::IsSupportedImageFile(filePath))
                     {
-                        material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Image);
-                        m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(deducedPath, material->m_Textures[engineSlotType]);
+                        modelParameters.m_Model->AddTexture(material, engineSlotType, filePath);
+                        //material->m_Textures[engineSlotType] = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>(deducedPath);
+                        // m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(deducedPath, material->m_Textures[engineSlotType]);
 
                         if (typeAssimp == aiTextureType_BASE_COLOR || typeAssimp == aiTextureType_DIFFUSE)
                         {
@@ -403,7 +400,7 @@ namespace Aurora
                     }
                 }
             }
-            */
+
             AURORA_WARNING(LogLayer::Graphics, "Could not find texture of appropriate type. Binding default texture...");
             // material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Image)->m_Texture;
             // m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture->m_FilePath, material->m_Textures[engineSlotType]);

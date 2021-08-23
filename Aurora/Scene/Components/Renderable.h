@@ -12,6 +12,10 @@ namespace Aurora
         Renderable(EngineContext* engineContext, Entity* entity, uint32_t componentID = 0);
         ~Renderable() = default;
 
+        // Serialization
+        void Serialize(BinarySerializer* binarySerializer) override;
+        void Deserialize(BinarySerializer* binaryDeserializer) override;
+
         // Geometry
         void GeometrySet(const std::string& renderableName, Model* model);
         Model* GetGeometryModel() const { return m_Model; }

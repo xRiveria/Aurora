@@ -16,9 +16,14 @@ namespace Aurora
         bool Initialize() override;
         void Tick(float deltaTime) override;
 
+        // Loading/Deserializing
+        bool SerializeScene(const std::string& filePath);
+        bool DeserializeScene(const std::string& filePath);
+
         // Entity
         void New();
         void Clear();
+        void SetSceneDirty();
 
         bool IsLoading();
         
@@ -34,15 +39,14 @@ namespace Aurora
         const std::vector<std::shared_ptr<Entity>>& EntityGetAll() const { return m_Entities; }
         std::vector<std::shared_ptr<Entity>> EntityGetRoots();
 
-        // Default Components - In the future, we ought to load the model into memory at runtime, set to inactive and simply duplicate it when ready.
         bool CreateDefaultObject(DefaultObjectType defaultObjectType);
-
-        // Serializing
-        void SerializeScene(const std::string& filePath);
-        void DeserializeScene(const std::string& filePath);
 
         void SetWorldName(const std::string& worldName);
         std::string GetWorldName() const { return m_WorldName; }  
+        std::string GetWorldFilePath() const { return m_WorldFilePath; }
+
+    public:
+        Entity* m_CameraPointer;
 
     private:
         void _EntityRemove(const std::shared_ptr<Entity>& entity);
@@ -53,8 +57,8 @@ namespace Aurora
         void CreateEnvironment();
 
     private:
-        std::shared_ptr<Serializer> m_Serializer;
         std::string m_WorldName = "Untitled_Scene";  // Or Scene Name.
+        std::string m_WorldFilePath = "Unknown";
 
         bool m_IsSceneDirty = true;
         bool m_WasInEditorMode = false;

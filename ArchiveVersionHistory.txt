@@ -1,3 +1,4 @@
-1.0       - Implementation of Binary Serialization/Deserialization & Integration with Models (Vertex/Index Data)
-0.0 	  - Implementation of Material Serialization/Deserialization
+3.0       - Implementation of World, Entity and Component Serializations + Workflow Patches
+2.0       - Implementation of Binary Serialization/Deserialization & Integration with Models (Vertex/Index Data)
+1.0 	  - Implementation of Material Serialization/Deserialization
 0.0 Prior - Old deserialization and resource caching system. Slowly being phased out...
