@@ -54,6 +54,7 @@ namespace Aurora
         static bool IsEngineFile(const std::string& filePath);
     };
 
+    static const char* EXTENSION_AUDIO = ".audio";
     static const char* EXTENSION_TEXTURE = ".texture";
     static const char* EXTENSION_MODEL = ".model";
     static const char* EXTENSION_SCENE = ".aurora";

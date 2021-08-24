@@ -3,6 +3,7 @@
 #include "../Graphics/DX11_Refactored/DX11_Texture.h"
 #include "../Renderer/Model.h"
 #include "../Renderer/Material.h"
+#include "../Audio/AudioClip.h"
 
 namespace Aurora
 {
@@ -26,4 +27,5 @@ namespace Aurora
     INSTANTIATE_TO_RESOURCE_TYPE(DX11_Texture, ResourceType::ResourceType_Image)
     INSTANTIATE_TO_RESOURCE_TYPE(Model, ResourceType::ResourceType_Model)
     INSTANTIATE_TO_RESOURCE_TYPE(Material, ResourceType::ResourceType_Material)
+    INSTANTIATE_TO_RESOURCE_TYPE(AudioClip, ResourceType::ResourceType_Audio)
 }

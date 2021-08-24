@@ -5,6 +5,8 @@
 #include "../Scene/Components/RigidBody.h"
 #include "../Scene/Components/Renderable.h"
 #include "../Scene/Components/Collider.h"
+#include "../Scene/Components/AudioSource.h"
+#include "../Audio/AudioClip.h"
 #include "../Scene/World.h"
 #include "../Threading/Threading.h"
 #include "../Renderer/Model.h"
@@ -59,6 +61,7 @@ void Properties::OnTickVisible()
         ShowLightProperties(entityPointer->GetComponent<Aurora::Light>());
         ShowColliderProperties(entityPointer->GetComponent<Aurora::Collider>());
         ShowRigidBodyProperties(entityPointer->GetComponent<Aurora::RigidBody>());
+        ShowAudioSourceProperties(entityPointer->GetComponent<Aurora::AudioSource>());
 
         ShowAddComponentButton();
     }
@@ -141,6 +144,11 @@ void Properties::ShowAddComponentButton() const
     {
         if (std::shared_ptr<Aurora::Entity> entity = m_InspectedEntity.lock())
         {           
+            if (ImGui::MenuItem("Audio Source"))
+            {
+                entity->AddComponent<Aurora::AudioSource>();
+            }
+
              if (ImGui::MenuItem("Light"))
              {
                  entity->AddComponent<Aurora::Light>();
@@ -474,6 +482,76 @@ void Properties::ShowLightProperties(Aurora::Light* lightComponent) const
             ImGui::ColorPicker3("##LightColor", &lightComponent->m_Color.x);
 
             ImGui::EndPopup();
+        }
+
+        ImGui::PopID();
+    }
+
+    ComponentEnd();
+}
+
+void Properties::ShowAudioSourceProperties(Aurora::AudioSource* audioSourceComponent) const
+{
+    if (!audioSourceComponent)
+    {
+        return;
+    }
+
+    if (ComponentBegin("Audio Source"))
+    {
+        ImGui::PushID(audioSourceComponent->GetObjectID());
+
+        char audioClipNameBuffer[256] = "Audio Clip";
+        memset(audioClipNameBuffer, 0, sizeof(audioClipNameBuffer));
+        strcpy_s(audioClipNameBuffer, sizeof(audioClipNameBuffer), audioSourceComponent->GetAudioClipName().c_str());
+
+        ImGui::InputText("Audio Clip", audioClipNameBuffer, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
+        if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_AudioClip))
+        {
+            audioSourceComponent->SetAudioClip(std::get<const char*>(payload->m_Data));
+        }
+
+        float volume = audioSourceComponent->GetVolume();
+        if (ImGui::DragFloat("Volume", &volume, 0.02f, 0.0f, 1.0f))
+        {
+            audioSourceComponent->SetVolume(volume);
+        }
+
+        bool playOnStart = audioSourceComponent->GetPlayOnStartState();
+        if (ImGui::Checkbox("Play On Start", &playOnStart))
+        {
+            audioSourceComponent->SetPlayOnStart(playOnStart);
+        }
+
+        bool loopState = audioSourceComponent->GetLoopState();
+        if (ImGui::Checkbox("Is Looping", &loopState))
+        {
+            audioSourceComponent->SetLoopState(loopState);
+
+            if (!loopState)
+            {
+                audioSourceComponent->Stop();
+            }
+        }
+
+        if (ImGui::Button("Play Clip"))
+        {
+            audioSourceComponent->Play();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Stop Clip"))
+        {
+            audioSourceComponent->Stop();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Pause Clip"))
+        {
+            audioSourceComponent->Pause();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Unpause Clip"))
+        {
+            audioSourceComponent->Unpause();
         }
 
         ImGui::PopID();

@@ -5,6 +5,7 @@
 #include "Components/Renderable.h"
 #include "Components/RigidBody.h"
 #include "Components/Collider.h"
+#include "Components/AudioSource.h"
 #include <type_traits>
 #include "../Scene/World.h"
 #include <functional>
@@ -253,6 +254,7 @@ namespace Aurora
             case ComponentType::Renderable: return AddComponent<Renderable>(componentID);
             case ComponentType::RigidBody: return AddComponent<RigidBody>(componentID);
             case ComponentType::Collider: return AddComponent<Collider>(componentID);
+            case ComponentType::AudioSource: return AddComponent<AudioSource>(componentID);
             default: nullptr;
         }
 

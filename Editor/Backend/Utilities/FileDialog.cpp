@@ -401,6 +401,11 @@ void FileDialog::OnItemDrag(FileDialogItem* item) const
             SetPayload(EditorExtensions::DragPayloadType::DragPayloadType_Model, item->GetPath());
         }
 
+        if (Aurora::FileSystem::IsSupportedAudioFile(item->GetPath()))
+        {
+            SetPayload(EditorExtensions::DragPayloadType::DragPayloadType_AudioClip, item->GetPath());
+        }
+
         if (Aurora::FileSystem::IsEngineMaterialFile(item->GetPath()))
         {
             SetPayload(EditorExtensions::DragPayloadType::DragPayloadType_Material, item->GetPath());

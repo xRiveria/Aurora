@@ -158,7 +158,8 @@ namespace EditorExtensions
 		DragPayloadType_Entity,
 		DragPayloadType_Model,
 		DragPayloadType_Material,
-		DragPayloadType_Texture
+		DragPayloadType_Texture,
+		DragPayloadType_AudioClip
 	};
 
 	struct DragDropPayload

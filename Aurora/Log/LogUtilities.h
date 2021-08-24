@@ -23,7 +23,8 @@ namespace Aurora
 		Serialization,
 		ECS,
 		Editor,
-		Assert
+		Assert,
+		Audio
 	};
 
 	inline void SetLogLayerColor(LogLayer logLayer)
@@ -73,6 +74,11 @@ namespace Aurora
 			case LogLayer::Assert:
 				Console::Shade::SetColor(Console::Color::Color_Red);
 				std::cout << "[Assert] ";
+				break;
+
+			case LogLayer::Audio:
+				Console::Shade::SetColor(Console::Color::Color_Grey);
+				std::cout << "[Audio] ";
 				break;
 		}
 

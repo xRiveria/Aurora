@@ -20,11 +20,11 @@ namespace Aurora
         bool Initialize() override;
         void Tick(float deltaTime) override;
 
+        FMOD::System* GetAudioContext() const { return m_AudioContext; }
+
     private:
         FMOD::System* m_AudioContext;
         void* m_ExtraDriverData = 0;
         FMOD::Channel* m_Channel = 0;
-
-        FMOD::Sound* m_Sound;
     };
 }

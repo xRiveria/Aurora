@@ -5,6 +5,7 @@
 #include "../Renderer/Model.h"
 #include "Importers/Importer_Model.h"
 #include "Importers/Importer_Image.h"
+#include "../Audio/AudioClip.h"
 #include "../Scene/Components/Renderable.h"
 
 namespace Aurora
@@ -194,6 +195,10 @@ namespace Aurora
                             break;
 
                         case ResourceType::ResourceType_Image:
+                            break;
+
+                        case ResourceType::ResourceType_Audio:
+                            Load<AudioClip>(filePath);
                             break;
                     }
                 }

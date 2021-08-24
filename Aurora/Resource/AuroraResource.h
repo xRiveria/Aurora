@@ -57,7 +57,7 @@ namespace Aurora
             {
                 m_ResourceFilePathForeign = filePathRelative;
 
-                if (FileSystem::IsSupportedImageFile(filePath))
+                if (FileSystem::IsSupportedImageFile(filePath) || FileSystem::IsSupportedAudioFile(filePath))
                 {
                     m_ResourceFilePathNative = filePathRelative;
                 }

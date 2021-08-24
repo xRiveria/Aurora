@@ -10,6 +10,7 @@ namespace Aurora
     class RigidBody;
     class Light;
     class Collider;
+    class AudioSource;
     class Renderable;
     class ResourceCache;
 }
@@ -41,6 +42,7 @@ private:
     void ShowLightProperties(Aurora::Light* lightComponent) const;
     void ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) const;
     void ShowColliderProperties(Aurora::Collider* colliderComponent) const;
+    void ShowAudioSourceProperties(Aurora::AudioSource* audioSourceComponent) const;
 
 private:
     Aurora::ResourceCache* m_ResourceCache = nullptr;

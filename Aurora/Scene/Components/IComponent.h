@@ -15,6 +15,7 @@ namespace Aurora
         Transform,
         RigidBody,
         Collider,
+        AudioSource,
         Unknown
     };
 
