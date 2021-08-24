@@ -11,6 +11,13 @@ namespace Aurora
     {
         m_ParentTransform = nullptr;    
         m_Type = ComponentType::Transform;
+
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_TranslationLocal, XMFLOAT3);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_RotationLocal, XMFLOAT4);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_RotationInRadians, XMFLOAT3);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_ScaleLocal, XMFLOAT3);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_LocalMatrix, XMFLOAT4X4);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_WorldMatrix, XMFLOAT4X4);
     }
 
     void Transform::Tick(float deltaTime)

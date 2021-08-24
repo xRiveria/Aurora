@@ -97,7 +97,7 @@ namespace Aurora
             m_FPS_Control = false;
         }
 
-        if (inputSystem->IsKeyPressed(AURORA_KEY_LEFT_CONTROL))
+        if (inputSystem->IsMouseButtonPressed(2))
         {
             m_Speed = 9.0f;
         }

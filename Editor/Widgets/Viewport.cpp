@@ -47,7 +47,7 @@ void Viewport::OnTickVisible()
         if (std::get<Aurora::DefaultObjectType>(payload->m_Data) == Aurora::DefaultObjectType::DefaultObjectType_PointLight)
         {
             std::shared_ptr<Aurora::Entity> entity = m_WorldSubsystem->EntityCreate();
-            entity->SetName("DefaultPointLight");
+            entity->SetEntityName("DefaultPointLight");
             entity->AddComponent<Aurora::Light>();
         }
         else

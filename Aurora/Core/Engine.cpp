@@ -10,6 +10,7 @@
 #include "../Scene/World.h"
 #include "../Physics/Physics.h"
 #include "../Resource/ResourceCache.h"
+#include "../Audio/Audio.h"
 #include "../Input/InputEvents/InputEvent.h"
 
 
@@ -28,6 +29,7 @@ namespace Aurora
         m_EngineContext->RegisterSubsystem<Timer>();
         m_EngineContext->RegisterSubsystem<Threading>();
         m_EngineContext->RegisterSubsystem<Settings>();
+        m_EngineContext->RegisterSubsystem<Audio>();
         m_EngineContext->RegisterSubsystem<WindowContext>();
         m_EngineContext->RegisterSubsystem<Input>();
         m_EngineContext->RegisterSubsystem<Physics>();

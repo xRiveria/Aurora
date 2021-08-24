@@ -48,6 +48,7 @@ namespace Aurora
         static bool IsEngineTextureFile(const std::string& filePath);
         static bool IsEngineCacheFile(const std::string& filePath);
 
+        static bool IsSupportedAudioFile(const std::string& filePath);
         static bool IsSupportedImageFile(const std::string& filePath);
         static bool IsSupportedModelFile(const std::string& filePath);
         static bool IsEngineFile(const std::string& filePath);
@@ -130,5 +131,30 @@ namespace Aurora
         ".webp",
         ".xbm",
         ".xpm"
+    };
+
+    static const std::vector<std::string> g_Supported_Audio_Formats
+    {
+        ".aiff",
+        ".asf",
+        ".asx",
+        ".dls",
+        ".flac",
+        ".fsb",
+        ".it",
+        ".m3u",
+        ".midi",
+        ".mod",
+        ".mp2",
+        ".mp3",
+        ".ogg",
+        ".pls",
+        ".s3m",
+        ".vag", // PS2/PSP
+        ".wav",
+        ".wax",
+        ".wma",
+        ".xm",
+        ".xma" // XBOX 360
     };
 }

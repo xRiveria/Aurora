@@ -20,6 +20,7 @@ public:
     Properties(Editor* editorContext, Aurora::EngineContext* engineContext);
 
     void OnTickVisible() override;
+    void OnEvent(Aurora::InputEvent& inputEvent) override;
 
     static void Inspect(const std::weak_ptr<Aurora::Entity>& entity);
     static void Inspect(const std::weak_ptr<Aurora::Material>& material);
@@ -32,6 +33,8 @@ public:
     static std::weak_ptr<Aurora::Material> m_InspectedMaterial;
 
 private:
+    bool OnKeyPressed(Aurora::KeyPressedEvent& keyPressedEvent);
+
     void ShowRenderableProperties(Aurora::Renderable* renderableComponent) const;
     void ShowTransformProperties(Aurora::Transform* transformComponent) const;
     void ShowMaterialProperties(Aurora::Material* materialComponent) const;

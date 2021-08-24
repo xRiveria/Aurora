@@ -199,7 +199,7 @@ void Hierarchy::TreeAddEntity(Aurora::Entity* entity)
         }
     }
 
-    const bool isNodeOpen = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<intptr_t>(entity->GetObjectID())), nodeFlags, entity->m_ObjectName.c_str());
+    const bool isNodeOpen = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<intptr_t>(entity->GetObjectID())), nodeFlags, entity->GetEntityName().c_str());
 
     // Keep a copy of the selected item's rect so that we can scroll to bring it to view.
     if ((nodeFlags & ImGuiTreeNodeFlags_Selected) && HierarchyGlobals::m_Expand_To_Selection)

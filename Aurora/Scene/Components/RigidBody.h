@@ -57,7 +57,7 @@ namespace Aurora
         void SetFrictionRolling(float frictionRolling);
 
         // Gravity
-        void SetUseGravity(bool gravityState);
+        void SetGravityState(bool gravityState);
         bool GetGravityState() const { return m_RigidBodyFlags & RigidBodyFlags::RigidBodyFlag_GravityAffected; }
 
         XMFLOAT3 GetGravity() const { return m_Gravity; }

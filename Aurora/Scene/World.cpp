@@ -148,7 +148,7 @@ namespace Aurora
         AURORA_INFO(LogLayer::ECS, "%f", static_cast<float>(m_Entities.size()));
         for (int i = 0; i < m_Entities.size(); i++)
         {
-            if (m_Entities[i]->m_ObjectName == "Directional Light" || m_Entities[i]->m_ObjectName == "Default_Camera") // Skip all of them for now.
+            if (m_Entities[i]->GetEntityName() == "Directional Light" || m_Entities[i]->GetEntityName() == "Default_Camera") // Skip all of them for now.
             {
                 continue;
             }
@@ -211,7 +211,7 @@ namespace Aurora
     {
         for (const std::shared_ptr<Entity>& entity : m_Entities)
         {
-            if (entity->m_ObjectName == entityName)
+            if (entity->GetEntityName() == entityName)
             {
                 return entity;
             }
@@ -242,9 +242,12 @@ namespace Aurora
 
         for (const std::shared_ptr<Entity>& entity : m_Entities)
         {
-            if (entity->GetTransform()->IsRootTransform())
+            if (entity != nullptr)
             {
-                rootEntities.emplace_back(entity);
+                if (entity->GetTransform()->IsRootTransform())
+                {
+                    rootEntities.emplace_back(entity);
+                }
             }
         }
 
@@ -368,14 +371,14 @@ namespace Aurora
     void World::CreateDirectionalLight()
     {
         std::shared_ptr<Entity> entity = EntityCreate();
-        entity->SetName("Directional_Light");
+        entity->SetEntityName("Directional_Light");
         entity->AddComponent<Light>();
     }
 
     void World::CreateCamera()
     {
         std::shared_ptr<Entity> entity = EntityCreate();
-        entity->SetName("Default_Camera");
+        entity->SetEntityName("Default_Camera");
         entity->AddComponent<Camera>(); 
 
         m_CameraPointer = entity.get();

@@ -245,15 +245,15 @@ void Editor::Tick()
 		ImGui::End();
 
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
-		float height = ImGui::GetFrameHeight() + 1.0f; //Add a little padding here so things look nicer.
+		float height = ImGui::GetFrameHeight() + 1.0; //Add a little padding here so things look nicer.
 
-		if (ImGui::BeginViewportSideBar("##MainStatusBar", nullptr, ImGuiDir_Down, height, windowFlags)) //Specifies that this will be pipped at the top of the window, below the main menu bar.
+		if (ImGui::BeginViewportSideBar("##MainStatusBar", nullptr, ImGuiDir_Down, height, windowFlags)) // Specifies that this will be pipped at the top of the window, below the main menu bar.
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				// ImGui::PushStyleColor(ImGuiCol_Text, m_LogTypeColor[static_cast<int>(m_Logs.back().m_LogLevel)]);
-				ImGui::TextUnformatted("I Love Trains");
-				// ImGui::PopStyleColor(1);
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.4f, 1.0f));
+				ImGui::TextUnformatted("This is a warning message, etc etc.");
+				ImGui::PopStyleColor();
 			}
 			else
 			{

@@ -44,7 +44,12 @@ namespace Aurora
 
     private:
         bool m_IsSimulationEnabled = true;
-        int m_Accuracy = 1000;
+        
+
+        // Properties
+        int m_MaxSubsteps = 1;
+        int m_MaxSolveIterations = 256;
+        float m_InternalFPS = 60.0f;
     };
 }
 

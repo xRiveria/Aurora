@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+// #include "ILogger.h"
 #include "LogUtilities.h"
 
 /* Personal Notes:
@@ -28,10 +29,14 @@ namespace Aurora
 
 	class Log
 	{
+		friend class ILogger;
 		#define LOG_TYPE std::pair<LogType, Console::Color>
 
 	public:
 		Log() = default;
+
+		// Set a logger to be used.
+		// static void SetLogger(const std::weak_ptr<ILogger>& logger) { m_Logger = logger; }
 
 		// Alphabetical
 		static void WriteLog(LogLayer logLayer, const char* logMessage, const LOG_TYPE logType);
@@ -72,6 +77,7 @@ namespace Aurora
 		static void LogToConsole(LogLayer logLayer, const char* logMessage, LOG_TYPE logType);
 
 	private:
+		// static std::weak_ptr<ILogger> m_Logger;
 		static bool m_ConsoleLoggingEnabled;
 
 		static std::mutex m_MutexLog;

@@ -1,0 +1,44 @@
+Type: ResourceCache
+Resource_Count: 14
+Resource_0:
+  Resource_Path: ../Resources/Textures/Default/Default.png
+  Resource_Type: 1
+Resource_1:
+  Resource_Path: Project\PBR Materials\Rock\New_Material.material
+  Resource_Type: 4
+Resource_2:
+  Resource_Path: Project\PBR Materials\Rock\Rock035_1K_Color.jpg
+  Resource_Type: 1
+Resource_3:
+  Resource_Path: Project\PBR Materials\Rock\Rock035_1K_Roughness.jpg
+  Resource_Type: 1
+Resource_4:
+  Resource_Path: Project\PBR Materials\Rock\Rock035_1K_AmbientOcclusion.jpg
+  Resource_Type: 1
+Resource_5:
+  Resource_Path: Project\PBR Materials\Rock\Rock035_1K_Normal.jpg
+  Resource_Type: 1
+Resource_6:
+  Resource_Path: ../Resources/Models/Default/lambert1.material
+  Resource_Type: 4
+Resource_7:
+  Resource_Path: ../Resources/Models/Default/Cube.model
+  Resource_Type: 3
+Resource_8:
+  Resource_Path: Project\Models\Cerberus\source\08 - Default.material
+  Resource_Type: 4
+Resource_9:
+  Resource_Path: Project\Models\Cerberus\textures\Cerberus_M.tga.png
+  Resource_Type: 1
+Resource_10:
+  Resource_Path: Project\Models\Cerberus\textures\Cerberus_R.tga.png
+  Resource_Type: 1
+Resource_11:
+  Resource_Path: Project\Models\Cerberus\textures\Cerberus_AO.tga.png
+  Resource_Type: 1
+Resource_12:
+  Resource_Path: Project\Models\Cerberus\textures\Cerberus_A.tga.png
+  Resource_Type: 1
+Resource_13:
+  Resource_Path: Project\Models\Cerberus\textures\Cerberus_N.tga.png
+  Resource_Type: 1

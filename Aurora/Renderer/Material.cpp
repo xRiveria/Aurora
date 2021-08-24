@@ -82,16 +82,26 @@ namespace Aurora
                     const MaterialSlot slot = static_cast<MaterialSlot>(materialSlot);
                     fileSerializer->GetPropertyFromSubNode("Textures", keyName, "Texture_Name", &materialName);
                     fileSerializer->GetPropertyFromSubNode("Textures", keyName, "Texture_Path", &materialPath);
-
-                    // If the texture happens to be loaded, get a reference to it.
-                    std::shared_ptr<DX11_Texture> texture = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<DX11_Texture>(materialName);
-                    // If there is no texture (it's not loaded yet), load it.
-                    if (!texture)
+                    
+                    if (materialPath != "")
                     {
-                        texture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>(materialPath);
-                    }
+                        // If the texture happens to be loaded, get a reference to it.
+                        std::shared_ptr<DX11_Texture> texture = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<DX11_Texture>(materialName);
+                        // If there is no texture (it's not loaded yet), load it.
 
-                    SetTextureSlot(slot, texture, GetProperty(slot));
+                        if (!texture)
+                        {
+                            m_EngineContext->GetSubsystem<Threading>()->Execute([this, texture, materialPath, slot](JobInformation jobInformation) mutable
+                            {
+                                texture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>(materialPath);
+                                SetTextureSlot(slot, texture, GetProperty(slot));
+                            });
+                        }
+                        else
+                        {
+                            SetTextureSlot(slot, texture, GetProperty(slot));
+                        }
+                    }
                 }
             }
         }

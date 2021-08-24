@@ -15,6 +15,12 @@ namespace Aurora
         m_Center = XMFLOAT3(0.0f, 0.0f, 0.0f);
         m_Size = XMFLOAT3(1.0f, 1.0f, 1.0f);
         m_ShapeInternal = nullptr;
+
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Size, XMFLOAT3);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Center, XMFLOAT3);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_VertexLimit, uint32_t);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_IsOptimizationEnabled, bool);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_SET(m_ShapeType, SetShapeType, ColliderShape);
     }
 
     void Collider::Initialize()

@@ -185,7 +185,7 @@ namespace Aurora
             // Create root entity to match Assimp's root node.
             const bool isActive = true;
             std::shared_ptr<Entity> newEntity = m_WorldContext->EntityCreate(isActive);
-            newEntity->SetName(modelParameters.m_Name);
+            newEntity->SetEntityName(modelParameters.m_Name);
             modelParameters.m_Model->SetRootEntity(newEntity);
 
             // Parse all nodes, starting from the root node and continuing recursively.
@@ -211,7 +211,7 @@ namespace Aurora
     {
         if (parentEntity) // Parent node has already been set.
         {
-            newEntity->SetName(assimpNode->mName.C_Str());
+            newEntity->SetEntityName(assimpNode->mName.C_Str());
         }
 
         /// Progress Tracking.
@@ -254,7 +254,7 @@ namespace Aurora
             }
 
             // Set entity name.
-            entity->SetName(meshName);
+            entity->SetEntityName(meshName);
 
             // Process Mesh.
             LoadMesh(assimpMesh, entity, modelParameters);
@@ -401,10 +401,10 @@ namespace Aurora
                 }
             }
 
-            AURORA_WARNING(LogLayer::Graphics, "Could not find texture of appropriate type. Binding default texture...");
+            // AURORA_WARNING(LogLayer::Graphics, "Could not find texture of appropriate type. Binding default texture...");
             // material->m_Textures[engineSlotType] = std::make_shared<AuroraResource>(m_EngineContext, Aurora::ResourceType::ResourceType_Image)->m_Texture;
             // m_EngineContext->GetSubsystem<ResourceCache>()->LoadTexture(m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture->m_FilePath, material->m_Textures[engineSlotType]);
-            material->m_Textures[engineSlotType] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
+            // material->m_Textures[engineSlotType] = m_EngineContext->GetSubsystem<Renderer>()->m_DefaultWhiteTexture;
         };
 
         // Engine Texture, Assimp PBR Texture, Assimp Legacy Texture (Fallback)

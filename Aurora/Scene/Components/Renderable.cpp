@@ -8,7 +8,12 @@ namespace Aurora
 {
     Renderable::Renderable(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
+        m_IsUsingDefaultMaterial = false;
 
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_IsUsingDefaultMaterial, bool);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Material, Material*);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Model, Model*);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_GeometryName, std::string);
     }
 
     void Renderable::Serialize(BinarySerializer* binarySerializer)

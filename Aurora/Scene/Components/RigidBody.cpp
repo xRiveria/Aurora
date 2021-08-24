@@ -23,20 +23,20 @@ namespace Aurora
         void getWorldTransform(btTransform& worldTransform) const override
         {
             const XMFLOAT3 lastPosition = m_RigidBody->GetEntity()->GetTransform()->GetPosition();
-            const XMFLOAT4 lastRotation = m_RigidBody->GetEntity()->GetTransform()->GetRotation();
+            //const XMFLOAT4 lastRotation = m_RigidBody->GetEntity()->GetTransform()->GetRotation();
 
             worldTransform.setOrigin(ToBulletVector3(lastPosition));
-            worldTransform.setRotation({ lastRotation.x, lastRotation.y, lastRotation.z, lastRotation.w });
+            //worldTransform.setRotation({ lastRotation.x, lastRotation.y, lastRotation.z, lastRotation.w });
         }
 
         // Update from Bullet to Engine.
         void setWorldTransform(const btTransform& worldTransform) override
         {
             const XMFLOAT3 newWorldPosition = ToVector3(worldTransform.getOrigin());
-            const XMFLOAT4 newWorldRotation = ToVector4(worldTransform.getOrigin());
+            //const XMFLOAT4 newWorldRotation = ToVector4(worldTransform.getOrigin());
 
             m_RigidBody->GetEntity()->GetTransform()->m_TranslationLocal = newWorldPosition;
-            m_RigidBody->GetEntity()->GetTransform()->m_RotationLocal = newWorldRotation;
+            //m_RigidBody->GetEntity()->GetTransform()->m_RotationLocal = newWorldRotation;
         }
 
     private:
@@ -55,10 +55,19 @@ namespace Aurora
         m_RigidBodyFlags |= RigidBodyFlags::RigidBodyFlag_GravityAffected;
         m_Gravity = m_PhysicsSystem->GetGravity();
         m_RigidBodyFlags &= ~RigidBodyFlags::RigidBodyFlag_Kinematic;
-        m_PositionLock = XMFLOAT3(0.0f, 0.0f, 0.0f);
+        // m_PositionLock = XMFLOAT3(0.0f, 0.0f, 0.0f);
         // m_RotationLock = XMFLOAT3(0.0f, 0.0f, 0.0f);
         m_CollisionShapeInternal = nullptr;
         m_RigidBodyInternal = nullptr;
+
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Mass, float);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Friction, float);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_FrictionRolling, float);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Restitution, float);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Gravity, XMFLOAT3);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_CenterOfMass, XMFLOAT3);
+        AURORA_REGISTER_ATTRIBUTE_GET_SET(GetKinematicState, SetKinematicState, bool);
+        AURORA_REGISTER_ATTRIBUTE_GET_SET(GetGravityState, SetGravityState, bool);
     }
 
     RigidBody::~RigidBody()
@@ -120,7 +129,7 @@ namespace Aurora
         binaryDeserializer->Read(&m_Friction);
         binaryDeserializer->Read(&m_FrictionRolling);
         binaryDeserializer->Read(&m_Restitution);
-        SetUseGravity(binaryDeserializer->ReadAs<bool>());
+        SetGravityState(binaryDeserializer->ReadAs<bool>());
         SetKinematicState(binaryDeserializer->ReadAs<bool>());
         binaryDeserializer->Read(&m_IsInPhysicsWorld);
 
@@ -172,7 +181,7 @@ namespace Aurora
         m_RigidBodyInternal->setRollingFriction(frictionRolling);
     }
 
-    void RigidBody::SetUseGravity(bool gravityState)
+    void RigidBody::SetGravityState(bool gravityState)
     {
         if (gravityState)
         {

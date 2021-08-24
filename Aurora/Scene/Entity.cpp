@@ -14,10 +14,11 @@ namespace Aurora
     Entity::Entity(EngineContext* engineContext)
     {
         m_EngineContext = engineContext;
-        m_ObjectName = "Entity";
+        SetEntityName("Entity");
         m_IsActive = true;
 
         m_Transform = AddComponent<Transform>();
+        m_WorldContext = m_EngineContext->GetSubsystem<World>();
     }
 
     Entity::~Entity()
@@ -79,7 +80,7 @@ namespace Aurora
             binarySerializer->Write(m_IsActive);
             binarySerializer->Write(m_IsVisibleInHierarchy);
             binarySerializer->Write(GetObjectID());
-            binarySerializer->Write(m_ObjectName);
+            binarySerializer->Write(GetEntityName());
         }
 
         // Components
@@ -133,7 +134,7 @@ namespace Aurora
             binaryDeserializer->Read(&m_IsActive);
             binaryDeserializer->Read(&m_IsVisibleInHierarchy);
             binaryDeserializer->Read(&m_ObjectID);
-            binaryDeserializer->Read(&m_ObjectName);
+            SetEntityName(binaryDeserializer->ReadAs<std::string>());
         }
 
         // Components
@@ -196,25 +197,24 @@ namespace Aurora
 
     void Entity::Clone()
     {
-        auto world = m_EngineContext->GetSubsystem<World>();
         std::vector<Entity*> clonedEntities;
 
         // Creation of new entity and copying of its selected properties.
-        auto CloneEntity = [&world, &clonedEntities](Entity* entity)
+        auto CloneEntity = [this, &clonedEntities](Entity* entity)
         {
             // Clone the name and ID.
-            Entity* clonedEntity = world->EntityCreate().get();
-            clonedEntity->SetObjectID(GenerateObjectID());
-            clonedEntity->SetName(entity->GetObjectName());
+            Entity* clonedEntity = m_WorldContext->EntityCreate().get();
+            clonedEntity->SetObjectID(GenerateObjectID()); // Generate new object ID.
+            clonedEntity->SetEntityName(entity->GetEntityName());
             clonedEntity->SetActive(entity->IsActive());
             clonedEntity->SetHierarchyVisibility(entity->IsVisibleInHierarchy());
 
             // Clone all of its components.
-            for (const auto& component : entity->GetAllComponents())
+            for (const std::shared_ptr<IComponent>& component : entity->GetAllComponents())
             {
-                const auto& originalComponent = component;
-                //auto clonedComponent = clonedEntity->AddComponent(component->GetType());
-                //clonedComponent->SetAttributes(originalComponent->GetAttributes());
+                const std::shared_ptr<IComponent>& originalComponent = component;
+                IComponent* clonedComponent = clonedEntity->AddComponent(component->GetType());
+                clonedComponent->SetComponentAttributes(originalComponent->GetComponentAttributes());
             }
 
             clonedEntities.emplace_back(clonedEntity);

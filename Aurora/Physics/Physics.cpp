@@ -33,6 +33,8 @@ namespace Aurora
 
         m_PhysicsWorld->setGravity(btVector3(0, -10, 0));
         m_PhysicsWorld->getSolverInfo().m_splitImpulse = true;
+        m_PhysicsWorld->getDispatchInfo().m_useContinuous = true;
+        m_PhysicsWorld->getSolverInfo().m_numIterations = m_MaxSolveIterations;
 
         AURORA_INFO(LogLayer::Physics, "Initialized Physics Engine.");
         return true;
@@ -40,7 +42,7 @@ namespace Aurora
 
     void Physics::Tick(float deltaTime)
     {
-        if (deltaTime <= 0 || !m_PhysicsWorld)
+        if (!m_PhysicsWorld)
         {
             return;
         }
@@ -59,8 +61,23 @@ namespace Aurora
             return;
         }
        
-        // Step the physics world. 
-        m_PhysicsWorld->stepSimulation(static_cast<float>(deltaTime), 10);    
+        // This equation must be met: timeStep < maxSubSteps * fixedTimeStep
+        double internalTimeStep = 1.0 / m_InternalFPS;
+        auto maxSubsteps = static_cast<int>(deltaTime * m_InternalFPS) + 1;
+        if (m_MaxSubsteps < 0)
+        {
+            internalTimeStep = deltaTime;
+            maxSubsteps = 1;
+        }
+        else if (m_MaxSubsteps > 0)
+        {
+            maxSubsteps = XMMin(maxSubsteps, m_MaxSubsteps);
+        }
+        
+        // Step the physics world.
+        m_IsSimulationEnabled = true;
+        m_PhysicsWorld->stepSimulation(deltaTime, maxSubsteps, internalTimeStep);    
+        m_IsSimulationEnabled = false;
     }
 
     void Physics::AddRigidBody(btRigidBody* rigidBodyInternal) const

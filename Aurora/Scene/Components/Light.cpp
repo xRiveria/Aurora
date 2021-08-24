@@ -7,6 +7,10 @@ namespace Aurora
     Light::Light(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
         m_Type = ComponentType::Light;
+
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Color, XMFLOAT3);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Intensity, float);
+        AURORA_REGISTER_ATTRIBUTE_GET_SET(IsCastingShadow, SetIsCastingShadow, bool);
     }
 
     Light::~Light()

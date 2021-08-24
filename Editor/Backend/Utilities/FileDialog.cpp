@@ -500,6 +500,12 @@ bool FileDialog::DialogUpdateFromDirectory(const std::string& directoryPath)
             continue;
         }
 
+        if (Aurora::FileSystem::IsSupportedAudioFile(childItem))
+        {
+            m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Audio, static_cast<int>(m_HierarchyItemSize.x)));
+            continue;
+        }
+
         if (Aurora::FileSystem::IsSupportedModelFile(childItem))
         {
             m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_ObjectPanel_Cube, static_cast<int>(m_HierarchyItemSize.x)));

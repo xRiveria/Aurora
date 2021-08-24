@@ -2,6 +2,7 @@
 
 namespace Aurora
 {
+	// std::weak_ptr<ILogger> Log::m_Logger;
 	std::mutex Log::m_MutexLog;
 	std::vector<LogPackage> Log::m_LogPackages;
 

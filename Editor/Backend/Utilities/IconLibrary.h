@@ -12,6 +12,7 @@ enum IconType
     IconType_Console_Warning,
     IconType_Console_Error,
     IconType_AssetBrowser_Folder,
+    IconType_AssetBrowser_Audio,
     IconType_AssetBrowser_Script,
     IconType_AssetBrowser_Material,
     IconType_AssetBrowser_Next,

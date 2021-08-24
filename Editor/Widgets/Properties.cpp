@@ -5,6 +5,7 @@
 #include "../Scene/Components/RigidBody.h"
 #include "../Scene/Components/Renderable.h"
 #include "../Scene/Components/Collider.h"
+#include "../Scene/World.h"
 #include "../Threading/Threading.h"
 #include "../Renderer/Model.h"
 #include "../Renderer/Material.h"
@@ -40,11 +41,11 @@ void Properties::OnTickVisible()
 
         char entityNameBuffer[256] = "Entity";
         memset(entityNameBuffer, 0, sizeof(entityNameBuffer));
-        strcpy_s(entityNameBuffer, sizeof(entityNameBuffer), entityPointer->m_ObjectName.c_str());
+        strcpy_s(entityNameBuffer, sizeof(entityNameBuffer), entityPointer->GetEntityName().c_str());
 
         if (ImGui::InputText("##EntityName", entityNameBuffer, sizeof(entityNameBuffer)))
         {
-            entityPointer->SetName(std::string(entityNameBuffer));
+            entityPointer->SetEntityName(std::string(entityNameBuffer));
         }
         ImGui::SameLine();
 
@@ -64,6 +65,47 @@ void Properties::OnTickVisible()
     else if (!m_InspectedMaterial.expired())
     {
         ShowMaterialProperties(m_InspectedMaterial.lock().get());
+    }
+}
+
+void Properties::OnEvent(Aurora::InputEvent& inputEvent)
+{
+    Aurora::InputEventDispatcher dispatcher(inputEvent);
+    dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(Properties::OnKeyPressed));
+}
+
+bool Properties::OnKeyPressed(Aurora::KeyPressedEvent& keyPressedEvent)
+{
+    if (keyPressedEvent.GetRepeatCount() > 0)
+    {
+        return false;
+    }
+
+    bool isControlPressed = m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_LEFT_CONTROL) || m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_RIGHT_CONTROL);
+
+    switch (keyPressedEvent.GetKeyCode())
+    {
+        case AURORA_KEY_D:
+        {
+            if (!m_InspectedEntity.expired())
+            {
+                if (isControlPressed) { AURORA_INFO(Aurora::LogLayer::ECS, "Cloned Entity!"); m_InspectedEntity.lock()->Clone(); }
+                return true;
+            }
+            break;
+        }
+
+        case AURORA_KEY_DELETE:
+        {
+            if (!m_InspectedEntity.expired())
+            {
+                m_InspectedEntity.lock().get()->MarkForDestruction();
+                m_EngineContext->GetSubsystem<Aurora::World>()->SetSceneDirty();
+                m_InspectedEntity.reset();
+                return true;
+            }
+            break;
+        }
     }
 }
 
@@ -98,21 +140,34 @@ void Properties::ShowAddComponentButton() const
     if (ImGui::BeginPopup("##AddComponentContextMenu"))
     {
         if (std::shared_ptr<Aurora::Entity> entity = m_InspectedEntity.lock())
-        {
+        {           
+             if (ImGui::MenuItem("Light"))
+             {
+                 entity->AddComponent<Aurora::Light>();
+             }
+
              if (ImGui::MenuItem("Rigidbody"))
              {
                  entity->AddComponent<Aurora::RigidBody>();
              }
 
-             if (ImGui::MenuItem("Collider"))
+             if (ImGui::MenuItem("Box Collider"))
              {
-                 entity->AddComponent<Aurora::Collider>();
+                 Aurora::Collider* collider = entity->AddComponent<Aurora::Collider>();
+                 collider->SetShapeType(Aurora::ColliderShape::ColliderShape_Box);
              }
 
-             if (ImGui::MenuItem("Light"))
+             if (ImGui::MenuItem("Sphere Collider"))
              {
-                 entity->AddComponent<Aurora::Light>();
-             }           
+                 Aurora::Collider* collider = entity->AddComponent<Aurora::Collider>();
+                 collider->SetShapeType(Aurora::ColliderShape::ColliderShape_Sphere);
+             }
+
+             if (ImGui::MenuItem("Static Plane Collider"))
+             {
+                 Aurora::Collider* collider = entity->AddComponent<Aurora::Collider>();
+                 collider->SetShapeType(Aurora::ColliderShape::ColliderShape_StaticPlane);
+             }  
         }
 
         ImGui::EndPopup();
@@ -224,7 +279,12 @@ static void DrawMaterialControl(const std::string& label, Aurora::DX11_Texture* 
         if (auto dragPayload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Texture))
         {
             const std::string filePath = std::get<const char*>(dragPayload->m_Data);
-            TextureSetter(engineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::DX11_Texture>(filePath));
+
+            engineContext->GetSubsystem<Aurora::Threading>()->Execute([TextureSetter, engineContext, filePath](Aurora::JobInformation jobInformation) mutable
+            {
+                auto texture = engineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::DX11_Texture>(filePath);
+                TextureSetter(texture);
+            });
         }
     }
     else
@@ -234,7 +294,11 @@ static void DrawMaterialControl(const std::string& label, Aurora::DX11_Texture* 
         if (auto dragPayload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_Texture))
         {
             const std::string filePath = std::get<const char*>(dragPayload->m_Data);          
-            TextureSetter(engineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::DX11_Texture>(filePath));
+            engineContext->GetSubsystem<Aurora::Threading>()->Execute([TextureSetter, engineContext, filePath](Aurora::JobInformation jobInformation) mutable
+            {
+                auto texture = engineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::DX11_Texture>(filePath);
+                TextureSetter(texture);
+            });
         }
     }
 
@@ -361,11 +425,11 @@ void Properties::ShowMaterialProperties(Aurora::Material* materialComponent) con
     {
         ImGui::PushID(materialComponent->GetObjectID());
 
-        DrawMaterialControl("Albedo Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Albedo].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Albedo, texture); }, true, materialComponent->m_AlbedoColor);
-        DrawMaterialControl("Roughness Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Roughness].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Roughness, texture); });
-        DrawMaterialControl("Normal Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Normal].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Normal, texture); });
-        DrawMaterialControl("Metallic Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Metallic].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Metallic, texture); });
-        DrawMaterialControl("Occlusion Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Occlusion].get(), m_EngineContext, [&materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Occlusion, texture); });
+        DrawMaterialControl("Albedo Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Albedo].get(), m_EngineContext, [materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) mutable { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Albedo, texture); }, true, materialComponent->m_AlbedoColor);
+        DrawMaterialControl("Roughness Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Roughness].get(), m_EngineContext, [materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) mutable { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Roughness, texture); });
+        DrawMaterialControl("Normal Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Normal].get(), m_EngineContext, [materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) mutable { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Normal, texture); });
+        DrawMaterialControl("Metallic Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Metallic].get(), m_EngineContext, [materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) mutable { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Metallic, texture); });
+        DrawMaterialControl("Occlusion Map", materialComponent->m_Textures[Aurora::MaterialSlot::MaterialSlot_Occlusion].get(), m_EngineContext, [materialComponent](const std::shared_ptr<Aurora::DX11_Texture>& texture) mutable { materialComponent->SetTextureSlot(Aurora::MaterialSlot::MaterialSlot_Occlusion, texture); });
 
         ImGui::SliderFloat("Roughness", &materialComponent->m_Properties[Aurora::MaterialSlot::MaterialSlot_Roughness], 0.0, 1.0);
         ImGui::SliderFloat("Metalness", &materialComponent->m_Properties[Aurora::MaterialSlot::MaterialSlot_Metallic], 0.0, 1.0);
@@ -523,7 +587,7 @@ void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) 
         bool gravityState = rigidBodyComponent->GetGravityState();
         if (ImGui::Checkbox("Use Gravity", &gravityState))
         {
-            rigidBodyComponent->SetUseGravity(gravityState);
+            rigidBodyComponent->SetGravityState(gravityState);
         }
 
         bool kinematicState = rigidBodyComponent->GetKinematicState();

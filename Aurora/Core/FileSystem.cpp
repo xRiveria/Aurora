@@ -450,6 +450,21 @@ namespace Aurora
         return false;
     }
 
+    bool FileSystem::IsSupportedAudioFile(const std::string& filePath)
+    {
+        const std::string extension = GetExtensionFromFilePath(filePath);
+
+        for (const std::string& format : g_Supported_Audio_Formats)
+        {
+            if (extension == format || extension == ConvertToUppercase(format))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     bool FileSystem::IsEngineFile(const std::string& filePath)
     {
         return IsEngineModelFile(filePath)    ||

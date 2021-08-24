@@ -9,15 +9,17 @@ using namespace DirectX::PackedVector;
 
 namespace Aurora
 {
+    class World;
+
     class Entity : public AuroraObject, public std::enable_shared_from_this<Entity>
     {
     public:
         Entity(EngineContext* engineContext);
         ~Entity();
 
-        void Start();                   // Starts all owned Components.
-        void Stop();                    // Stops all owned Components.
-        void Tick(float deltaTime);     // Ticks all owned components.
+        void Start();
+        void Stop();
+        void Tick(float deltaTime);
 
         void Serialize(BinarySerializer* binarySerializer);
         void Deserialize(BinarySerializer* binaryDeserializer, Transform* parentTransform);
@@ -25,8 +27,8 @@ namespace Aurora
         void Clone();
 
         // Properties
-        // const std::string& GetObjectName() const { return m_ObjectName; }
-        void SetName(const std::string& name) { m_ObjectName = name; }
+        const std::string& GetEntityName() const { return m_ObjectName; }
+        void SetEntityName(const std::string& name) { m_ObjectName = name; }
 
         bool IsActive() const { return m_IsActive; }
         void SetActive(const bool isActive) { m_IsActive = isActive; }
@@ -179,7 +181,6 @@ namespace Aurora
         Transform* m_Transform = nullptr; // All entities will have a transform component, regardless of whether it is empty or not.
         bool m_IsActive = true;
 
-        std::string m_ObjectName = "Entity";
     private:
         constexpr uint32_t GetComponentMask(ComponentType componentType) { return static_cast<uint32_t>(1) << static_cast<uint32_t>(componentType); }
         
@@ -190,5 +191,7 @@ namespace Aurora
         // Components
         std::vector<std::shared_ptr<IComponent>> m_Components;
         uint32_t m_ComponentMask = 0;
+
+        World* m_WorldContext = nullptr;
     };
 }

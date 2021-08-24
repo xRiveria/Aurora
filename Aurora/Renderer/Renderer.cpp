@@ -72,7 +72,7 @@ namespace Aurora
         m_Camera->GetComponent<Camera>()->ComputeViewMatrix();
 
         m_DirectionalLight = m_EngineContext->GetSubsystem<World>()->EntityCreate();
-        m_DirectionalLight->SetName("Directional Light");
+        m_DirectionalLight->SetEntityName("Directional Light");
         m_DirectionalLight->m_Transform->Translate({ 0.01, 4, 0 });
 
         // For scissor rects in our rasterizer set.
@@ -101,7 +101,10 @@ namespace Aurora
     int Renderer::BindMaterialTexture(MaterialSlot slotType, int slotIndex, Material* material)
     {
         // Remember that our slot type's enum corresponds to our shader material.
-        m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(slotIndex, 1, material->m_Textures[slotType]->GetShaderResourceView().GetAddressOf());
+        if (material->m_Textures[slotType])
+        {
+            m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(slotIndex, 1, material->m_Textures[slotType]->GetShaderResourceView().GetAddressOf());
+        }
 
         return (int)slotType;
     }
