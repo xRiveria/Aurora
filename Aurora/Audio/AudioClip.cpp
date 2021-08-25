@@ -80,6 +80,7 @@ namespace Aurora
         }
 
         // Start playing our sound.
+        std::cout << "Play!";
         return ParseResult_Audio(m_AudioContext->playSound(m_SoundInternal, nullptr, false, &m_ChannelInternal));
     }
 
@@ -282,8 +283,11 @@ namespace Aurora
         }
 
         bool isPlaying = false;
+        bool isPaused = false;
+        m_ChannelInternal->isPlaying(&isPlaying);
+        m_ChannelInternal->getPaused(&isPaused);
 
-        return m_ChannelInternal->isPlaying(&isPlaying);
+        return isPlaying || isPaused;
     }
 
     bool AudioClip::CreateSoundInternal(const std::string& filePath)

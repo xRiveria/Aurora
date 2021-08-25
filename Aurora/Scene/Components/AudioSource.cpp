@@ -125,7 +125,7 @@ namespace Aurora
         if (m_AudioClip->LoadFromFile(filePath))
         {
             // In order for the component to guarentee serialization and deserialization.
-            m_AudioClip = m_EngineContext->GetSubsystem<ResourceCache>()->CacheResource(m_AudioClip);
+            m_EngineContext->GetSubsystem<ResourceCache>()->CacheResource(m_AudioClip);
         }
     }
 
