@@ -9,6 +9,8 @@ ThreadTracker::ThreadTracker(Editor* editorContext, Aurora::EngineContext* engin
 
 void ThreadTracker::OnTickVisible()
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
+
     ImGui::Text("Total Thread Count: %u", m_ThreadingSubsystem->GetThreadCount());
     ImGui::Text("Thread Count Supported: %u", m_ThreadingSubsystem->GetThreadCountSupported());
     ImGui::Text("Thread Count Avaliable: %u", m_ThreadingSubsystem->GetThreadCountAvaliable());

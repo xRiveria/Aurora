@@ -1,3 +1,5 @@
+5.0	  - Implementation of Audio System - Serialization/Deserialization
+4.1	  - Further Workflow Patches
 3.0       - Implementation of World, Entity and Component Serializations + Workflow Patches
 2.0       - Implementation of Binary Serialization/Deserialization & Integration with Models (Vertex/Index Data)
 1.0 	  - Implementation of Material Serialization/Deserialization

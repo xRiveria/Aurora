@@ -150,6 +150,9 @@ public:
         m_TimeSinceLastClick = currentTime - m_LastClickTime;
         m_LastClickTime = currentTime;
     }
+
+public:
+    bool m_IsRenaming = false;
  
 private:
     Icon m_Icon;
@@ -172,6 +175,10 @@ public:
     // Callbacks
     void SetOnItemClickedCallback(const std::function<void(const std::string&)>& callback) { m_OnItemClickedCallback = callback; }
     void SetOnItemDoubleClickedCallback(const std::function<void(const std::string&)>& callback) { m_OnItemDoubleClickedCallback = callback; }
+
+    // Creation of New Content
+    void CreateNewFolder(const std::string& filePath);
+    void CreateNewMaterial(const std::string& filePath);
 
 private:
     void ShowTopUI(bool* isVisible);
@@ -217,6 +224,8 @@ private:
     Aurora::Math::Vector2 m_HierarchyItemSize;
     Aurora::EngineContext* m_EngineContext;
     Editor* m_EditorContext;
+    FileDialogItem* m_CurrentlyRenamingItem = nullptr;
+    char m_RenameBuffer[256];
 
     // Callbacks
     std::function<void(const std::string&)> m_OnItemClickedCallback;

@@ -32,6 +32,8 @@ Properties::Properties(Editor* editorContext, Aurora::EngineContext* engineConte
 
 void Properties::OnTickVisible()
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
+
     if (!m_InspectedEntity.expired())
     {
         Aurora::Entity* entityPointer = m_InspectedEntity.lock().get();

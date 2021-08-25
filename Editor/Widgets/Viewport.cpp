@@ -21,6 +21,8 @@ Viewport::Viewport(Editor* editorContext, Aurora::EngineContext* engineContext) 
 
 void Viewport::OnTickVisible()
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
+
     if (!m_RendererSubsystem)
     {
         return;

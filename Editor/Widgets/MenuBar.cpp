@@ -12,6 +12,8 @@ MenuBar::MenuBar(Editor* editorContext, Aurora::EngineContext* engineContext) : 
 
 void MenuBar::OnTickAlways()
 {
+	Aurora::AURORA_PROFILE_FUNCTION();
+
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))

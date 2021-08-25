@@ -22,6 +22,9 @@
 // Global Engine Utilities
 #include "EngineUtilities.h"
 
+// Profiler
+#include "../Profiler/Instrumentor.h"
+
 // Serializations
 #include "../Serializer/SerializerUtilities.h"
 #include "../Serializer/FileSerializer.h"

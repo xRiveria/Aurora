@@ -32,6 +32,8 @@ Hierarchy::Hierarchy(Editor* editorContext, Aurora::EngineContext* engineContext
 
 void Hierarchy::OnTickVisible()
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
+
     ShowEntityTree();
 
     // On left click, select the entity but only on release.

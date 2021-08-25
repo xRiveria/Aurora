@@ -11,18 +11,18 @@ Textures:
     Texture_Name: Porcelain001_1K_Color
     Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
   Texture_1:
-    Texture_Type: 2
-    Texture_Name: Porcelain001_1K_Color
-    Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
-  Texture_2:
-    Texture_Type: 4
-    Texture_Name: Porcelain001_1K_Color
-    Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
-  Texture_3:
     Texture_Type: 16
     Texture_Name: Porcelain001_1K_Color
     Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
-  Texture_4:
+  Texture_2:
     Texture_Type: 8
+    Texture_Name: Porcelain001_1K_Color
+    Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
+  Texture_3:
+    Texture_Type: 2
+    Texture_Name: Porcelain001_1K_Color
+    Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
+  Texture_4:
+    Texture_Type: 4
     Texture_Name: Porcelain001_1K_Color
     Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg

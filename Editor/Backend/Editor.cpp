@@ -1,5 +1,6 @@
 #define _XM_NO_INTRINSICS_
 #include "Editor.h"
+#include "../Profiler/Instrumentor.h"
 #include "Source/imgui.h"
 #include "Source/imgui_internal.h"
 #include "../Renderer/Renderer.h"
@@ -54,6 +55,10 @@ void EditorSubsystem::OnEvent(Aurora::InputEvent& inputEvent)
 
 Editor::Editor()
 {
+	Aurora::Instrumentor::GetInstance().BeginSession("Startup");
+
+	Aurora::AURORA_PROFILE_FUNCTION();
+
 	// Create Engine
 	m_Engine = std::make_unique<Aurora::Engine>();
 
@@ -67,6 +72,8 @@ Editor::Editor()
 
 	InitializeEditor();
 	IconLibrary::GetInstance().Initialize(m_EngineContext, this);
+
+	Aurora::Instrumentor::GetInstance().EndSession();
 }
 
 Editor::~Editor()
@@ -83,6 +90,8 @@ std::string g_CurrentlySelectedView = "Off";
 
 void Editor::Tick()
 {
+	Aurora::Instrumentor::GetInstance().BeginSession("Tick");
+
 	while (m_EngineContext->GetSubsystem<Aurora::WindowContext>()->IsWindowRunning())
 	{
 		m_Engine->Tick();
@@ -98,6 +107,7 @@ void Editor::Tick()
 		// Editor Tick
 		{
 			Aurora::Stopwatch widgetStopwatch("Widget Pass", true);
+			Aurora::AURORA_PROFILE_FUNCTION();
 			for (std::shared_ptr<Widget>& widget : m_Widgets) // Tick each individual widget. Each widget contains its own ImGui::Begin and ImGui::End behavior (based on visibility/constantness).
 			{
 				widget->Tick();
@@ -281,10 +291,14 @@ void Editor::Tick()
 			glfwMakeContextCurrent(backupCurrentContext);
 		}
 	}
+	Aurora::Instrumentor::GetInstance().EndSession();
+
 }
 
 void Editor::InitializeEditor()
 {
+	Aurora::AURORA_PROFILE_FUNCTION();
+
 	ImGuiImplementation_Initialize(m_EngineContext);
 	ImGuiImplementation_ApplyStyling();
 
@@ -306,6 +320,8 @@ void Editor::InitializeEditor()
 
 void Editor::BeginDockingContext()
 {
+	Aurora::AURORA_PROFILE_FUNCTION();
+
 	static bool dockSpaceOpen = true;
 	static bool opt_fullscreen = true;
 	static bool opt_padding = false;

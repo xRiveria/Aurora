@@ -21,6 +21,8 @@ IconLibrary::~IconLibrary()
 
 void IconLibrary::Initialize(Aurora::EngineContext* engineContext, Editor* editorContext)
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
+
     m_EngineContext = engineContext;
     m_EditorContext = editorContext;
     const std::string resourceDirectory = m_EngineContext->GetSubsystem<Aurora::Settings>()->GetResourceDirectory(Aurora::ResourceDirectory::Icons) + "/";

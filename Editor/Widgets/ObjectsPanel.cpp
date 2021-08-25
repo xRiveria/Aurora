@@ -8,6 +8,8 @@ ObjectsPanel::ObjectsPanel(Editor* editorContext, Aurora::EngineContext* engineC
 
 void ObjectsPanel::OnTickVisible()
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
+
     const auto ObjectEntry = [this](const Aurora::DefaultObjectType objectType, const std::string& objectName)
     {
         // Make work with our syntax.

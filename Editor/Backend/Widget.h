@@ -1,4 +1,5 @@
 #pragma once
+#include "../Profiler/Instrumentor.h"
 #include <string>
 #include "EngineContext.h"
 #include "../Math/Vector2.h"

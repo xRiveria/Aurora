@@ -21,6 +21,8 @@ MathPlayground::MathPlayground(Editor* editorContext, Aurora::EngineContext* eng
 
 void MathPlayground::OnTickAlways()
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
+
     ImGui::Begin(m_WidgetName.c_str());
     if (ImGui::CollapsingHeader("Vector 2"))
     {

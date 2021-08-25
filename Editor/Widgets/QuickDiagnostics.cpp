@@ -24,6 +24,8 @@ QuickDiagnostics::QuickDiagnostics(Editor* editorContext, Aurora::EngineContext*
 
 void QuickDiagnostics::OnTickVisible()
 {
+	Aurora::AURORA_PROFILE_FUNCTION();
+
 	ImGui::Text("CPU: %s", m_CPU_BrandString);
     ImGui::Text("GPU: %s", m_Renderer->m_GraphicsDevice->m_AdapterName.c_str());  // Vendor Name
 	ImGui::Text("Physical Memory: %.0f MB / %.0f MB", GetCurrentPhysicalMemoryUsage(), m_PhysicalMemoryTotal);

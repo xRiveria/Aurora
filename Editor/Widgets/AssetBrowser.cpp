@@ -26,6 +26,7 @@ AssetBrowser::AssetBrowser(Editor * editorContext, Aurora::EngineContext * engin
 
 void AssetBrowser::OnTickVisible()
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
     m_FileDialog->ShowDialog(&AssetBrowserGlobals::g_ShowFileDialogView);
 }
 

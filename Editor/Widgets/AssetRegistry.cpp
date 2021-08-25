@@ -12,6 +12,8 @@ AssetRegistry::AssetRegistry(Editor* editorContext, Aurora::EngineContext* engin
 
 void AssetRegistry::OnTickVisible()
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
+
     ImGui::Checkbox("Filter By Type", &g_FilterByType);
 
     m_RegistryFilter.Draw("##RegisterFilter", ImGui::GetContentRegionAvailWidth());

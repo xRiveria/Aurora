@@ -2,6 +2,9 @@
 #include "Settings.h"
 #include "../Source/imgui_internal.h"
 #include "../Renderer/Material.h"
+#include "../Input/Input.h"
+#include "../Input/InputUtilities.h"
+#include <filesystem>
 
 FileDialog::FileDialog(Aurora::EngineContext* engineContext, Editor* editorContext, bool isStandaloneWindow)
 {
@@ -63,6 +66,32 @@ bool FileDialog::ShowDialog(bool* isVisible, std::string* directory, std::string
     EmptyAreaContextMenu();
 
     return m_SelectionMade;
+}
+
+void FileDialog::CreateNewFolder(const std::string& filePath)
+{
+    Aurora::FileSystem::CreateDirectory_(filePath);
+
+    if (Aurora::FileSystem::IsDirectory(filePath))
+    {
+        m_HierarchyItems.emplace_back(filePath, IconLibrary::GetInstance().LoadIcon_(filePath, IconType::IconType_AssetBrowser_Folder, static_cast<int>(m_HierarchyItemSize.x)));
+        m_HierarchyItems.back().m_IsRenaming = true;
+        m_CurrentlyRenamingItem = &m_HierarchyItems.back();
+    }
+}
+
+void FileDialog::CreateNewMaterial(const std::string& filePath)
+{
+    Aurora::Material material = Aurora::Material(m_EngineContext);
+    material.SetResourceFilePath(filePath);
+    material.SaveToFile(filePath);
+
+    if (Aurora::FileSystem::IsEngineMaterialFile(filePath))
+    {
+        m_HierarchyItems.emplace_back(filePath, IconLibrary::GetInstance().LoadIcon_(filePath, IconType::IconType_AssetBrowser_Material, static_cast<int>(m_HierarchyItemSize.x)));
+        m_HierarchyItems.back().m_IsRenaming = true;
+        m_CurrentlyRenamingItem = &m_HierarchyItems.back();
+    }
 }
 
 void FileDialog::ShowTopUI(bool* isVisible)
@@ -311,17 +340,32 @@ void FileDialog::ShowMiddleUI()
                 // Label
                 {
                     const char* labelText = item.GetLabel().c_str();
+
+                    // memset(renamedText, 0, sizeof(renamedText));
+                    // strcpy_s(renamedText, ite)
+
                     ImVec2 labelSize = ImGui::CalcTextSize(labelText, nullptr, true);
 
                     // Draw text background.
-                    ImGui::SetCursorScreenPos(ImVec2(rectLabel.Min.x + textOffset, rectLabel.Min.y + textOffset));
-                    if (labelSize.x <= m_HierarchyItemSize.x && labelSize.y <= m_HierarchyItemSize.y)
+                    ImGui::SetCursorScreenPos(ImVec2(rectLabel.Min.x + textOffset - 0.5f, rectLabel.Min.y + textOffset));
+
+                    if (!item.m_IsRenaming)
                     {
-                        ImGui::TextUnformatted(labelText);
+                        if (labelSize.x <= m_HierarchyItemSize.x && labelSize.y <= m_HierarchyItemSize.y)
+                        {
+                            ImGui::TextUnformatted(labelText);
+                        }
+                        else
+                        {
+                            ImGui::RenderTextClipped(ImVec2((rectLabel.Min.x + textOffset), rectLabel.Min.y + textOffset), ImVec2((rectLabel.Min.x + textOffset), rectLabel.Min.y + textOffset), labelText, nullptr, &labelSize, ImVec2(0, 0), &rectLabel);
+                        }
                     }
-                    else
+                    else if (item.m_IsRenaming && m_CurrentlyRenamingItem == &item)
                     {
-                        ImGui::RenderTextClipped(ImVec2((rectLabel.Min.x + textOffset), rectLabel.Min.y + textOffset), ImVec2((rectLabel.Min.x + textOffset), rectLabel.Min.y + textOffset), labelText, nullptr, &labelSize, ImVec2(0, 0), &rectLabel);
+                        ImGui::PushItemWidth(90.0f);
+                        ImGui::InputText("##", m_RenameBuffer, sizeof(m_RenameBuffer));
+                        ImGui::SetKeyboardFocusHere();
+                        ImGui::PopItemWidth();
                     }
                 }
 
@@ -467,6 +511,14 @@ void FileDialog::ItemContextMenu(FileDialogItem* item)
 
     ImGui::Separator();
 
+    if (ImGui::MenuItem("Rename"))
+    {
+        item->m_IsRenaming = true;
+        m_CurrentlyRenamingItem = item;
+    }
+
+    ImGui::Separator();
+
     if (ImGui::MenuItem("Open in File Explorer"))
     {
         Aurora::FileSystem::OpenItem(item->GetPath());
@@ -541,6 +593,30 @@ bool FileDialog::DialogUpdateFromDirectory(const std::string& directoryPath)
 
 void FileDialog::EmptyAreaContextMenu()
 {
+    if ((ImGui::IsMouseClicked(0) || m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_ENTER)) && m_CurrentlyRenamingItem)
+    {
+        // Save current file path extension.
+        std::string pathExtension = Aurora::FileSystem::GetExtensionFromFilePath(m_CurrentlyRenamingItem->GetPath());
+
+        if (!m_RenameBuffer[0] == '\0') // If the first character of our buffer is not null...
+        {
+            m_CurrentlyRenamingItem->m_IsRenaming = false;
+            std::string currentFileDirectory = Aurora::FileSystem::GetDirectoryFromFilePath(m_CurrentlyRenamingItem->GetPath());
+            std::filesystem::rename(m_CurrentlyRenamingItem->GetPath(), currentFileDirectory + m_RenameBuffer + pathExtension);
+
+            memset(m_RenameBuffer, 0, sizeof(m_RenameBuffer));
+            m_CurrentlyRenamingItem = nullptr;
+
+            m_IsDirty = true;
+        }
+        else
+        {
+            m_CurrentlyRenamingItem->m_IsRenaming = false;
+            memset(m_RenameBuffer, 0, sizeof(m_RenameBuffer));
+            m_CurrentlyRenamingItem = nullptr;
+        }
+    }
+
     if (ImGui::IsMouseClicked(1) && m_IsHoveringWindow && !m_IsHoveringItem)
     {
         ImGui::OpenPopup("##FileDialog_EmptyContextMenu");
@@ -553,19 +629,14 @@ void FileDialog::EmptyAreaContextMenu()
 
     if (ImGui::MenuItem("Create Folder"))
     {
-        Aurora::FileSystem::CreateDirectory_(m_NavigationContext.m_CurrentPath + "/New Folder");
-        m_IsDirty = true;
+        CreateNewFolder(m_NavigationContext.m_CurrentPath + "/New Folder");
     }
 
     ImGui::Separator();
 
     if (ImGui::MenuItem("Create Material"))
     {
-        Aurora::Material material = Aurora::Material(m_EngineContext);
-        const std::string filePath = m_NavigationContext.m_CurrentPath + "/New_Material" + Aurora::EXTENSION_MATERIAL;
-        material.SetResourceFilePath(filePath);
-        material.SaveToFile(filePath);
-        m_IsDirty = true;
+        CreateNewMaterial(m_NavigationContext.m_CurrentPath + "/New_Material" + Aurora::EXTENSION_MATERIAL);
     }
 
     /// Other shenanigans.

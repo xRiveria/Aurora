@@ -21,6 +21,8 @@ Toolbar::Toolbar(Editor* editorContext, Aurora::EngineContext* engineContext) : 
 
 void Toolbar::OnTickAlways()
 {
+	Aurora::AURORA_PROFILE_FUNCTION();
+
 	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings;
 	float height = ImGui::GetFrameHeight() + 18.0f;
 

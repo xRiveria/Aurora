@@ -59,6 +59,8 @@ bool EditorTools::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
 
 void EditorTools::TickGizmos()
 {
+	Aurora::AURORA_PROFILE_FUNCTION();
+
 	if (!Properties::m_InspectedEntity.expired() && m_GizmoType != -1)
 	{
 		ImGuizmo::SetOrthographic(false);

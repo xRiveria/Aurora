@@ -11,6 +11,8 @@ ProjectSettings::ProjectSettings(Editor* editorContext, Aurora::EngineContext* e
 
 void ProjectSettings::OnTickVisible()
 {
+    Aurora::AURORA_PROFILE_FUNCTION();
+
     if (ImGui::Button("Save Resources to Disk"))
     {
         m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->SaveResourcesToFiles();

@@ -18,6 +18,8 @@ namespace Aurora
 {
     Engine::Engine()
     {
+        AURORA_PROFILE_FUNCTION();
+
         // Flags
         m_EngineFlags |= EngineFlag::EngineFlag_TickPhysics;
         m_EngineFlags |= EngineFlag::EngineFlag_TickGame;
@@ -50,6 +52,7 @@ namespace Aurora
 
     void Engine::Tick() const
     {     
+        AURORA_PROFILE_FUNCTION();
         float deltaTime = m_EngineContext->GetSubsystem<Timer>()->GetDeltaTimeInSeconds();
         // AURORA_INFO("Delta Time (Seconds): %f", deltaTime);
 
