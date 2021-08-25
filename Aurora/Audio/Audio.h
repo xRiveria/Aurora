@@ -25,6 +25,5 @@ namespace Aurora
     private:
         FMOD::System* m_AudioContext;
         void* m_ExtraDriverData = 0;
-        FMOD::Channel* m_Channel = 0;
     };
 }

@@ -529,7 +529,7 @@ bool FileDialog::DialogUpdateFromDirectory(const std::string& directoryPath)
 
         if (m_ShowCachedFiles)
         {
-            if (Aurora::FileSystem::IsEngineCacheFile(childItem) || Aurora::FileSystem::IsEngineModelFile(childItem) || Aurora::FileSystem::IsEngineTextureFile(childItem))
+            if (Aurora::FileSystem::IsEngineCacheFile(childItem) || Aurora::FileSystem::IsEngineModelFile(childItem) || Aurora::FileSystem::IsEngineTextureFile(childItem) || Aurora::FileSystem::IsEngineAudioFile(childItem))
             {
                 m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Cache, static_cast<int>(m_HierarchyItemSize.x)));
             }

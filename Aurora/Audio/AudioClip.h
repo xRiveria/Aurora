@@ -42,6 +42,24 @@ namespace Aurora
 
         // Set looping state.
         bool SetLoop(bool loopState);
+        
+        // Set priority.
+        bool SetPriority(int priority);
+
+        // Set pitch.
+        bool SetPitch(float pitch);
+
+        // Set pan.
+        bool SetPan(float pan);
+
+        // Set distances.
+        bool SetRolloffDistance(float distanceMinimum, float distanceMaximum);
+
+        // Allows for 3D attributes.
+        void SetTransform(Transform* transform) { m_Transform = transform; }
+
+        // Set per frame to use the 3D attributes of the transform.
+        bool Update();
 
         bool IsChannelValid() const;
         int GetSoundMode() const;       
@@ -53,14 +71,14 @@ namespace Aurora
         bool CreateStreamInternal(const std::string& filePath);
 
     private:
+        Transform* m_Transform = nullptr;
+
         FMOD::System* m_AudioContext     = nullptr;
         FMOD::Channel* m_ChannelInternal = nullptr;
         FMOD::Sound* m_SoundInternal     = nullptr;
         
         int m_ModeRolloff;
         int m_ModeLoop;
-        float m_MaximumDistance;
-        float m_MinimumDistance;
         bool m_IsPlaying = false;
         Audio_LoadingMode m_LoadingMode = Audio_LoadingMode::Memory;
     };

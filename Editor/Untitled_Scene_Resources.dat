@@ -1,0 +1,14 @@
+Type: ResourceCache
+Resource_Count: 4
+Resource_0:
+  Resource_Path: ../Resources/Textures/Default/Default.png
+  Resource_Type: 1
+Resource_1:
+  Resource_Path: ../Resources/Models/Default/lambert1.material
+  Resource_Type: 4
+Resource_2:
+  Resource_Path: ../Resources/Models/Default/Cube.model
+  Resource_Type: 3
+Resource_3:
+  Resource_Path: Project\Audio\Subwoofer.wav
+  Resource_Type: 2

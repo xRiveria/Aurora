@@ -271,6 +271,13 @@ void Hierarchy::PopupContextMenu()
         {
             selectedEntity->Clone();
         }
+
+        if (ImGui::MenuItem("Delete"))
+        {
+            selectedEntity->MarkForDestruction();
+            HierarchyGlobals::g_WorldSubsystem->SetSceneDirty();
+            EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.reset();
+        }
     }
 
     ImGui::EndPopup();

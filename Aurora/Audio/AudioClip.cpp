@@ -8,11 +8,12 @@ namespace Aurora
 {
     AudioClip::AudioClip(EngineContext* engineContext) : AuroraResource(engineContext, ResourceType::ResourceType_Audio)
     {
+        m_SoundInternal = nullptr;
+        m_ChannelInternal = nullptr;
         m_AudioContext = m_EngineContext->GetSubsystem<Audio>()->GetAudioContext();
-        m_MinimumDistance = 1.0f;
-        m_MaximumDistance = 10000.0f;
         m_ModeRolloff = FMOD_3D_LINEARROLLOFF;
         m_ModeLoop = FMOD_LOOP_OFF;
+        m_Transform = nullptr;
     }
 
     AudioClip::~AudioClip()
@@ -31,19 +32,34 @@ namespace Aurora
         // Native
         if (FileSystem::GetExtensionFromFilePath(filePath) == EXTENSION_AUDIO)
         {
+            std::string retrievedPath;
 
+            std::unique_ptr<FileSerializer> fileDerializer = std::make_unique<FileSerializer>(m_EngineContext);
+            if (fileDerializer->LoadFromFile(filePath))
+            {
+                fileDerializer->GetProperty("File_Path", &retrievedPath);
+                SetResourceFilePath(retrievedPath);
+                AURORA_INFO(LogLayer::Serialization, "Found Audio and Deserialized!");
+            }
         }
         else // Foreign format.
         {
             SetResourceFilePath(filePath);
         }
 
+        // We recognize each sound in FMOD as a unique object so they don't interfere with each other's output.
         return (m_LoadingMode == Audio_LoadingMode::Memory) ? CreateSoundInternal(GetResourceFilePath()) : CreateStreamInternal(GetResourceFilePath());
     }
 
     bool AudioClip::SaveToFile(const std::string& filePath) 
     {
-        return false;
+        std::unique_ptr<FileSerializer> fileSerializer = std::make_unique<FileSerializer>(m_EngineContext);
+        if (fileSerializer->BeginSerialization("Audio"))
+        {
+            fileSerializer->AddProperty("File_Path", GetResourceFilePath());
+        }
+
+        return fileSerializer->EndSerialization(GetResourceFilePathNative());
     }
 
     bool AudioClip::Play()
@@ -178,6 +194,69 @@ namespace Aurora
         return ParseResult_Audio(m_SoundInternal->setMode(GetSoundMode()));
     }
 
+    bool AudioClip::SetPriority(int priority)
+    {
+        if (!IsChannelValid())
+        {
+            return false;
+        }
+
+        return ParseResult_Audio(m_ChannelInternal->setPriority(priority));
+    }
+
+    bool AudioClip::SetPitch(float pitch)
+    {
+        if (!IsChannelValid())
+        {
+            return false;
+        }
+
+        return ParseResult_Audio(m_ChannelInternal->setPitch(pitch));
+    }
+
+    bool AudioClip::SetPan(float pan)
+    {
+        if (!IsChannelValid())
+        {
+            return false;
+        }
+
+        return ParseResult_Audio(m_ChannelInternal->setPan(pan));
+    }
+
+    bool AudioClip::SetRolloffDistance(float distanceMinimum, float distanceMaximum)
+    {
+        if (!m_SoundInternal)
+        {
+            return false;
+        }
+
+        std::cout << distanceMaximum;
+        return ParseResult_Audio(m_SoundInternal->set3DMinMaxDistance(distanceMinimum, distanceMaximum));
+    }
+
+    bool AudioClip::Update()
+    {
+        if (!IsChannelValid() || !m_Transform)
+        {
+            return true;
+        }
+
+        const XMFLOAT3 position = m_Transform->GetPosition();
+
+        FMOD_VECTOR fModPosition = { position.x, position.y, position.z };
+        FMOD_VECTOR fModVelocity = { 0.0f, 0.0f, 0.0f };
+
+        // Set 3D attributes.
+        if (!ParseResult_Audio(m_ChannelInternal->set3DAttributes(&fModPosition, &fModVelocity)))
+        {
+            m_ChannelInternal = nullptr;
+            return false;
+        }
+
+        return true;
+    }
+
     bool AudioClip::IsChannelValid() const
     {
         if (!m_ChannelInternal)
@@ -203,22 +282,15 @@ namespace Aurora
         }
 
         bool isPlaying = false;
-        ParseResult_Audio(m_ChannelInternal->isPlaying(&isPlaying));
 
-        return isPlaying;
+        return m_ChannelInternal->isPlaying(&isPlaying);
     }
 
     bool AudioClip::CreateSoundInternal(const std::string& filePath)
     {
-        if (!ParseResult_Audio(m_AudioContext->createSound(filePath.c_str(), GetSoundMode(), nullptr, &m_SoundInternal)))
-        {
-            return false;
-        }
-
         AURORA_INFO(LogLayer::Audio, "Audio Created!");
 
-        // Set 3D distances.
-        return ParseResult_Audio(m_SoundInternal->set3DMinMaxDistance(m_MinimumDistance, m_MaximumDistance));
+        return ParseResult_Audio(m_AudioContext->createSound(filePath.c_str(), GetSoundMode(), nullptr, &m_SoundInternal));
     }
 
     bool AudioClip::CreateStreamInternal(const std::string& filePath)

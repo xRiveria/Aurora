@@ -368,6 +368,7 @@ namespace Aurora
 
         if (IsSupportedModelFile(filePath)) { return filePathWithoutExtension + EXTENSION_MODEL; }
         if (IsSupportedImageFile(filePath)) { return filePathWithoutExtension + EXTENSION_TEXTURE; }
+        if (IsSupportedAudioFile(filePath)) { return filePathWithoutExtension + EXTENSION_AUDIO; }
 
         AURORA_WARNING(LogLayer::Engine, "Failed to nativize file path.");
         return filePath;
@@ -408,6 +409,11 @@ namespace Aurora
     bool FileSystem::IsEngineCacheFile(const std::string& filePath)
     {
         return GetExtensionFromFilePath(filePath) == EXTENSION_CACHE;
+    }
+
+    bool FileSystem::IsEngineAudioFile(const std::string& filePath)
+    {
+        return GetExtensionFromFilePath(filePath) == EXTENSION_AUDIO;
     }
 
     bool FileSystem::IsEngineTextureFile(const std::string& filePath)
@@ -469,8 +475,9 @@ namespace Aurora
     {
         return IsEngineModelFile(filePath)    ||
                IsEngineMaterialFile(filePath) ||
-               IsEngineCacheFile(filePath) ||
+               IsEngineCacheFile(filePath)    ||
                IsEngineTextureFile(filePath)  ||
+               IsEngineAudioFile(filePath) ||
                IsEngineSceneFile(filePath);
     }
 }

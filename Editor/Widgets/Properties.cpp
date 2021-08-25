@@ -501,26 +501,64 @@ void Properties::ShowAudioSourceProperties(Aurora::AudioSource* audioSourceCompo
     {
         ImGui::PushID(audioSourceComponent->GetObjectID());
 
-        char audioClipNameBuffer[256] = "Audio Clip";
+        char audioClipNameBuffer[256];
         memset(audioClipNameBuffer, 0, sizeof(audioClipNameBuffer));
-        strcpy_s(audioClipNameBuffer, sizeof(audioClipNameBuffer), audioSourceComponent->GetAudioClipName().c_str());
+        strcpy_s(audioClipNameBuffer, sizeof(audioClipNameBuffer), audioSourceComponent->GetAudioClipPath().c_str());
 
         ImGui::InputText("Audio Clip", audioClipNameBuffer, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
         if (auto payload = EditorExtensions::ReceiveDragPayload(EditorExtensions::DragPayloadType::DragPayloadType_AudioClip))
         {
-            audioSourceComponent->SetAudioClip(std::get<const char*>(payload->m_Data));
+            const std::string filePath = std::get<const char*>(payload->m_Data);
+            
+            m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([=](Aurora::JobInformation jobInformation)
+            {
+                audioSourceComponent->SetAudioClip(filePath);
+            });
+
+            // Stop playing if there's anything currently doing so.
+            audioSourceComponent->Stop();
         }
 
         float volume = audioSourceComponent->GetVolume();
-        if (ImGui::DragFloat("Volume", &volume, 0.02f, 0.0f, 1.0f))
+        if (ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f, "%.2f"))
         {
             audioSourceComponent->SetVolume(volume);
         }
 
+        int priority = audioSourceComponent->GetPriority();
+        if (ImGui::SliderInt("Priority", &priority, 0.0f, 255.0f))
+        {
+            audioSourceComponent->SetPriority(priority);
+        }
+
+        float pitch = audioSourceComponent->GetPitch();
+        if (ImGui::SliderFloat("Pitch", &pitch, 0.0f, 3.0f, "%0.2f"))
+        {
+            audioSourceComponent->SetPitch(pitch);
+        }
+
+        float pan = audioSourceComponent->GetPan();
+        if (ImGui::SliderFloat("Pan", &pan, -1.0f, 1.0f, "%0.2f"))
+        {
+            audioSourceComponent->SetPan(pan);
+        }
+
+        float distanceMinimum = audioSourceComponent->GetRolloffDistanceMinimum();
+        if (ImGui::DragFloat("Rolloff Minimum", &distanceMinimum, 0.1f))
+        {
+            audioSourceComponent->SetRolloffDistanceMinimum(distanceMinimum);
+        }
+
+        float distanceMaximum = audioSourceComponent->GetRolloffDistanceMaximum();
+        if (ImGui::DragFloat("Rolloff Maximum", &distanceMaximum, 0.1f))
+        {
+            audioSourceComponent->SetRolloffDistanceMaximum(distanceMaximum);
+        }
+            
         bool playOnStart = audioSourceComponent->GetPlayOnStartState();
         if (ImGui::Checkbox("Play On Start", &playOnStart))
         {
-            audioSourceComponent->SetPlayOnStart(playOnStart);
+            audioSourceComponent->SetPlayOnStartState(playOnStart);
         }
 
         bool loopState = audioSourceComponent->GetLoopState();
@@ -534,9 +572,23 @@ void Properties::ShowAudioSourceProperties(Aurora::AudioSource* audioSourceCompo
             }
         }
 
+        bool muteState = audioSourceComponent->GetMuteState();
+        if (ImGui::Checkbox("Muted", &muteState))
+        {
+            audioSourceComponent->SetMuteState(muteState);
+        }
+
         if (ImGui::Button("Play Clip"))
         {
-            audioSourceComponent->Play();
+            if (audioSourceComponent->GetAudioClip())
+            {
+                if (audioSourceComponent->GetAudioClip()->IsPlaying())
+                {
+                    audioSourceComponent->Stop();
+                }
+
+                audioSourceComponent->Play();
+            }
         }
         ImGui::SameLine();
         if (ImGui::Button("Stop Clip"))

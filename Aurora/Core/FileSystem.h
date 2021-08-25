@@ -47,6 +47,7 @@ namespace Aurora
         static bool IsEngineModelFile(const std::string& filePath);
         static bool IsEngineTextureFile(const std::string& filePath);
         static bool IsEngineCacheFile(const std::string& filePath);
+        static bool IsEngineAudioFile(const std::string& filePath);
 
         static bool IsSupportedAudioFile(const std::string& filePath);
         static bool IsSupportedImageFile(const std::string& filePath);

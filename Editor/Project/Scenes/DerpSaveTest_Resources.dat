@@ -1,0 +1,8 @@
+Type: ResourceCache
+Resource_Count: 2
+Resource_0:
+  Resource_Path: ../Resources/Textures/Default/Default.png
+  Resource_Type: 1
+Resource_1:
+  Resource_Path: Project\Audio\Subwoofer.audio
+  Resource_Type: 2
