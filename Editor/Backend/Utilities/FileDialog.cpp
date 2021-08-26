@@ -5,6 +5,7 @@
 #include "../Input/Input.h"
 #include "../Input/InputUtilities.h"
 #include <filesystem>
+#include "../Core/FileSystem.h"
 
 FileDialog::FileDialog(Aurora::EngineContext* engineContext, Editor* editorContext, bool isStandaloneWindow)
 {
@@ -504,6 +505,11 @@ void FileDialog::ItemContextMenu(FileDialogItem* item)
         }
         else
         {
+            if (Aurora::FileSystem::IsSupportedResourceFile(item->GetPath()) && !Aurora::FileSystem::IsSupportedImageFile(item->GetPath()) && !Aurora::FileSystem::IsEngineMaterialFile(item->GetPath()))
+            {
+                Aurora::FileSystem::Delete(Aurora::FileSystem::NativizeFilePath(item->GetPath()));
+            }
+
             Aurora::FileSystem::Delete(item->GetPath());
             m_IsDirty = true;
         }
@@ -515,6 +521,7 @@ void FileDialog::ItemContextMenu(FileDialogItem* item)
     {
         item->m_IsRenaming = true;
         m_CurrentlyRenamingItem = item;
+        strcpy_s(m_RenameBuffer, item->GetLabel().c_str());
     }
 
     ImGui::Separator();
@@ -595,26 +602,54 @@ void FileDialog::EmptyAreaContextMenu()
 {
     if ((ImGui::IsMouseClicked(0) || m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_ENTER)) && m_CurrentlyRenamingItem)
     {
-        // Save current file path extension.
-        std::string pathExtension = Aurora::FileSystem::GetExtensionFromFilePath(m_CurrentlyRenamingItem->GetPath());
-
         if (!m_RenameBuffer[0] == '\0') // If the first character of our buffer is not null...
         {
             m_CurrentlyRenamingItem->m_IsRenaming = false;
-            std::string currentFileDirectory = Aurora::FileSystem::GetDirectoryFromFilePath(m_CurrentlyRenamingItem->GetPath());
-            std::filesystem::rename(m_CurrentlyRenamingItem->GetPath(), currentFileDirectory + m_RenameBuffer + pathExtension);
 
-            memset(m_RenameBuffer, 0, sizeof(m_RenameBuffer));
-            m_CurrentlyRenamingItem = nullptr;
+            // Saves our current file directory.
+            std::string currentFileDirectory = Aurora::FileSystem::GetDirectoryFromFilePath(m_CurrentlyRenamingItem->GetPath());
+            // Saves current file path extension.
+            std::string pathExtension = Aurora::FileSystem::GetExtensionFromFilePath(m_CurrentlyRenamingItem->GetPath());
+            // Concatenate.
+            std::string fullNewExtension;
+
+            // Append the directory and extension to the new file name if needed.
+            if (std::string(currentFileDirectory + m_RenameBuffer).find(pathExtension) != std::string::npos)
+            {
+                fullNewExtension = currentFileDirectory + m_RenameBuffer;
+                std::filesystem::rename(m_CurrentlyRenamingItem->GetPath(), fullNewExtension);
+            }
+            else
+            {
+                fullNewExtension = currentFileDirectory + m_RenameBuffer + pathExtension;
+                std::filesystem::rename(m_CurrentlyRenamingItem->GetPath(), fullNewExtension);
+            }
+
+            // Check and see if the extension belongs to any of our resource types.
+            if (Aurora::FileSystem::IsSupportedResourceFile(m_CurrentlyRenamingItem->GetPath()) || Aurora::FileSystem::IsSupportedEngineFile(m_CurrentlyRenamingItem->GetPath()))
+            {
+                if (std::shared_ptr<Aurora::AuroraResource>& foundResource = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->GetResourceByName(Aurora::FileSystem::GetFileNameWithoutExtensionFromFilePath(m_CurrentlyRenamingItem->GetPath())))
+                {
+                    // Rename its native path as well if it exists. 
+                    if (!Aurora::FileSystem::IsSupportedImageFile(m_CurrentlyRenamingItem->GetPath()))
+                    {
+                        std::string newNativizedFilePath = Aurora::FileSystem::NativizeFilePath(fullNewExtension);
+                        std::string oldNativizedFilePath = Aurora::FileSystem::NativizeFilePath(m_CurrentlyRenamingItem->GetPath());
+                        std::filesystem::rename(oldNativizedFilePath, newNativizedFilePath);
+                    }
+                    foundResource->SetResourceFilePath(fullNewExtension);
+                }
+            }
 
             m_IsDirty = true;
         }
         else
         {
             m_CurrentlyRenamingItem->m_IsRenaming = false;
-            memset(m_RenameBuffer, 0, sizeof(m_RenameBuffer));
-            m_CurrentlyRenamingItem = nullptr;
         }
+
+        memset(m_RenameBuffer, 0, sizeof(m_RenameBuffer));
+        m_CurrentlyRenamingItem = nullptr;
     }
 
     if (ImGui::IsMouseClicked(1) && m_IsHoveringWindow && !m_IsHoveringItem)

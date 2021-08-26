@@ -48,11 +48,12 @@ namespace Aurora
         static bool IsEngineTextureFile(const std::string& filePath);
         static bool IsEngineCacheFile(const std::string& filePath);
         static bool IsEngineAudioFile(const std::string& filePath);
+        static bool IsSupportedEngineFile(const std::string& filePath);
 
         static bool IsSupportedAudioFile(const std::string& filePath);
         static bool IsSupportedImageFile(const std::string& filePath);
         static bool IsSupportedModelFile(const std::string& filePath);
-        static bool IsEngineFile(const std::string& filePath);
+        static bool IsSupportedResourceFile(const std::string& filePath);
     };
 
     static const char* EXTENSION_AUDIO = ".audio";

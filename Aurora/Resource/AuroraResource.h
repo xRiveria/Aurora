@@ -53,7 +53,7 @@ namespace Aurora
             const std::string filePathRelative = FileSystem::GetRelativePath(filePath);
 
             // Foreign file.
-            if (!FileSystem::IsEngineFile(filePath))
+            if (!FileSystem::IsSupportedEngineFile(filePath))
             {
                 m_ResourceFilePathForeign = filePathRelative;
 

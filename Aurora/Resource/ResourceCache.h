@@ -36,12 +36,12 @@ namespace Aurora
         // =========================================================================================================
 
         // Get by Name
-        std::shared_ptr<AuroraResource>& GetResourceByName(const std::string& resourceName, ResourceType resourceType);
+        std::shared_ptr<AuroraResource>& GetResourceByName(const std::string& resourceName);
 
         template<typename T>
         constexpr std::shared_ptr<T> GetResourceByName(const std::string& resourceName)
         {
-            return std::static_pointer_cast<T>(GetResourceByName(resourceName, AuroraResource::TypeToEnum<T>()));
+            return std::static_pointer_cast<T>(GetResourceByName(resourceName));
         }
 
         // Get by Type.
@@ -63,6 +63,9 @@ namespace Aurora
         }
 
         bool IsResourceCached(const std::string& resourceName, ResourceType resourceType);
+
+        // Remove from cache.
+        bool RemoveFromCacheByFilePath(const std::string& filePath);
         
         // Caches resource, or replaces with existing cached resource.
         template <typename T>
@@ -82,7 +85,7 @@ namespace Aurora
             }
 
             // Validate resource file path.
-            //if (!FileSystem::IsEngineFile(resource->GetResourceFilePathNative()))
+            //if (!FileSystem::IsSupportedEngineFile(resource->GetResourceFilePathNative()))
             //{
             //    AURORA_ERROR(LogLayer::Engine, "A resource must have a native file format in order to be cached. The provided format was %s.", FileSystem::GetExtensionFromFilePath(resource->GetResourceFilePathNative()).c_str());
             //    return nullptr;

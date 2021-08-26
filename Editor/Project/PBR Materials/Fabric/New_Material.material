@@ -8,8 +8,8 @@ Textures:
   Textures_Count: 5
   Texture_0:
     Texture_Type: 1
-    Texture_Name: Fabric060_1K_Color
-    Texture_Path: Project\PBR Materials\Fabric\Fabric060_1K_Color.jpg
+    Texture_Name: ""
+    Texture_Path: ""
   Texture_1:
     Texture_Type: 16
     Texture_Name: ""

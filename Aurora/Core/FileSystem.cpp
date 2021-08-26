@@ -471,7 +471,12 @@ namespace Aurora
         return false;
     }
 
-    bool FileSystem::IsEngineFile(const std::string& filePath)
+    bool FileSystem::IsSupportedResourceFile(const std::string& filePath)
+    {
+        return IsSupportedImageFile(filePath) || IsSupportedModelFile(filePath) || IsSupportedAudioFile(filePath);
+    }
+
+    bool FileSystem::IsSupportedEngineFile(const std::string& filePath)
     {
         return IsEngineModelFile(filePath)    ||
                IsEngineMaterialFile(filePath) ||

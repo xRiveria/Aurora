@@ -40,7 +40,21 @@ namespace Aurora
         return false;
     }
 
-    std::shared_ptr<AuroraResource>& ResourceCache::GetResourceByName(const std::string& resourceName, ResourceType resourceType)
+    bool ResourceCache::RemoveFromCacheByFilePath(const std::string& filePath)
+    {
+        for (int i = 0; i < m_CachedResources.size(); i++)
+        {
+            if (filePath == m_CachedResources[i]->GetResourceFilePath())
+            {
+                m_CachedResources.erase(m_CachedResources.begin() + i);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    std::shared_ptr<AuroraResource>& ResourceCache::GetResourceByName(const std::string& resourceName)
     {
         for (std::shared_ptr<AuroraResource>& cachedResource : m_CachedResources)
         {
