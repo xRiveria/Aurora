@@ -1,8 +1,0 @@
-Type: Material
-Albedo_Color: [0.345098048, 0.149019614, 0.0509803966, 1]
-Roughness_Multiplier: 0.899999976
-Normal_Multiplier: 0
-Metallic_Multiplier: 0
-Occlusion_Multiplier: 0
-Textures:
-  Textures_Count: 0

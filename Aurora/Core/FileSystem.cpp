@@ -132,6 +132,11 @@ namespace Aurora
         return false;
     }
 
+    void FileSystem::OpenDirectoryWindow(const std::string& directory)
+    {
+        ShellExecute(nullptr, nullptr, StringToWString(directory).c_str(), nullptr, nullptr, SW_SHOW);
+    }
+
     std::string FileSystem::GetDirectoryFromFilePath(const std::string& filePath)
     {
         const size_t lastIndex = filePath.find_last_of("\\/");

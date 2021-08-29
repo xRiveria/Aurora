@@ -47,7 +47,10 @@ namespace Aurora
         // Call component OnStart() across all of the engine's components.
         for (const std::shared_ptr<IComponent>& component : m_Components)
         {
-            component->Start();
+            if (component)
+            {
+                component->Start();
+            }
         }
     }
 
@@ -56,7 +59,10 @@ namespace Aurora
         // Call component Stop() across all of the engine's components.
         for (const std::shared_ptr<IComponent>& component : m_Components)
         {
-            component->Stop();
+            if (component)
+            {
+                component->Stop();
+            }
         }
     }
 
@@ -70,7 +76,10 @@ namespace Aurora
         // Call component Update() across all of the engine's components.
         for (const std::shared_ptr<IComponent>& component : m_Components)
         {
-            component->Tick(deltaTime);
+            if (component)
+            {
+                component->Tick(deltaTime);
+            }
         }
     }
 

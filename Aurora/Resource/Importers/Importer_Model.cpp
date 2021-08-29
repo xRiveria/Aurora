@@ -217,9 +217,8 @@ namespace Aurora
         /// Progress Tracking.
 
         // Set the transform of the parent node as the parent of the new entity's transform.
-        const auto parentTransform = parentEntity ? parentEntity->GetTransform() : nullptr;
+        Transform* parentTransform = parentEntity ? parentEntity->GetTransform() : nullptr;
         newEntity->GetTransform()->SetParentTransform(parentTransform);
-
 
         /// Set the transformation matrix of the Assimp node to the new node.
 
@@ -320,16 +319,16 @@ namespace Aurora
         }
 
         /// Compute AABB
-
-        /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Add the mesh to the model. 
-        modelParameters.m_Model->AppendGeometry(std::move(indices), std::move(vertexPositions), std::move(vertexNormals), std::move(vertexUVs));
+        uint32_t indexOffset;
+        uint32_t vertexOffset;
+        modelParameters.m_Model->AppendGeometry(std::move(indices), std::move(vertexPositions), std::move(vertexNormals), std::move(vertexUVs), &indexOffset, &vertexOffset);
 
         // Add a renderable component to the entity.
         Renderable* renderable = parentEntity->AddComponent<Renderable>();
 
         // Set the geometry within our renderable component.
-        renderable->GeometrySet(parentEntity->GetObjectName(), modelParameters.m_Model);
+        renderable->GeometrySet(parentEntity->GetObjectName(), indexOffset, static_cast<uint32_t>(indices.size()), vertexOffset, static_cast<uint32_t>(vertexPositions.size()), modelParameters.m_Model);
 
         // Material
         if (modelParameters.m_AssimpScene->HasMaterials())

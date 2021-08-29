@@ -92,13 +92,16 @@ namespace Aurora
         return true;
     }
 
-    void Model::AppendGeometry(const std::vector<uint32_t>& indices, const std::vector<XMFLOAT3>& vertexPositions, const std::vector<XMFLOAT3>& vertexNormals, const std::vector<XMFLOAT2>& vertexUVs)
+    void Model::AppendGeometry(const std::vector<uint32_t>& indices, const std::vector<XMFLOAT3>& vertexPositions, const std::vector<XMFLOAT3>& vertexNormals, const std::vector<XMFLOAT2>& vertexUVs, uint32_t* indexOffset, uint32_t* vertexOffset) const
     {
+        AURORA_ASSERT(!indices.empty());
+        AURORA_ASSERT(!vertexPositions.empty());
+        AURORA_ASSERT(!vertexNormals.empty());
+        AURORA_ASSERT(!vertexUVs.empty());
+
         // Append vertices and indices to the main mesh.
-        m_Mesh->SetVertexPositions(vertexPositions);
-        m_Mesh->SetVertexNormals(vertexNormals);
-        m_Mesh->SetVertexUVs(vertexUVs);
-        m_Mesh->SetIndices(indices);
+        m_Mesh->AppendVertices(vertexPositions, vertexNormals, vertexUVs, vertexOffset);
+        m_Mesh->AppendIndices(indices, indexOffset);
     }
 
     void Model::AddMaterial(std::shared_ptr<Material>& material, const std::shared_ptr<Entity>& entity)

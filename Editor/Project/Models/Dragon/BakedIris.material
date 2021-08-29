@@ -1,0 +1,16 @@
+Type: Material
+Albedo_Color: [1, 1, 1, 1]
+Roughness_Multiplier: 0.899999976
+Normal_Multiplier: 1
+Metallic_Multiplier: 0
+Occlusion_Multiplier: 0
+Textures:
+  Textures_Count: 2
+  Texture_0:
+    Texture_Type: 1
+    Texture_Name: BakedIris_baseColor
+    Texture_Path: Project\Models\Dragon\textures/BakedIris_baseColor.png
+  Texture_1:
+    Texture_Type: 2
+    Texture_Name: BakedSclera_normal
+    Texture_Path: Project\Models\Dragon\textures/BakedSclera_normal.png

@@ -55,7 +55,10 @@ namespace Aurora
             {
                 for (std::shared_ptr<Entity>& entity : m_Entities)
                 {
-                    entity->Start();
+                    if (entity)
+                    {
+                        entity->Start();
+                    }
                 }
             }
 
@@ -64,13 +67,19 @@ namespace Aurora
             {
                 for (std::shared_ptr<Entity>& entity : m_Entities)
                 {
-                    entity->Stop();
+                    if (entity)
+                    {
+                        entity->Stop();
+                    }
                 }
             }
 
             for (std::shared_ptr<Entity>& entity : m_Entities)
             {
-                entity->Tick(deltaTime);
+                if (entity)
+                {
+                    entity->Tick(deltaTime);
+                }
             }
         }
 
@@ -81,9 +90,12 @@ namespace Aurora
             
             for (std::shared_ptr<Entity>& entity : entitiesCopied)
             {
-                if (entity->IsPendingDestruction())
+                if (entity)
                 {
-                    _EntityRemove(entity);
+                    if (entity->IsPendingDestruction())
+                    {
+                        _EntityRemove(entity);
+                    }
                 }
             }
         }

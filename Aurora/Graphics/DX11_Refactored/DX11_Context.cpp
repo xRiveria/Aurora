@@ -91,7 +91,7 @@ namespace Aurora
     {
         if (vertexBuffer != nullptr)
         {
-            uint32_t bufferStride = vertexBuffer->GetStride();
+            uint32_t bufferStride = vertexBuffer->GetStride();       
             uint32_t bufferOffset = vertexBuffer->GetOffset();
             m_Devices->m_DeviceContextImmediate->IASetVertexBuffers(0, 1, (ID3D11Buffer**)vertexBuffer->GetVertexBuffer().GetAddressOf(), (UINT*)(&bufferStride), (UINT*)(&bufferOffset));
         }

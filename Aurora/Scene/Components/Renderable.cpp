@@ -50,9 +50,13 @@ namespace Aurora
         }
     }
 
-    void Renderable::GeometrySet(const std::string& renderableName, Model* model)
+    void Renderable::GeometrySet(const std::string& renderableName, uint32_t indexOffset, uint32_t indexSize, uint32_t vertexOffset, uint32_t vertexSize, Model* model)
     {
         m_GeometryName = renderableName;
+        m_GeometryVertexSize = vertexSize;
+        m_GeometryVertexOffset = vertexOffset;
+        m_GeometryIndexSize = indexSize;
+        m_GeometryIndexOffset = indexOffset;
         m_Model = model;
     }
 

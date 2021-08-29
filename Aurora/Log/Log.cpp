@@ -2,7 +2,7 @@
 
 namespace Aurora
 {
-	// std::weak_ptr<ILogger> Log::m_Logger;
+	std::weak_ptr<ILogger> Log::m_EditorLogger;
 	std::mutex Log::m_MutexLog;
 	std::vector<LogPackage> Log::m_LogPackages;
 
@@ -23,19 +23,25 @@ namespace Aurora
 
 		std::size_t sourceInformationIndex = logText.find("Source: ");
 		std::string logTextExtracted = logText.substr(0, sourceInformationIndex);
-		std::string logSource = logText.substr(sourceInformationIndex + 8, logText.length());
+		std::string logSource = "Source";
 	
 		FlushBuffer();
-		
+
+		LogToEditorConsole(logMessage, logSource, logType.first);
 		LogToConsole(logLayer, logTextExtracted.c_str(), logType);
 	}
 
-	void Log::LogString(const char* logMessage, const std::string& logSource, LogType logType)
+	void Log::LogToEditorConsole(const char* logMessage, const std::string& logSource, LogType logType)
 	{
 		if (!logMessage)
 		{
 			AURORA_ERROR_INVALID_PARAMETER();
 			return;
+		}
+
+		if (!m_EditorLogger.expired())
+		{
+			m_EditorLogger.lock()->LogMessage(LogPackage(logMessage, logType, logSource));
 		}
 	}
 
@@ -162,7 +168,7 @@ namespace Aurora
 		//Log everything from memory to the logger implementation.
 		for (const LogPackage& logPackage : m_LogPackages)
 		{
-			LogString(logPackage.m_Text.c_str(), logPackage.m_LogSource, logPackage.m_LogType.first);
+			LogToEditorConsole(logPackage.m_Text.c_str(), logPackage.m_LogSource, logPackage.m_LogType.first);
 		}
 
 		m_LogPackages.clear();

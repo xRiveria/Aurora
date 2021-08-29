@@ -36,7 +36,9 @@ namespace Aurora
             const std::vector<uint32_t>& indices,
             const std::vector<XMFLOAT3>& vertexPositions,
             const std::vector<XMFLOAT3>& vertexNormals,
-            const std::vector<XMFLOAT2>& vertexUVs);
+            const std::vector<XMFLOAT2>& vertexUVs,
+            uint32_t* indexOffset = nullptr,
+            uint32_t* vertexOffset = nullptr) const;
 
         // Add resources to the model.
         void SetRootEntity(const std::shared_ptr<Entity>& entity) { m_RootEntity = entity; }

@@ -19,6 +19,7 @@ namespace Aurora
         static bool Delete(const std::string& filePath);
         static bool IsDirectory(const std::string& filePath);
         static bool IsFile(const std::string& filePath);
+        static void OpenDirectoryWindow(const std::string& directory);
 
         static std::string GetDirectoryFromFilePath(const std::string& filePath);
         static std::string GetExtensionFromFilePath(const std::string& filePath);

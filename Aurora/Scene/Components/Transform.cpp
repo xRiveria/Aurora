@@ -22,7 +22,12 @@ namespace Aurora
 
     void Transform::Tick(float deltaTime)
     {
+        if (!IsDirty())
+        {
+            return;
+        }
         UpdateTransform();
+        SetDirty(false);
     }
 
     void Transform::Serialize(BinarySerializer* binarySerializer)
@@ -54,13 +59,13 @@ namespace Aurora
     }
 
     void Transform::UpdateTransform()
-    {     
+    {
         //if (IsDirty())
         //{
            //SetDirty(false);
         XMStoreFloat4x4(&m_LocalMatrix, GetLocalMatrix()); // Matrix relative to itself.
         //}
-        
+
         // Compute world transform.
         if (!HasParentTransform())
         {
@@ -75,8 +80,11 @@ namespace Aurora
         // Update Children
         for (const auto& child : m_Children)
         {
-            child->UpdateTransform();
-        }        
+            if (child)
+            {
+                child->UpdateTransform();
+            }
+        }
     }
 
     void Transform::Translate(const XMFLOAT3& value)

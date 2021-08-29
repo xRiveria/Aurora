@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include "../Utilities/Console.h"
 
 namespace Aurora
@@ -91,12 +92,30 @@ namespace Aurora
 		LogPackage() {}
 		LogPackage(const std::string& text, const std::pair<LogType, Console::Color>& logType) : m_Text(text), m_LogType(logType)
 		{
+			// Retrieve time.
+			std::chrono::time_point currentTimePoint = std::chrono::system_clock::now();
+			time_t currentTime = std::chrono::system_clock::to_time_t(currentTimePoint);
+			std::tm timeBuffer;
+			localtime_s(&timeBuffer, &currentTime);
 
+			std::stringstream timeString;
+			timeString << std::put_time(&timeBuffer, "[%H:%M:%S]");
+
+			m_Timestamp = timeString.str();
 		}
 
-		LogPackage(const std::string& text, const std::string& logSource, const std::pair<LogType, Console::Color>& logType) : m_Text(text), m_LogSource(logSource), m_LogType(logType)
+		LogPackage(const std::string& text, LogType logType, const std::string& logSource) : m_Text(text), m_LogType(std::pair(logType, Console::Color::Color_Black)), m_LogSource(logSource)
 		{
+			// Retrieve time.
+			std::chrono::time_point currentTimePoint = std::chrono::system_clock::now();
+			time_t currentTime = std::chrono::system_clock::to_time_t(currentTimePoint);
+			std::tm timeBuffer;
+			localtime_s(&timeBuffer, &currentTime);
 
+			std::stringstream timeString;
+			timeString << std::put_time(&timeBuffer, "[%H:%M:%S]");
+
+			m_Timestamp = timeString.str();
 		}
 
 		std::string EditorConsoleText()

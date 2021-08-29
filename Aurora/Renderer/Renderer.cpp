@@ -368,36 +368,34 @@ namespace Aurora
         m_GraphicsDevice->BindConstantBuffer(RHI_Shader_Stage::Vertex_Shader, &g_ConstantBuffers[CB_Types::CB_Entity], CB_GETBINDSLOT(ConstantBufferData_Entity), 0);
 
         /// Render Queue Feature?
-        std::vector<std::shared_ptr<Entity>> sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
-        std::vector<Renderable> renderableComponents;
-        for (auto& entity : sceneEntities)
+        auto& sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
+        
+        for (const auto& entity : sceneEntities)
         {
-            if (entity->IsActive())
+            // Renderable
+            Renderable* renderable = entity->GetComponent<Renderable>();
+            if (!renderable) { continue; }
+
+            Material* material = renderable->GetMaterial();
+            if (!material) { continue; }
+
+            Model* model = renderable->GetGeometryModel();
+            if (!model || !model->GetVertexBuffer() || !model->GetIndexBuffer())
             {
-                if (entity->HasComponent<Renderable>())
-                {
-                    renderableComponents.push_back(*entity->GetComponent<Renderable>());
-                }
-            }
-        }
-
-        // We can play around with the below flow by binding the right pipeline depending on the material extracted from the mesh's information.
-        for (auto& renderableComponent : renderableComponents)
-        {
-            UpdateEntityConstantBuffer(renderableComponent.GetEntity());
-
-            UINT offset = 0;
-            UINT modelStride = 8 * sizeof(float);
-
-            m_DeviceContext->BindVertexBuffer(renderableComponent.GetGeometryModel()->GetVertexBuffer());
-            m_DeviceContext->BindIndexBuffer(renderableComponent.GetGeometryModel()->GetIndexBuffer());
-
-            if (renderableComponent.GetMaterial())
-            {
-                UpdateMaterialConstantBuffer(renderableComponent.GetMaterial());
+                continue;
             }
 
-            m_DeviceContext->DrawIndexed(renderableComponent.GetGeometryModel()->GetIndexBuffer());
+            Transform* transform = entity->GetTransform();
+            if (!transform) { continue; }
+
+            UpdateEntityConstantBuffer(entity.get());
+
+            m_DeviceContext->BindVertexBuffer(model->GetVertexBuffer());
+            m_DeviceContext->BindIndexBuffer(model->GetIndexBuffer());
+
+            UpdateMaterialConstantBuffer(material);
+            
+            m_GraphicsDevice->m_DeviceContextImmediate->DrawIndexed(renderable->GetGeometryIndicesSize(), renderable->GetGeometryIndexOffset(), renderable->GetGeometryVertexOffset());
         }
     }
 

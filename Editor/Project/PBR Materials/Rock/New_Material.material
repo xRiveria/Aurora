@@ -16,13 +16,13 @@ Textures:
     Texture_Path: Project\PBR Materials\Rock\Rock035_1K_AmbientOcclusion.jpg
   Texture_2:
     Texture_Type: 4
-    Texture_Name: Rock035_1K_AmbientOcclusion
-    Texture_Path: Project\PBR Materials\Rock\Rock035_1K_AmbientOcclusion.jpg
+    Texture_Name: old-metal-slats1_metallic
+    Texture_Path: Project\PBR Materials\Metal\old-metal-slats1_metallic.psd
   Texture_3:
     Texture_Type: 1
-    Texture_Name: Rock035_1K_Color
-    Texture_Path: Project\PBR Materials\Rock\Rock035_1K_Color.jpg
+    Texture_Name: old-metal-slats1_albedo
+    Texture_Path: Project\PBR Materials\Metal\old-metal-slats1_albedo.png
   Texture_4:
     Texture_Type: 2
-    Texture_Name: ""
-    Texture_Path: ""
+    Texture_Name: old-metal-slats1_normal-ogl
+    Texture_Path: Project\PBR Materials\Metal\old-metal-slats1_normal-ogl.png

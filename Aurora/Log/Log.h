@@ -3,7 +3,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
-// #include "ILogger.h"
+#include "ILogger.h"
 #include "LogUtilities.h"
 
 /* Personal Notes:
@@ -36,7 +36,7 @@ namespace Aurora
 		Log() = default;
 
 		// Set a logger to be used.
-		// static void SetLogger(const std::weak_ptr<ILogger>& logger) { m_Logger = logger; }
+		static void SetLogger(const std::weak_ptr<ILogger>& logger) { m_EditorLogger = logger; }
 
 		// Alphabetical
 		static void WriteLog(LogLayer logLayer, const char* logMessage, const LOG_TYPE logType);
@@ -69,15 +69,17 @@ namespace Aurora
 			WriteLog(std::to_string(value), logSource, logType);
 		}
 
+	public:
+		static std::weak_ptr<ILogger> m_EditorLogger;
+
 	private:
 		static void FlushBuffer();
-		static void LogString(const char* logMessage, const std::string& logSource, LogType logType);
+		static void LogToEditorConsole(const char* logMessage, const std::string& logSource, LogType logType);
 
 		// Console
 		static void LogToConsole(LogLayer logLayer, const char* logMessage, LOG_TYPE logType);
 
 	private:
-		// static std::weak_ptr<ILogger> m_Logger;
 		static bool m_ConsoleLoggingEnabled;
 
 		static std::mutex m_MutexLog;

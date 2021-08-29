@@ -20,11 +20,13 @@ namespace Aurora
         void Clear();
 
         // Indices
+        void AppendIndices(const std::vector<uint32_t>& indices, uint32_t* indexOffset);
         uint32_t GetIndicesCount() const { return static_cast<uint32_t>(m_Indices.size()); }
         std::vector<uint32_t>& GetIndices() { return m_Indices; }
         void SetIndices(const std::vector<uint32_t>& indices) { m_Indices = indices; }
 
         // Vertices
+        void AppendVertices(const std::vector<XMFLOAT3>& vertexPositions, const std::vector<XMFLOAT3>& vertexNormals, const std::vector<XMFLOAT2>& vertexUVs, uint32_t* vertexOffset);
         uint32_t GetVerticesCount() const { return static_cast<uint32_t>(m_VertexPositions.size()); }
 
         std::vector<XMFLOAT3>& GetVertexPositions() { return m_VertexPositions; }

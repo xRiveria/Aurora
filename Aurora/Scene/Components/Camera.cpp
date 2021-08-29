@@ -80,7 +80,7 @@ namespace Aurora
         }
 
         XMStoreFloat3(&GetEntity()->GetComponent<Transform>()->m_TranslationLocal, position);
-
+        GetEntity()->GetTransform()->SetDirty(true);
         FPSControl(deltaTime);
     }
 

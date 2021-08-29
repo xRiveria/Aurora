@@ -95,6 +95,8 @@ void EditorTools::TickGizmos()
 			transformComponent->m_TranslationLocal = XMFLOAT3(Ftranslation);
 			transformComponent->m_RotationInRadians = DirectX::XMFLOAT3(DirectX::XMConvertToRadians(Frotation[0]), DirectX::XMConvertToRadians(Frotation[1]), DirectX::XMConvertToRadians(Frotation[2]));
 			transformComponent->m_ScaleLocal = DirectX::XMFLOAT3(Fscale);
+
+			transformComponent->SetDirty(true);
 		}
 	}
 }

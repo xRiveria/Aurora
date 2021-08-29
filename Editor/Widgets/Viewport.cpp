@@ -63,9 +63,9 @@ void Viewport::OnTickVisible()
 
         // Load with seperate thread.
         m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath](Aurora::JobInformation jobInformation)
-            {
-                m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::Model>(filePath);
-            });
+        {
+            m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::Model>(filePath);
+        });
     }
           
     m_EditorContext->GetWidget<EditorTools>()->OnTickViewport();
