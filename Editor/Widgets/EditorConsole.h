@@ -38,7 +38,7 @@ public:
     void AddLogPackage(const Aurora::LogPackage& logPackage);
     void ClearConsole();
 
-private:
+public:
     std::deque<Aurora::LogPackage> m_Logs;
     uint32_t m_LogMaximumCount = 1000;
 

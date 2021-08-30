@@ -8,21 +8,21 @@ Textures:
   Textures_Count: 5
   Texture_0:
     Texture_Type: 1
-    Texture_Name: Derp
-    Texture_Path: Project\Derp.material
+    Texture_Name: Face_BaseAlbedoEdit
+    Texture_Path: Project\PBR Materials\Girl\Face_BaseAlbedoEdit.tiff
   Texture_1:
     Texture_Type: 16
-    Texture_Name: Porcelain001_1K_Color
-    Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
+    Texture_Name: ""
+    Texture_Path: ""
   Texture_2:
     Texture_Type: 8
-    Texture_Name: Porcelain001_1K_Color
-    Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
+    Texture_Name: ""
+    Texture_Path: ""
   Texture_3:
     Texture_Type: 2
-    Texture_Name: Porcelain001_1K_Color
-    Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
+    Texture_Name: ""
+    Texture_Path: ""
   Texture_4:
     Texture_Type: 4
-    Texture_Name: Porcelain001_1K_Color
-    Texture_Path: Project\PBR Materials\Porcelein\Porcelain001_1K_Color.jpg
+    Texture_Name: ""
+    Texture_Path: ""

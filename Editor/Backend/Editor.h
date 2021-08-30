@@ -5,6 +5,7 @@
 #include "Widget.h"
 #include <optional>
 #include "../Widgets/EditorTools.h"
+#include "../Widgets/EditorConsole.h"
 #include "../Backend/Utilities/Extensions.h"
 
 class EditorSubsystem : public Aurora::ISubsystem
@@ -55,6 +56,7 @@ private:
 
 private:
 	// Engine Contexts
+	EditorConsole* m_EditorConsole;
 	std::unique_ptr<Aurora::Engine> m_Engine;
 	Aurora::EngineContext* m_EngineContext = nullptr; // Consists of subsystems.
 	EditorSubsystem* m_EditorSubsystem;

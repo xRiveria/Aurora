@@ -24,7 +24,6 @@ namespace Aurora
         uint32_t GetGeometryVerticesSize() const { return m_GeometryVertexSize; }
         uint32_t GetGeometryIndicesSize() const { return m_GeometryIndexSize; }
 
-
         // Material
         // Sets a material from memory (adds it to the resource cache by default).
         std::shared_ptr<Material> SetMaterial(const std::shared_ptr<Material>& material);

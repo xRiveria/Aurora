@@ -21,14 +21,14 @@ namespace Aurora
 
 		std::string logText = std::string(logMessage);
 
-		std::size_t sourceInformationIndex = logText.find("Source: ");
-		std::string logTextExtracted = logText.substr(0, sourceInformationIndex);
-		std::string logSource = "Source";
+		std::size_t functionSourceIndex = logText.find("^");
+		std::string functionSourceTextExtracted = logText.substr(0, functionSourceIndex);
+		std::string logMessageExtracted = logText.substr(functionSourceIndex + 1, logText.size());
 	
 		FlushBuffer();
 
-		LogToEditorConsole(logMessage, logSource, logType.first);
-		LogToConsole(logLayer, logTextExtracted.c_str(), logType);
+		LogToEditorConsole(logMessageExtracted.c_str(), functionSourceTextExtracted, logType.first); // Seperate
+		LogToConsole(logLayer, (functionSourceTextExtracted + " - " + logMessageExtracted).c_str(), logType); // Log entire string.
 	}
 
 	void Log::LogToEditorConsole(const char* logMessage, const std::string& logSource, LogType logType)

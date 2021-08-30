@@ -176,6 +176,7 @@ namespace Aurora
 
         World* scene = m_EngineContext->GetSubsystem<World>();
 
+
         // Children
         {
             // Children Count
@@ -201,7 +202,7 @@ namespace Aurora
                 m_Transform->AcquireChildren();
             }
         }
-
+        
         scene->SetSceneDirty();
     }
 

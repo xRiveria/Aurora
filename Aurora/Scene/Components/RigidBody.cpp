@@ -36,6 +36,7 @@ namespace Aurora
             //const XMFLOAT4 newWorldRotation = ToVector4(worldTransform.getOrigin());
 
             m_RigidBody->GetEntity()->GetTransform()->m_TranslationLocal = newWorldPosition;
+            m_RigidBody->GetEntity()->GetTransform()->SetDirty(true);
             //m_RigidBody->GetEntity()->GetTransform()->m_RotationLocal = newWorldRotation;
         }
 

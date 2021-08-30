@@ -253,6 +253,7 @@ void Editor::Tick()
 			}
 		}
 		*/
+
 		ImGui::End();
 
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
@@ -262,20 +263,21 @@ void Editor::Tick()
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.4f, 1.0f));
-				ImGui::TextUnformatted("This is a warning message, etc etc.");
-				ImGui::PopStyleColor();
-			}
-			else
-			{
-				ImGui::TextUnformatted("");
+				if (!m_EditorConsole->m_Logs.empty())
+				{
+					ImGui::PushStyleColor(ImGuiCol_Text, m_EditorConsole->m_LogTypeColor[static_cast<int>(m_EditorConsole->m_Logs.back().m_LogType.first)]);
+					ImGui::TextUnformatted(m_EditorConsole->m_Logs.back().m_Text.c_str());
+					ImGui::PopStyleColor();
+				}
+				else
+				{
+					ImGui::TextUnformatted("");
+				}
 			}
 
 			ImGui::EndMenuBar();
 		}
-
 		ImGui::End();
-		
 
 		ImGui::End(); // Ends docking context.
 
@@ -305,6 +307,7 @@ void Editor::InitializeEditor()
 
 	// Create all ImGui widgets.
 	m_Widgets.emplace_back(std::make_shared<EditorConsole>(this, m_EngineContext));
+	m_EditorConsole = dynamic_cast<EditorConsole*>(m_Widgets.back().get());
 	m_Widgets.emplace_back(std::make_shared<ProjectSettings>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<ThreadTracker>(this, m_EngineContext));

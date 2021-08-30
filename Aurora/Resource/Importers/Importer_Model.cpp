@@ -330,6 +330,8 @@ namespace Aurora
         // Set the geometry within our renderable component.
         renderable->GeometrySet(parentEntity->GetObjectName(), indexOffset, static_cast<uint32_t>(indices.size()), vertexOffset, static_cast<uint32_t>(vertexPositions.size()), modelParameters.m_Model);
 
+        renderable->UseDefaultMaterial(); // Set use default material for now.
+
         // Material
         if (modelParameters.m_AssimpScene->HasMaterials())
         {

@@ -353,6 +353,7 @@ namespace Aurora
 
         // Notify subsystems that we are loading data.
         m_EngineContext->GetSubsystem<ResourceCache>()->LoadResourcesFromFiles();
+        
 
         // Load root entity count.
         const uint32_t rootEntityCount = binaryDeserializer->ReadAs<uint32_t>();

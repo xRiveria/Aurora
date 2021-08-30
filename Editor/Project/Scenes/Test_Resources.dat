@@ -1,0 +1,29 @@
+Type: ResourceCache
+Resource_Count: 9
+Resource_0:
+  Resource_Path: ../Resources/Textures/Default/Default.png
+  Resource_Type: 1
+Resource_1:
+  Resource_Path: ../Resources/Models/Default/lambert1.material
+  Resource_Type: 4
+Resource_2:
+  Resource_Path: ../Resources/Models/Default/Sphere.model
+  Resource_Type: 3
+Resource_3:
+  Resource_Path: Project\PBR Materials\Brass\Brass Material.material
+  Resource_Type: 4
+Resource_4:
+  Resource_Path: Project\PBR Materials\Brass\dull-brass_metallic.png
+  Resource_Type: 1
+Resource_5:
+  Resource_Path: Project\PBR Materials\Brass\dull-brass_albedo.png
+  Resource_Type: 1
+Resource_6:
+  Resource_Path: Project\PBR Materials\Brass\dull-brass_roughness.png
+  Resource_Type: 1
+Resource_7:
+  Resource_Path: Project\PBR Materials\Brass\dull-brass_ao.png
+  Resource_Type: 1
+Resource_8:
+  Resource_Path: Project\PBR Materials\Brass\dull-brass_normal-dx.png
+  Resource_Type: 1

@@ -63,28 +63,26 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
     float3 viewDirection = normalize(g_Camera_Position.xyz - pixelWorldPosition);
     
     float3 albedoColor = pow(Texture_BaseColorMap.SampleLevel(defaultSampler, input.outTexCoord, 0).rgb, 2.2) * g_Material.g_ObjectColor; // Reconvert to linear space.
+    if (albedoColor.x <= 0.0f)
+    {
+        albedoColor = pow(g_Material.g_ObjectColor, 2.2);
+    }
+    
     float3 normal = Texture_NormalMap.SampleLevel(defaultSampler, input.outTexCoord, 0).rgb * input.outNormal;
-
-    float roughness = Texture_RoughnessMap.SampleLevel(defaultSampler, input.outTexCoord, 0).r; 
-    if (roughness == 0.0)
+    if (normal.x <= 0.0f)
+    {
+        normal = input.outNormal;
+    }
+    float roughness = Texture_RoughnessMap.SampleLevel(defaultSampler, input.outTexCoord, 0).r * g_Material.g_Roughness;
+    if (roughness <= 0.0f)
     {
         roughness = g_Material.g_Roughness;
     }
-    else
-    {
-        roughness = roughness * g_Material.g_Roughness;
-    }
-
-    float metalness = Texture_MetalnessMap.SampleLevel(defaultSampler, input.outTexCoord, 0).r; 
-    if (metalness == 0.0)
+    float metalness = Texture_MetalnessMap.SampleLevel(defaultSampler, input.outTexCoord, 0).r * g_Material.g_Metalness;
+    if (metalness <= 0.0f)
     {
         metalness = g_Material.g_Metalness;
     }
-    else
-    {
-        metalness = metalness * g_Material.g_Metalness;
-    }
-
     //float aoFactor = Texture_AOMap.SampleLevel(defaultSampler, input.outTexCoord, 0).r;
     //float ao = 1.0 - aoFactor;
     

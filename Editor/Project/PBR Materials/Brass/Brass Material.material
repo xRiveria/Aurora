@@ -1,8 +1,8 @@
 Type: Material
 Albedo_Color: [1, 1, 1, 1]
-Roughness_Multiplier: 1
+Roughness_Multiplier: 0.848999977
 Normal_Multiplier: 1
-Metallic_Multiplier: 1
+Metallic_Multiplier: 0.528999984
 Occlusion_Multiplier: 1
 Textures:
   Textures_Count: 5

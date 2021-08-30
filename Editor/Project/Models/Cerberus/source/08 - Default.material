@@ -1,8 +1,28 @@
 Type: Material
 Albedo_Color: [0.588235319, 0.588235319, 0.588235319, 1]
-Roughness_Multiplier: 0.899999976
-Normal_Multiplier: 0
-Metallic_Multiplier: 0
+Roughness_Multiplier: 1
+Normal_Multiplier: 1
+Metallic_Multiplier: 1
 Occlusion_Multiplier: 0
 Textures:
-  Textures_Count: 0
+  Textures_Count: 5
+  Texture_0:
+    Texture_Type: 1
+    Texture_Name: Cerberus_A.tga
+    Texture_Path: Project\Models\Cerberus\textures\Cerberus_A.tga.png
+  Texture_1:
+    Texture_Type: 2
+    Texture_Name: Cerberus_N.tga
+    Texture_Path: Project\Models\Cerberus\textures\Cerberus_N.tga.png
+  Texture_2:
+    Texture_Type: 4
+    Texture_Name: Cerberus_M.tga
+    Texture_Path: Project\Models\Cerberus\textures\Cerberus_M.tga.png
+  Texture_3:
+    Texture_Type: 16
+    Texture_Name: ""
+    Texture_Path: ""
+  Texture_4:
+    Texture_Type: 8
+    Texture_Name: Cerberus_R.tga
+    Texture_Path: Project\Models\Cerberus\textures\Cerberus_R.tga.png

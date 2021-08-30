@@ -3,23 +3,36 @@
 #include "../Renderer/Material.h"
 #include "../Renderer/Model.h"
 #include "../Resource/ResourceCache.h"
+#include "../Graphics/DX11_Refactored/DX11_Texture.h"
 
 namespace Aurora
 {
     Renderable::Renderable(EngineContext* engineContext, Entity* entity, uint32_t componentID) : IComponent(engineContext, entity, componentID)
     {
         m_IsUsingDefaultMaterial = false;
+        m_GeometryIndexOffset = 0;
+        m_GeometryIndexSize = 0;
+        m_GeometryVertexOffset = 0;
+        m_GeometryVertexSize = 0;
 
         AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_IsUsingDefaultMaterial, bool);
         AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Material, Material*);
         AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Model, Model*);
         AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_GeometryName, std::string);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_GeometryIndexOffset, uint32_t);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_GeometryIndexSize, uint32_t);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_GeometryVertexOffset, uint32_t);
+        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_GeometryVertexSize, uint32_t);
     }
 
     void Renderable::Serialize(BinarySerializer* binarySerializer)
     {
         // Mesh
         binarySerializer->Write(m_Model ? m_Model->GetResourceName() : "");
+        binarySerializer->Write(m_GeometryIndexOffset);
+        binarySerializer->Write(m_GeometryIndexSize);
+        binarySerializer->Write(m_GeometryVertexOffset);
+        binarySerializer->Write(m_GeometryVertexSize);
 
         // Material
         binarySerializer->Write(m_IsUsingDefaultMaterial);
@@ -35,6 +48,10 @@ namespace Aurora
         std::string modelName;
         binaryDeserializer->Read(&modelName);
         m_Model = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<Model>(modelName).get();
+        m_GeometryIndexOffset = binaryDeserializer->ReadAs<uint32_t>();
+        m_GeometryIndexSize = binaryDeserializer->ReadAs<uint32_t>();
+        m_GeometryVertexOffset = binaryDeserializer->ReadAs<uint32_t>();
+        m_GeometryVertexSize = binaryDeserializer->ReadAs<uint32_t>();
 
         // Material
         binaryDeserializer->Read(&m_IsUsingDefaultMaterial);
@@ -92,7 +109,18 @@ namespace Aurora
 
     void Renderable::UseDefaultMaterial()
     {
-        /// We need to create a default material.
+        m_IsUsingDefaultMaterial = true;
+        // Create Material
+        std::shared_ptr<Material> material = std::make_shared<Material>(m_EngineContext);
+        const std::string filePath = m_EngineContext->GetSubsystem<Settings>()->GetProjectDirectory() + "Standard" + EXTENSION_MATERIAL; 
+        material->SetResourceFilePath(filePath);
+        
+        // Set default texture.
+        const std::shared_ptr<DX11_Texture> defaultTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>("../Resources/Textures/Default/Default.png");
+        material->SetTextureSlot(MaterialSlot::MaterialSlot_Albedo, defaultTexture);
+
+        // Set material.
+        SetMaterial(material);
     }
 
     std::string Renderable::GetMaterialName() const

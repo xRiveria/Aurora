@@ -116,7 +116,7 @@ void EditorConsole::OnTickVisible()
         }
 
         ImGui::EndTable();
-    }
+    }  
 }
 
 void EditorConsole::AddLogPackage(const Aurora::LogPackage& logPackage)

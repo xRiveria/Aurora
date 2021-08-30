@@ -90,7 +90,9 @@ void Hierarchy::ShowEntityTree()
     
     for (const std::shared_ptr<Aurora::Entity>& entity : rootEntities)
     {
+        ImGui::PushID(entity->GetObjectID());
         TreeAddEntity(entity.get());
+        ImGui::PopID();
     }
     
     // If we have been expanding to show an entity and no more expansions are taking place, we're done with it. Thus, we stop expanding and bring it into view.

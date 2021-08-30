@@ -16,10 +16,10 @@
 namespace Aurora
 {
 	// Macros for different forms of logging information.
-	#define AURORA_INFO(level, text, ...)	     { Aurora::Log::WriteInfoLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__)    + ": " + std::string(text), __VA_ARGS__); }
-	#define AURORA_WARNING(level, text, ...)     { Aurora::Log::WriteWarningLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__) + ": " + std::string(text), __VA_ARGS__); }
-	#define AURORA_ERROR(level, text, ...)	     { Aurora::Log::WriteErrorLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__)   + ": " + std::string(text), __VA_ARGS__); } 
-	#define AURORA_CRITICAL(level, text, ...)    { Aurora::Log::WriteCriticalLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__)   + ": " + std::string(text), __VA_ARGS__); }
+	#define AURORA_INFO(level, text, ...)	     { Aurora::Log::WriteInfoLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__)    + "^" + std::string(text), __VA_ARGS__); }
+	#define AURORA_WARNING(level, text, ...)     { Aurora::Log::WriteWarningLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__) + "^" + std::string(text), __VA_ARGS__); }
+	#define AURORA_ERROR(level, text, ...)	     { Aurora::Log::WriteErrorLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__)   + "^" + std::string(text), __VA_ARGS__); } 
+	#define AURORA_CRITICAL(level, text, ...)    { Aurora::Log::WriteCriticalLog(static_cast<Aurora::LogLayer>(level), std::string(__FUNCTION__)   + "^" + std::string(text), __VA_ARGS__); }
 
 	#define AURORA_ASSERT_ERROR(text, ...)	     { Aurora::Log::WriteErrorLog(LogLayer::Engine, std::string(__FUNCTION__)   + ": " + std::string(text), __VA_ARGS__); } 
 	//Standard Errors
