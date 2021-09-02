@@ -110,6 +110,29 @@ namespace Aurora
 		WriteLog(logMessage.c_str(), logType);
 	}
 
+	void Log::WriteLog(const std::string& logMessage, LogType logType)
+	{
+		switch (logType)
+		{
+			case LogType::Info:
+				WriteInfoLog(LogLayer::Scripting, logMessage);
+				break;
+
+			case LogType::Warning:
+				WriteWarningLog(LogLayer::Scripting, logMessage);
+				break;
+
+			case LogType::Error:
+				WriteErrorLog(LogLayer::Serialization, logMessage);
+				break;
+		}
+	}
+
+	void Log::WriteInfoLogScript(const std::string& logMessage)
+	{
+		WriteLog(logMessage.c_str(), std::pair(LogType::Info, Console::Color::Color_LightGreen));
+	}
+
 	void Log::WriteInfoLog(LogLayer logLayer, const std::string logMessage, ...)
 	{
 		char buffer[2048];

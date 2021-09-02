@@ -264,5 +264,5 @@ namespace Aurora::Math
     };
 
     // Reverse order operators.
-    // inline Vector3 operator*(float value, const Vector3& otherVector) { return otherVector * value; }
+    inline Vector3 operator*(float value, const Vector3& otherVector) { return otherVector * value; }
 }

@@ -1,0 +1,7 @@
+D:\1) Github\My Projects\Aurora\AuroraEngine\bin\Debug\AuroraEngine.dll
+D:\1) Github\My Projects\Aurora\AuroraEngine\bin\Debug\AuroraEngine.pdb
+D:\1) Github\My Projects\Aurora\AuroraEngine\obj\Debug\AuroraEngine.csproj.CoreCompileInputs.cache
+D:\1) Github\My Projects\Aurora\AuroraEngine\obj\Debug\AuroraEngine.dll
+D:\1) Github\My Projects\Aurora\AuroraEngine\obj\Debug\AuroraEngine.pdb
+D:\1) Github\My Projects\Aurora\Resources\Scripts\AuroraEngine.dll
+D:\1) Github\My Projects\Aurora\Resources\Scripts\AuroraEngine.pdb

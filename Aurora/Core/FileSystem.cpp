@@ -42,6 +42,26 @@ namespace Aurora
         return buffer;
     }
 
+    bool FileSystem::IsEmptyOrWhitespace(const std::string& line)
+    {
+        // Check if its empty.
+        if (line.empty())
+        {
+            return true;
+        }
+
+        // Check if its made out of whitespace characters.
+        for (char _char : line)
+        {
+            if (!std::isspace(_char))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     bool FileSystem::CreateDirectory_(const std::string& directoryPath)
     {
         try
@@ -188,6 +208,11 @@ namespace Aurora
         return GetDirectoryFromFilePath(filePath) + GetFileNameWithoutExtensionFromFilePath(filePath);
     }
 
+    std::string FileSystem::ReplaceExtension(const std::string& filePath, const std::string& extension)
+    {
+        return GetDirectoryFromFilePath(filePath) + GetFileNameWithoutExtensionFromFilePath(filePath) + extension;
+    }
+
     std::vector<std::string> FileSystem::GetDirectoriesInDirectory(const std::string& directoryPath)
     {
         std::vector<std::string> directories;
@@ -254,6 +279,30 @@ namespace Aurora
         }
 
         return filePaths;
+    }
+
+    bool FileSystem::CopyFileFromTo(const std::string& source, const std::string& destination)
+    {
+        if (source == destination)
+        {
+            return true;
+        }
+
+        // In case the destination path doesn't exist, create it.
+        if (!Exists(GetDirectoryFromFilePath(destination)))
+        {
+            CreateDirectory_(GetDirectoryFromFilePath(destination));
+        }
+
+        try
+        {
+            return std::filesystem::copy_file(source, destination, std::filesystem::copy_options::overwrite_existing);
+        }
+        catch (std::filesystem::filesystem_error& error)
+        {
+            AURORA_WARNING(LogLayer::Engine, "%s", error.what());
+            return true;
+        }
     }
 
     void FileSystem::OpenItem(const std::string& directoryPath)

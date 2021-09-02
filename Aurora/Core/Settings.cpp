@@ -15,6 +15,7 @@ namespace Aurora
         AddResourceDirectory(ResourceDirectory::Cubemaps, dataDirectory + "Cubemaps");
         AddResourceDirectory(ResourceDirectory::Models, dataDirectory + "Models");
         AddResourceDirectory(ResourceDirectory::Scenes, dataDirectory + "Scenes");
+        AddResourceDirectory(ResourceDirectory::Scripts, dataDirectory + "Scripts");
     
         // Create Project Directory
         SetProjectDirectory("Project/");
@@ -64,6 +65,7 @@ namespace Aurora
             }
         }
 
+        AURORA_ERROR(LogLayer::Engine, "Requested resource directory not found.");
         return "Null Path";
     }
 

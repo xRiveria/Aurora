@@ -67,6 +67,7 @@ namespace Aurora
         int BindSkyboxTexture(int slotNumber, ID3D11ShaderResourceView* shaderResourceView);
 
     public:
+        Camera* GetCamera() const { return m_Camera->GetComponent<Camera>(); }
         /// New Abstraction
         void ResizeBuffers();
         // Depth Buffer
@@ -120,6 +121,7 @@ namespace Aurora
 
         // Camera
         Entity* m_Camera;
+        
 
         // Default Textures
         ResourceCache* m_ResourceCache;

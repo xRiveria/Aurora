@@ -169,7 +169,6 @@ void FileDialog::ShowMiddleUI()
     const float contentWidth = ImGui::GetContentRegionAvail().x;
     const float contentHeight = ImGui::GetContentRegionAvail().y - m_OffsetBottom;
     m_DisplayedItemCount = 0;
-
     ImGuiContext& context = *GImGui;
     ImGuiStyle& style = ImGui::GetStyle();
     const float fontSize = context.FontSize;

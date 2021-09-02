@@ -25,7 +25,8 @@ namespace Aurora
 		ECS,
 		Editor,
 		Assert,
-		Audio
+		Audio,
+		Scripting
 	};
 
 	inline void SetLogLayerColor(LogLayer logLayer)
@@ -80,6 +81,11 @@ namespace Aurora
 			case LogLayer::Audio:
 				Console::Shade::SetColor(Console::Color::Color_Grey);
 				std::cout << "[Audio] ";
+				break;
+
+			case LogLayer::Scripting:
+				Console::Shade::SetColor(Console::Color::Color_Purple);
+				std::cout << "[Scripting] ";
 				break;
 		}
 

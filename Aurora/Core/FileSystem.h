@@ -14,6 +14,7 @@ namespace Aurora
         static std::string WStringToString(const std::wstring& wString);
 
         // Paths
+        static bool IsEmptyOrWhitespace(const std::string& line);
         static bool CreateDirectory_(const std::string& directoryPath);
         static bool Exists(const std::string& filePath);
         static bool Delete(const std::string& filePath);
@@ -26,8 +27,10 @@ namespace Aurora
         static std::string GetFileNameFromFilePath(const std::string& filePath);
         static std::string GetFileNameWithoutExtensionFromFilePath(const std::string& filePath);
         static std::string GetFilePathWithoutExtension(const std::string& filePath);
+        static std::string ReplaceExtension(const std::string& filePath, const std::string& extension);
         static std::vector<std::string> GetDirectoriesInDirectory(const std::string& directoryPath);
         static std::vector<std::string> GetFilesInDirectory(const std::string& directoryPath);
+        static bool CopyFileFromTo(const std::string& source, const std::string& destination);
 
         static void OpenItem(const std::string& directoryPath);
         static std::string GetWorkingDirectory();

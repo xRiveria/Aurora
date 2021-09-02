@@ -9,6 +9,7 @@
 #include "../Renderer/Renderer.h"
 #include "../Scene/World.h"
 #include "../Physics/Physics.h"
+#include "../Scripting/Scripting.h"
 #include "../Resource/ResourceCache.h"
 #include "../Audio/Audio.h"
 #include "../Input/InputEvents/InputEvent.h"
@@ -38,6 +39,7 @@ namespace Aurora
         m_EngineContext->RegisterSubsystem<World>();
         m_EngineContext->RegisterSubsystem<Renderer>();
         m_EngineContext->RegisterSubsystem<ResourceCache>();
+        m_EngineContext->RegisterSubsystem<Scripting>();
 
         // Initialize Subsystem
         m_EngineContext->Initialize();

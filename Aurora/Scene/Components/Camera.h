@@ -1,6 +1,7 @@
 #pragma once
 #include "IComponent.h"
 #include <DirectXMath.h>
+#include "../Math/XM_Utilities/BoundingBox.h"
 
 using namespace DirectX;
 

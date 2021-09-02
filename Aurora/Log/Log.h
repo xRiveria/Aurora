@@ -47,6 +47,8 @@ namespace Aurora
 		static void WriteCriticalLog(LogLayer logLayer, const char* logMessage, ...);
 
 		static void WriteLog(const std::string& logMessage, const LOG_TYPE logType);
+		static void WriteLog(const std::string& logMessage, LogType logType);
+		static void WriteInfoLogScript(const std::string& logMessage);
 
 		static void WriteInfoLog(LogLayer logLayer, const std::string logMessage, ...);
 		static void WriteWarningLog(LogLayer logLayer, const std::string logMessage, ...);
