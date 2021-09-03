@@ -15,15 +15,18 @@ namespace Aurora
         ~Scripting();
 
         bool Initialize() override;
+        void Tick(float deltaTime) override;
 
         bool LoadScript(const std::string& filePath);
         bool InvokeScriptStartMethod(const ScriptInstance* scriptInstance);
         bool InvokeScriptUpdateMethod(const ScriptInstance* scriptInstance, float deltaTime);
 
+        // std::unordered_map<uint32_t, ScriptInstance> GetScriptLibrary() { return m_ScriptLibrary; }
+
     private:
         bool CompileAssemblyAPI();
 
-    private:
+    public:
         MonoDomain* m_MonoDomain = nullptr;
         bool m_IsAssemblyAPICompiled = false;
 

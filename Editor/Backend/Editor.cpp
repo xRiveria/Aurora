@@ -34,6 +34,7 @@
 #include "../Widgets/AssetRegistry.h"
 #include "../Widgets/AssetBrowser.h"
 #include "../Widgets/EditorConsole.h"
+#include "../Widgets/ScriptEngine.h"
 
 namespace EditorConfigurations
 {
@@ -321,6 +322,7 @@ void Editor::InitializeEditor()
 	m_Widgets.emplace_back(std::make_shared<EditorTools>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<AssetRegistry>(this, m_EngineContext));
 	m_Widgets.emplace_back(std::make_shared<AssetBrowser>(this, m_EngineContext));
+	m_Widgets.emplace_back(std::make_shared<ScriptEngine>(this, m_EngineContext));
 
 	AURORA_WARNING(Aurora::LogLayer::Engine, "All Editor Widgets Initialized.");
 }

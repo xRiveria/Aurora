@@ -2,9 +2,10 @@
 #include "Scripting.h"
 #include "ScriptBindings.h"
 #include "ScriptingUtilities.h"
+#include <mono/metadata/object.h>
 
 namespace Aurora
-{
+{ 
     Scripting::Scripting(EngineContext* engineContext) : ISubsystem(engineContext)
     {
         
@@ -37,59 +38,21 @@ namespace Aurora
 
         // Currently our class name.
         LoadScript("Initializer");
-            /*
-                /// Per Script
-                ScriptInstance scriptInstance;
 
-                // Load Assembly
-                // scriptInstance.m_Assembly = mono_domain_assembly_open(m_MonoDomain, (m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\SolusProject.dll").c_str());
-                // if (!scriptInstance.m_Assembly)
-                // {
-                //     AURORA_ERROR(LogLayer::Scripting, "Failed to initialize Mono Assembly.");
-                //   return false;
-                // }
+        return true;     
+    }
 
-                //// A mono image is an in memory object that represents all functions and classes that are in the assembly. We will retrieve it from our assembly here.
-                //scriptInstance.m_MonoImage = mono_assembly_get_image(scriptInstance.m_Assembly);
-                //if (!scriptInstance.m_MonoImage)
-                //{
-                //    AURORA_ERROR(LogLayer::Scripting, "Failed to initialize Mono Image.");
-                //    return false;
-                //}
-
-                //if (scriptInstance.m_MonoImage)
-                //{
-                //    mono_add_internal_call("Aurora.Debug::Log(single,Aurora.DebugType)", &Aurora::ScriptBindings::LogFloat);
-                //    mono_add_internal_call("Aurora.Debug::Log(string,Aurora.DebugType)", &Aurora::ScriptBindings::LogString);
-                //}
-
-                // Check if the class containing the method exists.
-                // MonoClass* controllerClass = mono_class_from_name(m_MonoImage, "SolusProject", "PlayerController");
-                MonoClass* mainClass = mono_class_from_name(scriptInstance.m_MonoImage, "SolusProject", "Initializer");
-
-                if (mainClass)
-                {
-                    MonoMethodDesc* mainMethodDescription = mono_method_desc_new(".Initializer:Main()", false);
-                    if (mainMethodDescription)
-                    {
-                        // Find the mthod.
-                        MonoMethod* mainMethodPointer = mono_method_desc_search_in_class(mainMethodDescription, mainClass);
-                        if (mainMethodPointer)
-                        {
-                            // Call method.
-                            scriptInstance.m_MonoObject = mono_runtime_invoke(mainMethodPointer, nullptr, nullptr, nullptr);
-                        }
-
-                        // Free description.
-                        mono_method_desc_free(mainMethodDescription);
-                    }
-                }
-
-                m_ScriptLibrary[++m_ScriptIndex] = scriptInstance;
-                */
-
-     return true;
-       
+    void Scripting::Tick(float deltaTime)
+    {
+        for (int i = 0; i < m_ScriptLibrary.size(); i++)
+        {
+            InvokeScriptUpdateMethod(&m_ScriptLibrary[i], deltaTime);
+            // std::cout << m_ScriptLibrary[i].ReadFieldValue<float>("m_MovementSpeed");
+            // m_ScriptLibrary[i].SetFieldString("Bob", "m_PlayerName");
+            // std::cout << m_ScriptLibrary[i].ReadFieldString("m_PlayerName");
+            // m_ScriptLibrary[i].SetFieldString("Hello There", "m_PlayerName");
+            // std::cout << m_ScriptLibrary[i].ReadFieldString("m_PlayerName");          
+        }
     }
 
     bool Scripting::LoadScript(const std::string& filePath)
@@ -147,12 +110,13 @@ namespace Aurora
         scriptInstance.m_MonoMethodUpdate = ScriptingUtilities::GetMethod(scriptInstance.m_MonoImage, className + ":Update(single)");
 
         InvokeScriptStartMethod(&scriptInstance);
+        
         /// Entity
         /// Transform
         /// Call default constructor.
          
         // Add script.
-        m_ScriptLibrary[++m_ScriptIndex] = scriptInstance;
+        m_ScriptLibrary[m_ScriptIndex++] = scriptInstance;
 
         // Return script ID.
         return true;

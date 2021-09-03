@@ -1,7 +1,6 @@
 #pragma once
 #include "../Log/Log.h"
 #include <string>
-#include <mono/metadata/object.h>
 
 namespace Aurora::ScriptBindings
 {
