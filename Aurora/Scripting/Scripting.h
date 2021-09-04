@@ -23,10 +23,13 @@ namespace Aurora
 
         // std::unordered_map<uint32_t, ScriptInstance> GetScriptLibrary() { return m_ScriptLibrary; }
 
+        bool HotReload();
+
     private:
-        bool CompileAssemblyAPI();
+        bool CompileAssemblyAPI(MonoDomain* monoDomain);
 
     public:
+        bool m_IsReloading = false;
         MonoDomain* m_MonoDomain = nullptr;
         bool m_IsAssemblyAPICompiled = false;
 

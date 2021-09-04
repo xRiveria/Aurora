@@ -1,6 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
-namespace Aurora
+namespace AuroraEngine
 {
     public enum DebugType
     {

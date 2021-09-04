@@ -2,6 +2,7 @@
 #include "../Log/Log.h"
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/object.h>
+#include "ScriptingUtilities.h"
 
 namespace Aurora
 {
@@ -15,6 +16,58 @@ namespace Aurora
         // All scripts contain a Start() and Update() method.
         MonoMethod* m_MonoMethodStart  = nullptr;
         MonoMethod* m_MonoMethodUpdate = nullptr;
+
+        // State
+        // bool m_IsReloading = false;
+        std::string m_FilePath = "";
+
+        void Reload(MonoDomain* monoDomain, EngineContext* engineContext)
+        {
+            // Get assembly.
+            std::cout << &m_MonoImage << "\n";
+            std::cout << &m_Assembly << "\n";
+
+            m_Assembly = ScriptingUtilities::CompileAndLoadAssembly(monoDomain, m_FilePath, true);
+
+            if (!m_Assembly)
+            {
+                AURORA_ERROR(LogLayer::Scripting, "Failed to load Assembly.");
+                return;
+            }
+
+            // Get image from script assembly.
+            m_MonoImage = mono_assembly_get_image(m_Assembly);
+            if (!m_MonoImage)
+            {
+               AURORA_ERROR(LogLayer::Scripting, "Failed to retrieve Image from Assembly.");
+               return;
+            }
+            std::cout << &m_MonoImage << "\n";
+            std::cout << &m_Assembly << "\n";
+
+            // Get class.
+            m_MonoClass = mono_class_from_name(m_MonoImage, "", FileSystem::GetFileNameWithoutExtensionFromFilePath(m_FilePath).c_str());
+            if (!m_MonoClass)
+            {
+                mono_image_close(m_MonoImage);
+                AURORA_ERROR(LogLayer::Scripting, "Failed to retrieve class.");
+                return;
+            }
+
+            // Create class instance.
+            m_MonoObject = mono_object_new(monoDomain, m_MonoClass);
+            if (!m_MonoObject)
+            {
+                mono_image_close(m_MonoImage);
+                AURORA_ERROR(LogLayer::Scripting, "Failed to create class instance.");
+                return;
+            }
+
+            // Get methods.
+            m_MonoMethodStart = ScriptingUtilities::GetMethod(m_MonoImage, FileSystem::GetFileNameWithoutExtensionFromFilePath(m_FilePath) + ":Start()");
+            m_MonoMethodUpdate = ScriptingUtilities::GetMethod(m_MonoImage, FileSystem::GetFileNameWithoutExtensionFromFilePath(m_FilePath) + ":Update(single)");
+            // m_IsReloading = false;
+        }
 
         template<typename T>
         T ReadFieldValue(const std::string& valueName)

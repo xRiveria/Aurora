@@ -3,6 +3,7 @@
 #include "ScriptBindings.h"
 #include "ScriptingUtilities.h"
 #include <mono/metadata/object.h>
+#include <mono/metadata/threads.h>
 
 namespace Aurora
 { 
@@ -34,24 +35,49 @@ namespace Aurora
             return false;
         }
 
+        mono_domain_set(m_MonoDomain, false);
+        mono_thread_set_main(mono_thread_current());
+
         m_EngineContext->GetSubsystem<Settings>()->RegisterExternalLibrary("Mono", "6.12.0.122", "https://www.mono-project.com");
 
         // Currently our class name.
-        LoadScript("Initializer");
+        LoadScript(m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\Initializer.cs");
 
         return true;     
+    }
+
+    bool Scripting::HotReload()
+    {
+        m_IsReloading = true;
+
+        MonoDomain* newDomain = mono_domain_create_appdomain((char*)"RandomDomain", NULL);
+        mono_domain_set(newDomain, false);
+
+        // Reload DLLs
+        for (int i = 0; i < m_ScriptLibrary.size(); i++)
+        {
+            m_ScriptLibrary[i].Reload(newDomain, m_EngineContext);
+            InvokeScriptStartMethod(&m_ScriptLibrary[i]);
+        }
+
+        //// unload 
+        MonoDomain* domainToUnload = mono_domain_get();
+        if (domainToUnload && domainToUnload != mono_get_root_domain())
+        {
+            mono_domain_set(mono_get_root_domain(), false);
+            //mono_thread_pop_appdomain_ref();
+            mono_domain_unload(domainToUnload);
+        }
+      
+        m_IsReloading = false;
+        return true;
     }
 
     void Scripting::Tick(float deltaTime)
     {
         for (int i = 0; i < m_ScriptLibrary.size(); i++)
         {
-            InvokeScriptUpdateMethod(&m_ScriptLibrary[i], deltaTime);
-            // std::cout << m_ScriptLibrary[i].ReadFieldValue<float>("m_MovementSpeed");
-            // m_ScriptLibrary[i].SetFieldString("Bob", "m_PlayerName");
-            // std::cout << m_ScriptLibrary[i].ReadFieldString("m_PlayerName");
-            // m_ScriptLibrary[i].SetFieldString("Hello There", "m_PlayerName");
-            // std::cout << m_ScriptLibrary[i].ReadFieldString("m_PlayerName");          
+            InvokeScriptUpdateMethod(&m_ScriptLibrary[i], deltaTime);       
         }
     }
 
@@ -59,7 +85,7 @@ namespace Aurora
     {
         if (!m_IsAssemblyAPICompiled)
         {
-            m_IsAssemblyAPICompiled = CompileAssemblyAPI();
+            m_IsAssemblyAPICompiled = CompileAssemblyAPI(m_MonoDomain);
             if (!m_IsAssemblyAPICompiled)
             {
                 AURORA_ERROR(LogLayer::Scripting, "Failed to load Assembly API.");
@@ -68,11 +94,12 @@ namespace Aurora
         }
 
         ScriptInstance scriptInstance;
-        // const std::string className = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath);
-        const std::string className = filePath;
+        const std::string className = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath);
+        scriptInstance.m_FilePath = filePath;
 
         // Get assembly.
-        scriptInstance.m_Assembly = ScriptingUtilities::CompileAndLoadAssembly(m_MonoDomain, m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\AuroraEngine.cs", false);
+        scriptInstance.m_Assembly = ScriptingUtilities::CompileAndLoadAssembly(m_MonoDomain, filePath, true);
+      
         if (!scriptInstance.m_Assembly)
         {
             AURORA_ERROR(LogLayer::Scripting, "Failed to load Assembly.");
@@ -110,7 +137,7 @@ namespace Aurora
         scriptInstance.m_MonoMethodUpdate = ScriptingUtilities::GetMethod(scriptInstance.m_MonoImage, className + ":Update(single)");
 
         InvokeScriptStartMethod(&scriptInstance);
-        
+       
         /// Entity
         /// Transform
         /// Call default constructor.
@@ -120,14 +147,15 @@ namespace Aurora
 
         // Return script ID.
         return true;
+        
     }
 
-    bool Scripting::CompileAssemblyAPI()
+    bool Scripting::CompileAssemblyAPI(MonoDomain* monoDomain)
     {
         // Retrieve callbacks assembly.
         ScriptingUtilities::g_SettingsSubsystem = m_EngineContext->GetSubsystem<Settings>();
         const std::string callbacksScript = m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\AuroraEngine.cs";
-        MonoAssembly* callbacksAssembly = ScriptingUtilities::CompileAndLoadAssembly(m_MonoDomain, callbacksScript, false);
+        MonoAssembly* callbacksAssembly = ScriptingUtilities::CompileAndLoadAssembly(monoDomain, callbacksScript, false);
 
         if (!callbacksAssembly)
         {
