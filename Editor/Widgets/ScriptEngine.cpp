@@ -16,12 +16,13 @@ void ScriptEngine::OnTickVisible()
         m_ScriptingSubsystem->HotReload();
     }
 
+
     if (m_ScriptingSubsystem->m_IsReloading)
     {
         return;
     }
     else
-    { 
+    {
         for (int i = 0; i < m_ScriptingSubsystem->m_ScriptLibrary.size(); i++)
         {
             Aurora::ScriptInstance* script = &m_ScriptingSubsystem->m_ScriptLibrary[i];

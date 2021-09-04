@@ -30,6 +30,8 @@ namespace Aurora
 
     public:
         bool m_IsReloading = false;
+
+        MonoDomain* m_ScriptDomain = nullptr;
         MonoDomain* m_MonoDomain = nullptr;
         bool m_IsAssemblyAPICompiled = false;
 

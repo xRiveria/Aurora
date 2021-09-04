@@ -14,11 +14,23 @@ namespace Aurora
 
     Scripting::~Scripting()
     {
-        // Release the domain.
+        /*
+        if (m_ScriptDomain)
+        {
+            MonoObject* exception = nullptr;
+            mono_domain_try_unload(m_ScriptDomain, &exception);
+            m_ScriptDomain = nullptr;
+        }
+        */
+        m_IsReloading = true;
+        mono_domain_set(m_MonoDomain, false);
+        mono_domain_unload(m_ScriptDomain);
+
         if (m_MonoDomain)
         {
             mono_jit_cleanup(m_MonoDomain);
-        }
+            m_MonoDomain = nullptr;
+        }    
     }
 
     bool Scripting::Initialize()
@@ -50,26 +62,27 @@ namespace Aurora
     {
         m_IsReloading = true;
 
-        MonoDomain* newDomain = mono_domain_create_appdomain((char*)"RandomDomain", NULL);
-        mono_domain_set(newDomain, false);
+        if (m_ScriptDomain == nullptr)
+        {
+            std::string string = "Temporary";
+            m_ScriptDomain = mono_domain_create_appdomain(const_cast<char*>("Script_Domain"), nullptr);
+            mono_domain_set(m_ScriptDomain, true);
+        }
+        else
+        {
+            mono_domain_set(m_ScriptDomain, true);
+        }
 
         // Reload DLLs
         for (int i = 0; i < m_ScriptLibrary.size(); i++)
         {
-            m_ScriptLibrary[i].Reload(newDomain, m_EngineContext);
+            m_ScriptLibrary[i].Reload(m_ScriptDomain, m_EngineContext);
             InvokeScriptStartMethod(&m_ScriptLibrary[i]);
-        }
-
-        //// unload 
-        MonoDomain* domainToUnload = mono_domain_get();
-        if (domainToUnload && domainToUnload != mono_get_root_domain())
-        {
-            mono_domain_set(mono_get_root_domain(), false);
-            //mono_thread_pop_appdomain_ref();
-            mono_domain_unload(domainToUnload);
         }
       
         m_IsReloading = false;
+        mono_domain_set(m_MonoDomain, true);
+
         return true;
     }
 
@@ -98,8 +111,11 @@ namespace Aurora
         scriptInstance.m_FilePath = filePath;
 
         // Get assembly.
-        scriptInstance.m_Assembly = ScriptingUtilities::CompileAndLoadAssembly(m_MonoDomain, filePath, true);
+        auto pair = ScriptingUtilities::CompileAndLoadAssembly(m_MonoDomain, filePath, true);
       
+        scriptInstance.m_Assembly = pair.first;
+        scriptInstance.m_MonoImage = pair.second;
+
         if (!scriptInstance.m_Assembly)
         {
             AURORA_ERROR(LogLayer::Scripting, "Failed to load Assembly.");
@@ -107,7 +123,7 @@ namespace Aurora
         }
 
         // Get image from script assembly.
-        scriptInstance.m_MonoImage = mono_assembly_get_image(scriptInstance.m_Assembly);
+        // scriptInstance.m_MonoImage = mono_assembly_get_image(scriptInstance.m_Assembly);
         if (!scriptInstance.m_MonoImage)
         {
             AURORA_ERROR(LogLayer::Scripting, "Failed to retrieve Image from Assembly.");
@@ -155,17 +171,16 @@ namespace Aurora
         // Retrieve callbacks assembly.
         ScriptingUtilities::g_SettingsSubsystem = m_EngineContext->GetSubsystem<Settings>();
         const std::string callbacksScript = m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\AuroraEngine.cs";
-        MonoAssembly* callbacksAssembly = ScriptingUtilities::CompileAndLoadAssembly(monoDomain, callbacksScript, false);
+        auto pair = ScriptingUtilities::CompileAndLoadAssembly(monoDomain, callbacksScript, false);
 
-        if (!callbacksAssembly)
+        if (!pair.first)
         {
             AURORA_ERROR(LogLayer::Scripting, "Failed to load Callbacks Assembly.");
             return false;
         }
 
         // Retrieve image from script assembly.
-        MonoImage* callbacksImage = mono_assembly_get_image(callbacksAssembly);
-        if (!callbacksImage)
+        if (!pair.second)
         {
             AURORA_ERROR(LogLayer::Scripting, "Failed to retrieve Image from Callbacks Assembly.");
             return false;

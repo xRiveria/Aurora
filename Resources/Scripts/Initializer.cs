@@ -4,9 +4,7 @@ using AuroraEngine;
 // Main Class
 public class Initializer
 {
-    public float m_MyMumLOL = 6.0f;
-    public float m_MyMum = 6.0f;
-    public float m_Derpssss = 5.0f;
+    public float m_Derpy = 4.0f;
     public float m_Trains = 6.0f;
     public float m_Pokemon = 5.0f;
     public float m_Derp = 4.0f;
@@ -22,15 +20,13 @@ public class Initializer
         m_IsEnabled = true;
         m_PlayerName = "Bob";
         m_MovementSpeed = 5.0f;
-        Debug.Log("I Like Trains");
-        Debug.Log("I Like Doka");
-        Debug.Log("I Like Doka");
-        Debug.Log("I Like Doka");
+
+        Debug.Log(m_MovementSpeed);
     }
 
     public void Update(float deltaTime)
     {
-        Debug.Log(m_MovementSpeed);
+        // Debug.Log(m_MovementSpeed);
     }
 }
 

@@ -19,10 +19,10 @@ Textures:
     Texture_Name: dull-brass_metallic
     Texture_Path: Project\PBR Materials\Brass\dull-brass_metallic.png
   Texture_3:
-    Texture_Type: 16
-    Texture_Name: dull-brass_ao
-    Texture_Path: Project\PBR Materials\Brass\dull-brass_ao.png
-  Texture_4:
     Texture_Type: 8
     Texture_Name: dull-brass_roughness
     Texture_Path: Project\PBR Materials\Brass\dull-brass_roughness.png
+  Texture_4:
+    Texture_Type: 16
+    Texture_Name: dull-brass_ao
+    Texture_Path: Project\PBR Materials\Brass\dull-brass_ao.png

@@ -1,8 +1,28 @@
 Type: Material
-Albedo_Color: [0.400000006, 0.400000006, 0.400000006, 1]
-Roughness_Multiplier: 0.899999976
-Normal_Multiplier: 0
-Metallic_Multiplier: 0
+Albedo_Color: [1, 0.999989986, 0.999989986, 1]
+Roughness_Multiplier: 1
+Normal_Multiplier: 1
+Metallic_Multiplier: 1
 Occlusion_Multiplier: 0
 Textures:
-  Textures_Count: 0
+  Textures_Count: 5
+  Texture_0:
+    Texture_Type: 1
+    Texture_Name: Color File
+    Texture_Path: Project\PBR Materials\Fabric\Color File.jpg
+  Texture_1:
+    Texture_Type: 2
+    Texture_Name: Fabric060_1K_Normal
+    Texture_Path: Project\PBR Materials\Fabric\Fabric060_1K_Normal.jpg
+  Texture_2:
+    Texture_Type: 4
+    Texture_Name: ""
+    Texture_Path: ""
+  Texture_3:
+    Texture_Type: 16
+    Texture_Name: ""
+    Texture_Path: ""
+  Texture_4:
+    Texture_Type: 8
+    Texture_Name: Fabric060_1K_Roughness
+    Texture_Path: Project\PBR Materials\Fabric\Fabric060_1K_Roughness.jpg

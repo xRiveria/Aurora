@@ -87,7 +87,7 @@ namespace Aurora::ScriptingUtilities
         return result;
     }
 
-    static MonoAssembly* LoadAssembly(const std::string& filePath)
+    static std::pair<MonoAssembly*, MonoImage*> LoadAssembly(const std::string& filePath)
     {
         AURORA_INFO(LogLayer::Scripting, "Loading Assembly for: %s", filePath.c_str());
         const std::string dllPath = FileSystem::ReplaceExtension(filePath, ".dll");
@@ -101,21 +101,25 @@ namespace Aurora::ScriptingUtilities
         if (status != MONO_IMAGE_OK || image == 0)
         {
             AURORA_ERROR(LogLayer::Scripting, "Failed to load mono image from DLL file...");
-            return nullptr;
+            return std::pair(nullptr, nullptr);
         }
 
         // Create image from assembly.
-        MonoAssembly* assembly = mono_assembly_load_from_full(image, dllPath.c_str(), &status, false);
-        if (status != MONO_IMAGE_OK || image == 0)
+        //MonoAssembly* assembly = mono_image_get_assembly(image);
+        //if (assembly == NULL)
+        //{
+            MonoAssembly* assembly = mono_assembly_load_from_full(image, dllPath.c_str(), &status, false);
+        //}
+        if (status != MONO_IMAGE_OK || assembly == 0)
         {
             AURORA_ERROR(LogLayer::Scripting, "Failed to load mono image from DLL file...");
-            return nullptr;
+            return std::pair(nullptr, nullptr);
         }
 
-        return assembly;
+        return std::pair(assembly, image);
     }
 
-    inline MonoAssembly* CompileAndLoadAssembly(MonoDomain* domain, const std::string& scriptPath, bool isScript = true)
+    inline std::pair<MonoAssembly*, MonoImage*> CompileAndLoadAssembly(MonoDomain* domain, const std::string& scriptPath, bool isScript = true)
     {
         const std::string dllPath = FileSystem::ReplaceExtension(scriptPath, ".dll");
 
@@ -133,7 +137,7 @@ namespace Aurora::ScriptingUtilities
             if (!CompileScript(scriptPath, callbackScriptLocationWithDLL))
             {
                 AURORA_ERROR(LogLayer::Scripting, "Failed to compile script.");
-                return nullptr;
+                std::pair(nullptr, nullptr);
             }
         }
         else // We're loading our callback API.
@@ -142,7 +146,7 @@ namespace Aurora::ScriptingUtilities
             if (!CompileScript(scriptPath))
             {
                 AURORA_ERROR(LogLayer::Scripting, "Script compilation failed.");
-                return nullptr;
+                std::pair(nullptr, nullptr);
             }
         }
 

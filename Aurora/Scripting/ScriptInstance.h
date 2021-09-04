@@ -23,11 +23,19 @@ namespace Aurora
 
         void Reload(MonoDomain* monoDomain, EngineContext* engineContext)
         {
-            // Get assembly.
-            std::cout << &m_MonoImage << "\n";
-            std::cout << &m_Assembly << "\n";
+            mono_image_close(m_MonoImage);
+            mono_assembly_close(m_Assembly);
+            
+            m_MonoClass = nullptr;
+            m_MonoObject = nullptr;
+            m_MonoMethodStart = nullptr;
+            m_MonoMethodUpdate = nullptr;
 
-            m_Assembly = ScriptingUtilities::CompileAndLoadAssembly(monoDomain, m_FilePath, true);
+            // Get assembly.
+            auto pair = ScriptingUtilities::CompileAndLoadAssembly(monoDomain, m_FilePath, true);
+
+            m_Assembly = pair.first;
+            m_MonoImage = pair.second;
 
             if (!m_Assembly)
             {
@@ -36,14 +44,12 @@ namespace Aurora
             }
 
             // Get image from script assembly.
-            m_MonoImage = mono_assembly_get_image(m_Assembly);
+            // m_MonoImage = mono_assembly_get_image(m_Assembly);
             if (!m_MonoImage)
             {
                AURORA_ERROR(LogLayer::Scripting, "Failed to retrieve Image from Assembly.");
                return;
             }
-            std::cout << &m_MonoImage << "\n";
-            std::cout << &m_Assembly << "\n";
 
             // Get class.
             m_MonoClass = mono_class_from_name(m_MonoImage, "", FileSystem::GetFileNameWithoutExtensionFromFilePath(m_FilePath).c_str());
