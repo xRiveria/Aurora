@@ -2,6 +2,7 @@
 #include "../Math/Vector2.h"
 #include "../Math/Vector3.h"
 #include "../Math/Vector4.h"
+#include "../Learn/AuroraMath.h"
 
 using namespace Aurora::Math;
 
@@ -11,6 +12,9 @@ Vector3 m_PointC(1.0f, 1.0f, 1.0f);
 Vector4 m_PointD(1.0f, 1.0f, 1.0f, 1.0f);
 
 float m_Degrees = 90.0f;
+float m_CeilTest = 1.4f;
+float m_FloorTest = 3.4f;
+float m_PowerTestResult = 5.0f;
 float PI = 3.14159265359f;
 
 MathPlayground::MathPlayground(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
@@ -69,6 +73,39 @@ void MathPlayground::OnTickAlways()
         ImGui::Text("Radians: %f", m_Degrees * PI / 180.0f); // 180 degrees = PI Radians. Therefore 1 Degree = PI / 180.
         ImGui::Text("Cosine: %f", cos(m_Degrees * PI / 180.0f));
         ImGui::Text("Sine: %f", sin(m_Degrees * PI / 180.0f));
+    }
+
+    if (ImGui::CollapsingHeader("Utilities"))
+    {
+        ImGui::InputFloat("Floor: ", &m_FloorTest); ImGui::SameLine(); 
+        if (ImGui::Button("Compute Floor")) 
+        { 
+            m_FloorTest = AuroraMath::Floor(m_FloorTest); 
+        }
+
+        ImGui::InputFloat("Ceil: ", &m_CeilTest); 
+        ImGui::SameLine(); 
+        if (ImGui::Button("Compute Ceil")) 
+        { 
+            m_CeilTest = AuroraMath::Ceil(m_CeilTest); 
+        }
+
+        if (ImGui::Button("Compute Head Or Tail"))
+        {
+            AuroraMath::HeadOrTail();
+        }
+
+        ImGui::InputFloat("Test Value: ", &m_PowerTestResult);
+        ImGui::SameLine();
+        if (ImGui::Button("Compute Square")) // Good for measuring areas. Born out of measuring fields actually...
+        {
+            m_PowerTestResult = AuroraMath::Pow(m_PowerTestResult, 2);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Compute Cube")) // Good measure for volume of a geometry/liquid/gas.
+        {
+            m_PowerTestResult = AuroraMath::Pow(m_PowerTestResult, 3);
+        }
     }
 
     ImGui::End();

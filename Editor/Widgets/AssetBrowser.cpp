@@ -27,7 +27,21 @@ AssetBrowser::AssetBrowser(Editor * editorContext, Aurora::EngineContext * engin
 void AssetBrowser::OnTickVisible()
 {
     Aurora::AURORA_PROFILE_FUNCTION();
-    m_FileDialog->ShowDialog(&AssetBrowserGlobals::g_ShowFileDialogView);
+
+    ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY;
+
+    if (ImGui::BeginTable("AssetBrowser", 2, tableFlags))
+    {
+        ImGui::TableSetupColumn("DirectoryList", ImGuiTableColumnFlags_WidthStretch, 40.0f, 0);
+
+        ImGui::TableNextColumn();
+        m_FileDialog->ShowDialogDirectory();
+
+        ImGui::TableNextColumn();
+        m_FileDialog->ShowDialog(&AssetBrowserGlobals::g_ShowFileDialogView);
+
+        ImGui::EndTable();
+    }
 }
 
 void AssetBrowser::OnPathClicked(const std::string& filePath) const

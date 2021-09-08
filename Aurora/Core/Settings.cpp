@@ -31,6 +31,11 @@ namespace Aurora
 
     }
 
+    bool Settings::Initialize()
+    {
+        return true;
+    }
+
     void Settings::RegisterExternalLibrary(const std::string& libraryName, const std::string& libraryVersion, const std::string& libraryURL)
     {
         m_ExternalLibraries.emplace_back(libraryName, libraryVersion, libraryURL);

@@ -17,7 +17,7 @@ public:
         }
 
         // If the directory ends with a slash, remove it to simplify operations below.
-        if (directory.back() == '/')
+        if (directory.back() == '\\')
         {
             directory = directory.substr(0, directory.size() - 1);
         }
@@ -171,6 +171,7 @@ public:
 
     // Master that encomapsses ShowTop, Middle and Bottom UI.
     bool ShowDialog(bool* isVisible, std::string* directory = nullptr, std::string* filePath = nullptr);
+    void ShowDialogDirectory();
 
     // Callbacks
     void SetOnItemClickedCallback(const std::function<void(const std::string&)>& callback) { m_OnItemClickedCallback = callback; }
@@ -189,10 +190,13 @@ private:
     void OnItemDrag(FileDialogItem* item) const;
     void OnItemClick(FileDialogItem* item) const;
     void ItemContextMenu(FileDialogItem* item);
+    void AddDirectoryListItem(const std::string& filePath, bool isProjectRoot = false);
 
     // Misc
     bool DialogUpdateFromDirectory(const std::string& directoryPath);
     void EmptyAreaContextMenu();
+
+private:
 
     // Options
     /// Position
@@ -218,8 +222,8 @@ private:
     mutable uint32_t m_ContextMenuID;
     mutable EditorExtensions::DragDropPayload m_DragDropPayload;
     float m_OffsetBottom = 0.0f;
-    ImGuiTextFilter m_SearchFilter;
-    
+    ImGuiTextFilter m_SearchFilter; 
+
     std::vector<FileDialogItem> m_HierarchyItems;
     Aurora::Math::Vector2 m_HierarchyItemSize;
     Aurora::EngineContext* m_EngineContext;
@@ -227,8 +231,13 @@ private:
     FileDialogItem* m_CurrentlyRenamingItem = nullptr;
     char m_RenameBuffer[256];
 
+    // Directory List
+    bool m_ShowDirectoryList = true;
+    bool m_IsDirectoryListDirty = true;
+    std::vector<std::string> m_DirectoryList;
+    std::string m_CurrentlySelectedDirectoryItem = "";
+
     // Callbacks
     std::function<void(const std::string&)> m_OnItemClickedCallback;
     std::function<void(const std::string&)> m_OnItemDoubleClickedCallback;
-
 };

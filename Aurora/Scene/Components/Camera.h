@@ -40,6 +40,8 @@ namespace Aurora
         const XMVECTOR& GetCurrentLeftVector() { return m_CurrentLeftVector; }
         const XMVECTOR& GetCurrentRightVector() { return m_CurrentRightVector; }
 
+        XMFLOAT2 Project(XMVECTOR& worldPosition);
+
     public:
         XMMATRIX m_ViewMatrix;
         XMMATRIX m_ProjectionMatrix;

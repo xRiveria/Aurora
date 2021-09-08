@@ -6,6 +6,7 @@ enum RasterizerState_Types
 	RasterizerState_Shadow,
 	RasterizerState_Wireframe,
 	RasterizerState_CullBackWireframe,
+	RasterizerState_CullBackSolid,
 	RasterizerState_Sky,
 	RasterizerState_Types_Count
 };

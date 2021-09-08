@@ -12,6 +12,9 @@ namespace Aurora
         Settings(EngineContext* engineContext);
         ~Settings();
 
+        // Subsystem
+        bool Initialize() override;
+
         // Name
         void SetApplicationName(const std::string& applicationName) { m_ApplicationName = applicationName; }
         std::string& GetApplicationName() { return m_ApplicationName; }
@@ -24,8 +27,8 @@ namespace Aurora
         void AddResourceDirectory(ResourceDirectory resourceType, const std::string& directoryPath);
         void SetResourceDirectory(ResourceDirectory resourceDirectory, const std::string& directoryPath);
         std::string GetResourceDirectory(ResourceDirectory resourceDirectory);
-        std::unordered_map<ResourceDirectory, std::string>& GetResourceDirectories() { return m_ResourceDirectories; }
         std::string GetResourceDirectory() const { return "Resources"; }
+        std::unordered_map<ResourceDirectory, std::string>& GetResourceDirectories() { return m_ResourceDirectories; }
 
         // Project Directories
         void SetProjectDirectory(const std::string& directoryPath);
@@ -34,7 +37,6 @@ namespace Aurora
 
     private:
         std::string m_ApplicationName = "Application";
-
         Math::Vector2 m_Resolution_Output = Math::Vector2::Zero;
 
         std::string m_ProjectDirectory;

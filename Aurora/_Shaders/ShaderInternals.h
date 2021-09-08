@@ -89,6 +89,8 @@ CBUFFER(ConstantBufferData_Camera, CBSLOT_RENDERER_CAMERA)
 
     float4x4 g_Camera_View;
     float4x4 g_Camera_Projection;
+    float4x4 g_OrthographicProjection;
+    float4x4 g_OrthographicViewProjection;
 
     float g_RenderItem; // 0 skybox.
     float g_Light_Bias;

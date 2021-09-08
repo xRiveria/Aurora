@@ -14,23 +14,19 @@ namespace Aurora
 
     Scripting::~Scripting()
     {
-        /*
         if (m_ScriptDomain)
         {
             MonoObject* exception = nullptr;
             mono_domain_try_unload(m_ScriptDomain, &exception);
             m_ScriptDomain = nullptr;
         }
-        */
-        m_IsReloading = true;
-        mono_domain_set(m_MonoDomain, false);
-        mono_domain_unload(m_ScriptDomain);
 
-        if (m_MonoDomain)
-        {
-            mono_jit_cleanup(m_MonoDomain);
-            m_MonoDomain = nullptr;
-        }    
+
+        // if (m_MonoDomain)
+        // {
+        //    mono_jit_cleanup(m_MonoDomain);
+        //    m_MonoDomain = nullptr;
+        // }    
     }
 
     bool Scripting::Initialize()
@@ -48,7 +44,7 @@ namespace Aurora
         }
 
         mono_domain_set(m_MonoDomain, false);
-        mono_thread_set_main(mono_thread_current());
+        // mono_thread_set_main(mono_thread_current());
 
         m_EngineContext->GetSubsystem<Settings>()->RegisterExternalLibrary("Mono", "6.12.0.122", "https://www.mono-project.com");
 
@@ -80,17 +76,25 @@ namespace Aurora
             InvokeScriptStartMethod(&m_ScriptLibrary[i]);
         }
       
-        m_IsReloading = false;
         mono_domain_set(m_MonoDomain, true);
+
+        m_IsReloading = false;
 
         return true;
     }
 
     void Scripting::Tick(float deltaTime)
     {
-        for (int i = 0; i < m_ScriptLibrary.size(); i++)
+        if (!m_IsReloading)
         {
-            InvokeScriptUpdateMethod(&m_ScriptLibrary[i], deltaTime);       
+            for (int i = 0; i < m_ScriptLibrary.size(); i++)
+            {
+                InvokeScriptUpdateMethod(&m_ScriptLibrary[i], deltaTime);
+            }
+        }
+        else
+        {
+            return;
         }
     }
 
@@ -152,6 +156,8 @@ namespace Aurora
         scriptInstance.m_MonoMethodStart = ScriptingUtilities::GetMethod(scriptInstance.m_MonoImage, className + ":Start()");
         scriptInstance.m_MonoMethodUpdate = ScriptingUtilities::GetMethod(scriptInstance.m_MonoImage, className + ":Update(single)");
 
+        mono_runtime_object_init(scriptInstance.m_MonoObject);
+
         InvokeScriptStartMethod(&scriptInstance);
        
         /// Entity
@@ -194,30 +200,40 @@ namespace Aurora
 
     bool Scripting::InvokeScriptStartMethod(const ScriptInstance* scriptInstance)
     {
-        if (!scriptInstance->m_MonoMethodStart || !scriptInstance->m_MonoObject)
+        if (!m_IsReloading)
         {
-            AURORA_ERROR(LogLayer::Serialization, "Failed to invoke Start() method for Script.");
-            return false;
+            if (!scriptInstance->m_MonoMethodStart || !scriptInstance->m_MonoObject)
+            {
+                AURORA_ERROR(LogLayer::Serialization, "Failed to invoke Start() method for Script.");
+                return false;
+            }
+
+            mono_runtime_invoke(scriptInstance->m_MonoMethodStart, scriptInstance->m_MonoObject, nullptr, nullptr);
+            return true;
         }
 
-        mono_runtime_invoke(scriptInstance->m_MonoMethodStart, scriptInstance->m_MonoObject, nullptr, nullptr);
-        return true;
+        return false;
     }
 
     bool Scripting::InvokeScriptUpdateMethod(const ScriptInstance* scriptInstance, float deltaTime)
     {
-        if (!scriptInstance->m_MonoMethodUpdate || !scriptInstance->m_MonoObject)
+        if (!m_IsReloading)
         {
-            AURORA_ERROR(LogLayer::Serialization, "Failed to invoke Update() method for Script.");
-            return false;
+            if (!scriptInstance->m_MonoMethodUpdate || !scriptInstance->m_MonoObject)
+            {
+                AURORA_ERROR(LogLayer::Serialization, "Failed to invoke Update() method for Script.");
+                return false;
+            }
+
+            // Set method argument. https://www.mono-project.com/docs/advanced/embedding/
+            void* arguments[1];
+            arguments[0] = &deltaTime;
+
+            // Execute. If the method is static, we use NULL as the second argument, otherwise, we use a pointer to the object instance, and pass our argument in the 3rd parameter.
+            mono_runtime_invoke(scriptInstance->m_MonoMethodUpdate, scriptInstance->m_MonoObject, arguments, nullptr);
+            return true;
         }
 
-        // Set method argument. https://www.mono-project.com/docs/advanced/embedding/
-        void* arguments[1];
-        arguments[0] = &deltaTime;
-
-        // Execute. If the method is static, we use NULL as the second argument, otherwise, we use a pointer to the object instance, and pass our argument in the 3rd parameter.
-        mono_runtime_invoke(scriptInstance->m_MonoMethodUpdate, scriptInstance->m_MonoObject, arguments, nullptr);
-        return true;
+        return false;
     }
 }

@@ -171,6 +171,11 @@ namespace Aurora
             XMStoreFloat4x4(&constantBuffer.g_Camera_View, camera->GetComponent<Camera>()->GetViewMatrix());
             XMStoreFloat4x4(&constantBuffer.g_Camera_Projection, camera->GetComponent<Camera>()->GetProjectionMatrix());
             XMStoreFloat4x4(&constantBuffer.g_Camera_InverseViewProjection, XMMatrixInverse(nullptr, camera->GetComponent<Camera>()->GetViewProjectionMatrix()));
+            XMStoreFloat4x4(&constantBuffer.g_OrthographicProjection, XMMatrixOrthographicLH(m_RenderWidth, m_RenderHeight, 0.0f, 1000.0f));
+            XMFLOAT3 eyePosition = XMFLOAT3(0.0f, 0.0f, -0.3f);
+            XMFLOAT3 forward = XMFLOAT3(0.0f, 0.0f, 1.0f);
+            XMFLOAT3 upward = XMFLOAT3(0.0f, 1.0f, 0.0f);
+            XMStoreFloat4x4(&constantBuffer.g_OrthographicViewProjection, XMMatrixLookAtLH(XMLoadFloat3(&eyePosition), XMLoadFloat3(&forward), XMLoadFloat3(&upward)) * XMLoadFloat4x4(&constantBuffer.g_OrthographicProjection));
         }
         constantBuffer.g_Light_Bias = m_LightBias;
         // XMStoreFloat3(&constantBuffer.g_Camera_Position, camera->GetComponent<Camera>()->m_Position);
@@ -346,6 +351,7 @@ namespace Aurora
         m_Skybox->Render();
         DrawDebugWorld(m_Camera);
         Pass_Lines();
+        Pass_Icons();
 
         m_DeviceContext->ResolveFramebuffer(m_DeviceContext->m_MultisampleFramebuffer.get(), m_DeviceContext->m_ResolveFramebuffer.get(), DXGI_FORMAT_R16G16B16A16_FLOAT);
 
@@ -508,6 +514,12 @@ namespace Aurora
         DX11_Utility::DX11_VertexShaderPackage* vertexInternal = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_ColorShaderVertex.m_InternalState.get());
         m_ColorInputLayout = m_DeviceContext->CreateInputLayout(RHI_Vertex_Type::VertexType_PositionColor, vertexInternal->m_ShaderCode);
 
+        LoadShader(RHI_Shader_Stage::Vertex_Shader, m_QuadVertexShader, "QuadVS.hlsl");
+        LoadShader(RHI_Shader_Stage::Pixel_Shader, m_CopyBilinearPixelShader, "Copy.hlsl");
+
+        DX11_Utility::DX11_VertexShaderPackage* vertexSecondInternal = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_QuadVertexShader.m_InternalState.get());
+        m_PixelInputLayout = m_DeviceContext->CreateInputLayout(RHI_Vertex_Type::VertexType_PositionUV, vertexSecondInternal->m_ShaderCode);
+
         AURORA_INFO(LogLayer::Graphics, "Successfully created Color Shaders.");
     }
 
@@ -555,6 +567,83 @@ namespace Aurora
             }
         }
     }
+
+
+
+    void Renderer::Pass_Icons()
+    {
+        Stopwatch stopwatch("Icons Pass", true);
+
+        // Render Queue Feature?
+        auto& sceneEntities = m_EngineContext->GetSubsystem<World>()->EntityGetAll();
+
+        for (const auto& entity : sceneEntities)
+        {
+            if (!entity->GetComponent<Light>())
+            {
+                continue;
+            }
+
+            // Set render state.
+            m_DeviceContext->BindRasterizerState(RasterizerState_Types::RasterizerState_CullBackSolid);
+            m_GraphicsDevice->m_DeviceContextImmediate->OMSetDepthStencilState(m_DeviceContext->m_DepthStencilState_OffOff.Get(), 0);
+
+            const float blendFactor = 0.0f;
+            std::array<float, 4> blend_Factor = { blendFactor, blendFactor, blendFactor, blendFactor };
+            m_GraphicsDevice->m_DeviceContextImmediate->OMSetBlendState(m_DeviceContext->m_BlendState_Alpha.Get(), blend_Factor.data(), 0xffffffff);
+            m_DeviceContext->BindPrimitiveTopology(RHI_Primitive_Topology::TriangleList);
+
+            // Light Properties.
+            Light* light = entity->GetComponent<Light>();
+            XMVECTOR lightWorldPosition = XMLoadFloat3(&light->GetEntity()->GetTransform()->m_TranslationLocal);
+            XMVECTOR cameraWorldPosition = XMLoadFloat3(&m_Camera->GetTransform()->m_TranslationLocal);
+            XMVECTOR cameraDirectionToLight = XMVector3Normalize(lightWorldPosition - cameraWorldPosition);
+
+            /// Frustrum calling in the future.
+            // Compute light screen space position and scale (based on distance from the camera).
+            XMFLOAT2 lightPositionScreenSpace = m_Camera->GetComponent<Camera>()->Project(lightWorldPosition);
+            XMFLOAT3 length;
+            XMStoreFloat3(&length, XMVector3Length(cameraWorldPosition - lightWorldPosition));
+            const float distance = length.x;
+            float gizmosScale = m_GizmoSizeMax / distance;
+            gizmosScale = Math::Helper::Clamp(gizmosScale, m_GizmoSizeMin, m_GizmoSizeMax);
+            
+            // Select texture based on light type.
+            std::shared_ptr<DX11_Texture> lightTexture = m_DefaultGizmosLightTexture;
+
+            // Construct rectangle.
+            const float textureWidth = lightTexture->GetWidth() * gizmosScale;
+            const float textureHeight = lightTexture->GetHeight() * gizmosScale;
+            Math::Rectangle rectangle = Math::Rectangle
+            (
+                lightPositionScreenSpace.x - textureWidth * 0.5f,
+                lightPositionScreenSpace.y - textureHeight * 0.5f,
+                lightPositionScreenSpace.x + textureWidth,
+                lightPositionScreenSpace.y + textureHeight
+            );
+
+            if (rectangle != m_GizmosLightRect)
+            {
+                m_GizmosLightRect = rectangle;
+                m_GizmosLightRect.CreateBuffers(this);
+            }
+
+            // Update buffer.
+            ID3D11VertexShader* shaderInternalVS = static_cast<DX11_Utility::DX11_VertexShaderPackage*>(m_QuadVertexShader.m_InternalState.get())->m_Resource.Get();
+            m_GraphicsDevice->m_DeviceContextImmediate->VSSetShader(shaderInternalVS, nullptr, 0);
+            ID3D11PixelShader* shaderInternalPS = static_cast<DX11_Utility::DX11_PixelShaderPackage*>(m_CopyBilinearPixelShader.m_InternalState.get())->m_Resource.Get();
+            m_GraphicsDevice->m_DeviceContextImmediate->PSSetShader(shaderInternalPS, nullptr, 0);
+
+            m_DeviceContext->BindInputLayout(m_PixelInputLayout.get());
+
+            m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(10, 1, m_DefaultGizmosLightTexture->GetShaderResourceView().GetAddressOf());
+
+            m_DeviceContext->BindIndexBuffer(m_GizmosLightRect.GetIndexBuffer());
+            m_DeviceContext->BindVertexBuffer(m_GizmosLightRect.GetVertexBuffer());
+            m_GraphicsDevice->m_DeviceContextImmediate->Draw(m_GizmosLightRect.GetVertexBuffer()->GetVertexCount(), 0);
+        }
+    }
+
 
     void Renderer::TickPrimitives(const float deltaTime)
     {

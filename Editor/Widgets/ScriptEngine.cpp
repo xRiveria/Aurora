@@ -69,10 +69,10 @@ void ScriptEngine::OnTickVisible()
                             //memset(stringBuffer, 0, sizeof(stringBuffer));
                             //strcpy_s(stringBuffer, script->ReadFieldString(fieldName).c_str());
 
-                           // if (ImGui::InputText(fieldName, stringBuffer, sizeof(stringBuffer)))
+                            //if (ImGui::InputText(fieldName, stringBuffer, sizeof(stringBuffer)))
                             //{
-                           //     script->SetFieldString(stringBuffer, fieldName);
-                           // }
+                            //    script->SetFieldString(stringBuffer, fieldName);
+                            //}
                         }
                         break;
 

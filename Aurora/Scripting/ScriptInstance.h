@@ -25,7 +25,6 @@ namespace Aurora
         {
             mono_image_close(m_MonoImage);
             mono_assembly_close(m_Assembly);
-            
             m_MonoClass = nullptr;
             m_MonoObject = nullptr;
             m_MonoMethodStart = nullptr;
@@ -69,9 +68,12 @@ namespace Aurora
                 return;
             }
 
+
             // Get methods.
             m_MonoMethodStart = ScriptingUtilities::GetMethod(m_MonoImage, FileSystem::GetFileNameWithoutExtensionFromFilePath(m_FilePath) + ":Start()");
             m_MonoMethodUpdate = ScriptingUtilities::GetMethod(m_MonoImage, FileSystem::GetFileNameWithoutExtensionFromFilePath(m_FilePath) + ":Update(single)");
+            
+            mono_runtime_object_init(m_MonoObject);
             // m_IsReloading = false;
         }
 

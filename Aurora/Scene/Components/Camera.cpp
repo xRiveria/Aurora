@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include "../Input/Input.h"
 #include "../Entity.h"
+#include "../Renderer/Renderer.h"
 
 namespace Aurora
 {
@@ -203,5 +204,22 @@ namespace Aurora
         GetEntity()->m_Transform->m_RotationInRadians.z += rotationInRadians.z;
 
         ComputeViewMatrix();
+    }
+    XMFLOAT2 Camera::Project(XMVECTOR& worldPosition)
+    {
+        // Convert world space position to clip space position.
+        XMVECTOR world_Position = XMVector3Transform(worldPosition, m_ViewMatrix * m_ProjectionMatrix);
+
+        XMFLOAT3 nativeWorldPosition;
+        XMStoreFloat3(&nativeWorldPosition, world_Position);
+
+        // Convert clip space position to screen space position.
+        XMFLOAT2 positionScreen;
+        float currentWidth = m_EngineContext->GetSubsystem<Renderer>()->m_RenderWidth;
+        float currentHeight = m_EngineContext->GetSubsystem<Renderer>()->m_RenderHeight;
+        positionScreen.x = (nativeWorldPosition.x / nativeWorldPosition.z) * (0.5f * currentWidth) + (0.5f * currentWidth);
+        positionScreen.y = (nativeWorldPosition.y / nativeWorldPosition.z) * -(0.5f * currentHeight) + (0.5f * currentHeight);
+
+        return positionScreen;
     }
 }

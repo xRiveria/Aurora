@@ -23,6 +23,8 @@ namespace Aurora
     {
         CreateSwapchain();
         CreateRasterizerStates();
+        CreateDepthStencilStates();
+        CreateBlendStates();
     }
 
     void DX11_Context::CreateSwapchain()
@@ -85,6 +87,45 @@ namespace Aurora
         rasterizerStateDescription.CullMode = D3D11_CULL_NONE;
         rasterizerStateDescription.AntialiasedLineEnable = false;
         m_RasterizerStates[RasterizerState_Types::RasterizerState_Shadow] = CreateRasterizerState(rasterizerStateDescription);
+
+        rasterizerStateDescription.FrontCounterClockwise = false;
+        rasterizerStateDescription.CullMode = D3D11_CULL_BACK;
+        rasterizerStateDescription.FillMode = D3D11_FILL_SOLID;
+        rasterizerStateDescription.DepthClipEnable = true;
+        rasterizerStateDescription.ScissorEnable = true;
+        rasterizerStateDescription.AntialiasedLineEnable = false;
+
+        m_RasterizerStates[RasterizerState_Types::RasterizerState_CullBackSolid] = CreateRasterizerState(rasterizerStateDescription);
+    }
+
+    void DX11_Context::CreateDepthStencilStates()
+    {
+        D3D11_DEPTH_STENCIL_DESC depthStencilStateDescription = {};
+        depthStencilStateDescription.DepthEnable = false;
+        depthStencilStateDescription.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+        depthStencilStateDescription.DepthFunc = D3D11_COMPARISON_NEVER;
+        depthStencilStateDescription.StencilEnable = false;
+        depthStencilStateDescription.StencilReadMask = 0;
+        depthStencilStateDescription.StencilWriteMask = 0;
+        
+        m_Devices->m_Device->CreateDepthStencilState(&depthStencilStateDescription, m_DepthStencilState_OffOff.GetAddressOf());
+    }
+
+    void DX11_Context::CreateBlendStates()
+    {
+        D3D11_BLEND_DESC blendStateDescription = {};
+        blendStateDescription.RenderTarget[0].BlendEnable = true;
+        blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;       // Blend factor is A, A, A, A.
+        blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;  // Blend factor is 1 - A, 1 - A, 1 - A, 1 - A.
+        blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;        // Blend factor is 1, 1, 1, 1.
+        blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;       // Blend factor is 1, 1, 1, 1.
+        blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        blendStateDescription.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+        blendStateDescription.AlphaToCoverageEnable = false;
+        blendStateDescription.IndependentBlendEnable = false;
+
+        m_Devices->m_Device->CreateBlendState(&blendStateDescription, m_BlendState_Alpha.GetAddressOf());
     }
 
     void DX11_Context::BindVertexBuffer(DX11_VertexBuffer* vertexBuffer)

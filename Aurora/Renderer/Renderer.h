@@ -11,6 +11,7 @@
 #include "Material.h"
 #include "../Graphics/DX11_Refactored/DX11_Context.h"
 #include "../Graphics/DX11_Refactored/DX11_Texture.h"
+#include "../Math/XM_Utilities/Rectangle.h"
 
 using namespace DirectX;
 
@@ -49,8 +50,11 @@ namespace Aurora
         
         bool Initialize() override;
         void Tick(float deltaTime) override;
+
+        // ===========================
         void RenderScene();
         void DrawDebugWorld(Entity* entity);
+        void Pass_Icons();
 
         void Present();
         void CreateTexture();
@@ -126,6 +130,13 @@ namespace Aurora
         // Default Textures
         ResourceCache* m_ResourceCache;
         std::shared_ptr<DX11_Texture> m_DefaultWhiteTexture;
+        const float m_GizmoSizeMax = 1.4f;
+        const float m_GizmoSizeMin = 0.1f;
+        Math::Rectangle m_GizmosLightRect;
+        RHI_Shader m_QuadVertexShader;
+        RHI_Shader m_CopyBilinearPixelShader;
+        std::shared_ptr<DX11_Texture> m_DefaultGizmosLightTexture;
+        std::shared_ptr<DX11_InputLayout> m_PixelInputLayout;
 
         // Entities
         std::vector<std::shared_ptr<Entity>> m_SceneEntities;

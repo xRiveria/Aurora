@@ -6,6 +6,7 @@
 #include "../Input/InputUtilities.h"
 #include <filesystem>
 #include "../Core/FileSystem.h"
+#include <regex>
 
 FileDialog::FileDialog(Aurora::EngineContext* engineContext, Editor* editorContext, bool isStandaloneWindow)
 {
@@ -69,6 +70,65 @@ bool FileDialog::ShowDialog(bool* isVisible, std::string* directory, std::string
     return m_SelectionMade;
 }
 
+void FileDialog::AddDirectoryListItem(const std::string& directoryListItem, bool isProjectRoot)
+{
+    ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanFullWidth;
+
+    // Flags - Has Children?
+    std::vector<std::string> childDirectories = Aurora::FileSystem::GetDirectoriesInDirectory(directoryListItem);
+    treeNodeFlags |= childDirectories.empty() ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_OpenOnArrow;
+
+    // Is Selected
+    if (m_CurrentlySelectedDirectoryItem == directoryListItem)
+    {
+        treeNodeFlags |= ImGuiTreeNodeFlags_Selected;
+    }
+
+    if (isProjectRoot)
+    {
+        treeNodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+    }
+
+    const bool isTreeNodeOpen = ImGui::TreeNodeEx(directoryListItem.c_str(), treeNodeFlags, isProjectRoot ? "Project" : Aurora::FileSystem::GetFileNameFromFilePath(directoryListItem).c_str());
+
+    // Detect useful states.
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) && ImGui::IsMouseClicked(0))
+    {
+        std::size_t slashPositionIndex = directoryListItem.find('/');
+
+        if (slashPositionIndex == std::string::npos)
+        {
+            m_IsDirty = m_NavigationContext.NavigateTo(directoryListItem);
+        }
+        else
+        {
+            std::string newString = std::regex_replace(directoryListItem, std::regex("/"), "\\");
+            m_IsDirty = m_NavigationContext.NavigateTo(newString);
+        }
+
+        m_CurrentlySelectedDirectoryItem = directoryListItem;
+    }
+
+    if (isTreeNodeOpen)
+    {
+        if (!childDirectories.empty())
+        {
+            for (int i = 0; i < childDirectories.size(); i++)
+            {
+                AddDirectoryListItem(childDirectories[i]);
+            }
+        }
+
+        // Pop if node is open.
+        ImGui::TreePop();
+    }
+}
+
+void FileDialog::ShowDialogDirectory()
+{
+    AddDirectoryListItem(m_EngineContext->GetSubsystem<Aurora::Settings>()->GetProjectDirectory(), true);
+}
+
 void FileDialog::CreateNewFolder(const std::string& filePath)
 {
     Aurora::FileSystem::CreateDirectory_(filePath);
@@ -79,6 +139,8 @@ void FileDialog::CreateNewFolder(const std::string& filePath)
         m_HierarchyItems.back().m_IsRenaming = true;
         m_CurrentlyRenamingItem = &m_HierarchyItems.back();
     }
+
+    m_IsDirectoryListDirty = true;
 }
 
 void FileDialog::CreateNewMaterial(const std::string& filePath)
@@ -641,6 +703,11 @@ void FileDialog::EmptyAreaContextMenu()
             }
 
             m_IsDirty = true;
+
+            if (m_CurrentlyRenamingItem->IsDirectory())
+            {
+                m_IsDirectoryListDirty = true;
+            }
         }
         else
         {

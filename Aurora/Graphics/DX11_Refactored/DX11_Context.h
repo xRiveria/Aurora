@@ -34,6 +34,8 @@ namespace Aurora
 
         void CreateSwapchain();
         void CreateRasterizerStates();
+        void CreateDepthStencilStates();
+        void CreateBlendStates();
         void ResizeBuffers();
 
         // ==== Vertex Buffers ====
@@ -90,6 +92,8 @@ namespace Aurora
         uint32_t m_RenderWidth = 1280, m_RenderHeight = 1080; // #
 
         std::shared_ptr<DX11_RasterizerState> m_RasterizerStates[RasterizerState_Types_Count]; // #
+        ComPtr<ID3D11DepthStencilState> m_DepthStencilState_OffOff;
+        ComPtr<ID3D11BlendState> m_BlendState_Alpha;
 
         std::shared_ptr<DX11_Framebuffer> m_MultisampleFramebuffer = nullptr;
         std::shared_ptr<DX11_Framebuffer> m_ResolveFramebuffer = nullptr;

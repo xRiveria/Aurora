@@ -75,6 +75,7 @@ namespace Aurora
     void Renderer::LoadDefaultTextures()
     {
         m_DefaultWhiteTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>("../Resources/Textures/Default/DefaultDisplay.png");
+        m_DefaultGizmosLightTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>("../Resources/Textures/Default/GizmosLight.png");
     }
 
     void Renderer::LoadShaders()
@@ -109,7 +110,7 @@ namespace Aurora
         LoadShader(RHI_Shader_Stage::Pixel_Shader, m_SimpleDepthShaderPS, "SimpleDepthPS.hlsl");
 
         LoadShader(RHI_Shader_Stage::Vertex_Shader, m_BloomVS, "BloomVS.hlsl");
-        LoadShader(RHI_Shader_Stage::Pixel_Shader, m_BloomPS, "BloomPS.hlsl");
+        LoadShader(RHI_Shader_Stage::Pixel_Shader, m_BloomPS, "BloomPS.hlsl");     
     }
 
     void Renderer::LoadStates()
@@ -240,7 +241,7 @@ namespace Aurora
         RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead] = depthStencilState;
 
         RHI_BlendState blendState;
-        blendState.m_RenderTarget[0].m_IsBlendingEnabled = false;
+        blendState.m_RenderTarget[0].m_IsBlendingEnabled = true;
         blendState.m_RenderTarget[0].m_SourceBlendFactor = Blend_Factor::Blend_Source_Alpha;
         blendState.m_RenderTarget[0].m_DestinationBlendFactor = Blend_Factor::Blend_Inverse_Source_Alpha;
         blendState.m_RenderTarget[0].m_BlendOperation = Blend_Operation::Blend_Operation_Maximum;
