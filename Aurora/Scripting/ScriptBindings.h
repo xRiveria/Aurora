@@ -11,7 +11,7 @@ namespace Aurora::ScriptBindings
     // static void LogWarning(const std::string& logMessage);
     // static void LogError(const std::string& logMessage);   
 
-    static void RegisterMonoCallbacks(EngineContext* engineContext)
+    static void RegisterMonoCallbacks()
     {
         mono_add_internal_call("AuroraEngine.Debug::Log(single,AuroraEngine.DebugType)", &Aurora::ScriptBindings::LogFloat);
         mono_add_internal_call("AuroraEngine.Debug::Log(string,AuroraEngine.DebugType)", &Aurora::ScriptBindings::LogString);

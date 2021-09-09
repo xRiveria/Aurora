@@ -2,6 +2,7 @@
 #include "../Scripting/Scripting.h"
 #include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
+#include "Settings.h"
 
 ScriptEngine::ScriptEngine(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
@@ -13,10 +14,10 @@ void ScriptEngine::OnTickVisible()
 {
     if (ImGui::Button("Hot Reload"))
     {
-        m_ScriptingSubsystem->HotReload();
+        m_ScriptingSubsystem->ReloadAssembly(m_EngineContext->GetSubsystem<Aurora::Settings>()->GetResourceDirectory(Aurora::ResourceDirectory::Scripts) + "\\Initializer.dll");
     }
 
-
+    /*
     if (m_ScriptingSubsystem->m_IsReloading)
     {
         return;
@@ -85,4 +86,5 @@ void ScriptEngine::OnTickVisible()
             }
         }
     }
+    */
 }

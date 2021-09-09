@@ -7,8 +7,6 @@
 
 namespace Aurora::ScriptingUtilities
 {
-    static Settings* g_SettingsSubsystem = nullptr;
-
     static std::string ExecuteCommand(const char* command)
     {
         std::array<char, 1024> buffer;
@@ -28,10 +26,10 @@ namespace Aurora::ScriptingUtilities
         return result;
     }
 
-    static bool CompileScript(const std::string& scriptPath, const std::string& dllReference = "")
+    static bool CompileScript(const std::string& scriptPath, const std::string& dllReference = "", Settings* settingsSubsystem = nullptr)
     {
         // Get Paths
-        const std::string scriptDirectory = g_SettingsSubsystem->GetResourceDirectory(ResourceDirectory::Scripts) + "\\";
+        const std::string scriptDirectory = settingsSubsystem->GetResourceDirectory(ResourceDirectory::Scripts) + "\\";
         const std::string scriptCompiler = scriptDirectory + "mono\\Roslyn\\csc.exe";
 
         // Compile Script
@@ -64,7 +62,7 @@ namespace Aurora::ScriptingUtilities
             else
             {
                 AURORA_ERROR(LogLayer::Scripting, line);
-            }     
+            }
         }
 
         if (compilationResult)
@@ -74,7 +72,9 @@ namespace Aurora::ScriptingUtilities
 
         return true;
     }
+}
 
+    /*
     static std::vector<char> ReadFile(const std::string& filePath)
     {
         std::ifstream myfile(filePath.c_str(), std::ios::binary | std::ios::ate);
@@ -177,7 +177,7 @@ namespace Aurora::ScriptingUtilities
 
             return assembly;
         }
-        */
+
     }
 
 
@@ -202,3 +202,4 @@ namespace Aurora::ScriptingUtilities
         return monoMethod;
     }
 }
+*/

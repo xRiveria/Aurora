@@ -2,80 +2,45 @@
 #include "../Log/Log.h"
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/object.h>
+#include "Scripting.h"
 #include "ScriptingUtilities.h"
 
 namespace Aurora
 {
+    struct ScriptInstanceData
+    {
+        std::string m_FullReferralName;             // ScriptNamespace::ClassName
+        std::string m_ClassName;                    // ClassName
+        std::string m_NamespaceName;                // ScriptNamespace
+
+        // Default Methods - These are guaranteed to exist with every script.
+        MonoClass* m_Class = nullptr;               // Retrieves the class.
+        MonoMethod* m_OnStartMethod = nullptr;
+        MonoMethod* m_OnUpdateMethod = nullptr;
+
+        void InitializeClassMethods(MonoImage* monoImage)
+        {
+            m_OnStartMethod = Scripting::GetMonoMethod(monoImage, m_FullReferralName + ":OnStart()");
+            m_OnUpdateMethod = Scripting::GetMonoMethod(monoImage, m_FullReferralName + ":OnUpdate(single)");
+        }
+    };
+
     struct ScriptInstance
     {
-        MonoAssembly* m_Assembly = nullptr;   // Assemblies are essentially compiled code that can be executed by the CLR. It is a collection of types and resources that are built to work together and form a logical unit of functionality.
-        MonoImage* m_MonoImage   = nullptr;   // Images contain all functions and classes within the Assembly.
-        MonoClass* m_MonoClass   = nullptr;   // Retrieves the class.
-        MonoObject* m_MonoObject = nullptr;   // Pointer to the created class instance.
-        
-        // All scripts contain a Start() and Update() method.
-        MonoMethod* m_MonoMethodStart  = nullptr;
-        MonoMethod* m_MonoMethodUpdate = nullptr;
-
-        // State
-        // bool m_IsReloading = false;
-        std::string m_FilePath = "";
-
-        void Reload(MonoDomain* monoDomain, EngineContext* engineContext)
+        std::string m_ScriptFilePath;
+        uint32_t m_MonoGCHandle = 0; // Mono Object Handle.
+        MonoObject* GetInstance()
         {
-            mono_image_close(m_MonoImage);
-            mono_assembly_close(m_Assembly);
-            m_MonoClass = nullptr;
-            m_MonoObject = nullptr;
-            m_MonoMethodStart = nullptr;
-            m_MonoMethodUpdate = nullptr;
-
-            // Get assembly.
-            auto pair = ScriptingUtilities::CompileAndLoadAssembly(monoDomain, m_FilePath, true);
-
-            m_Assembly = pair.first;
-            m_MonoImage = pair.second;
-
-            if (!m_Assembly)
-            {
-                AURORA_ERROR(LogLayer::Scripting, "Failed to load Assembly.");
-                return;
-            }
-
-            // Get image from script assembly.
-            // m_MonoImage = mono_assembly_get_image(m_Assembly);
-            if (!m_MonoImage)
-            {
-               AURORA_ERROR(LogLayer::Scripting, "Failed to retrieve Image from Assembly.");
-               return;
-            }
-
-            // Get class.
-            m_MonoClass = mono_class_from_name(m_MonoImage, "", FileSystem::GetFileNameWithoutExtensionFromFilePath(m_FilePath).c_str());
-            if (!m_MonoClass)
-            {
-                mono_image_close(m_MonoImage);
-                AURORA_ERROR(LogLayer::Scripting, "Failed to retrieve class.");
-                return;
-            }
-
-            // Create class instance.
-            m_MonoObject = mono_object_new(monoDomain, m_MonoClass);
-            if (!m_MonoObject)
-            {
-                mono_image_close(m_MonoImage);
-                AURORA_ERROR(LogLayer::Scripting, "Failed to create class instance.");
-                return;
-            }
-
-
-            // Get methods.
-            m_MonoMethodStart = ScriptingUtilities::GetMethod(m_MonoImage, FileSystem::GetFileNameWithoutExtensionFromFilePath(m_FilePath) + ":Start()");
-            m_MonoMethodUpdate = ScriptingUtilities::GetMethod(m_MonoImage, FileSystem::GetFileNameWithoutExtensionFromFilePath(m_FilePath) + ":Update(single)");
-            
-            mono_runtime_object_init(m_MonoObject);
-            // m_IsReloading = false;
+            AURORA_ASSERT(m_MonoGCHandle, "Script instance has not been instantiated.");
+            return mono_gchandle_get_target(m_MonoGCHandle); // GC handles are used to keep references to managed objects in unmanaged space and prevents them from being disposed.
         }
+
+        ScriptInstanceData* m_ScriptInstanceData;
+    };
+}
+
+
+        /*
 
         template<typename T>
         T ReadFieldValue(const std::string& valueName)
@@ -125,4 +90,6 @@ namespace Aurora
             }
         }
     };
-}
+
+    
+    */

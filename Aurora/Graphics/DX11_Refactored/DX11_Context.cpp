@@ -77,6 +77,8 @@ namespace Aurora
 
         m_RasterizerStates[RasterizerState_Types::RasterizerState_Sky] = CreateRasterizerState(rasterizerStateDescription);
 
+        // =================
+
         rasterizerStateDescription.FillMode = D3D11_FILL_WIREFRAME;
         m_RasterizerStates[RasterizerState_Types::RasterizerState_Wireframe] = CreateRasterizerState(rasterizerStateDescription);
 
