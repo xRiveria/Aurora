@@ -4,8 +4,8 @@
 #include "ScriptingUtilities.h"
 #include <mono/metadata/object.h>
 #include <mono/metadata/threads.h>
-#include "ScriptInstance.h"
-
+#include <mono/metadata/attrdefs.h>
+#include "../Scene/World.h"
 
 namespace Aurora
 { 
@@ -25,8 +25,39 @@ namespace Aurora
     static bool s_PostLoadCleanup = false;
 
     // Data
-    static std::vector<ScriptInstance> m_ScriptInstanceLibrary;
-    static std::string m_DefaultScriptNamespace = "AuroraEngine";
+    static std::vector<ScriptInstanceData> m_ScriptInstanceLibrary;
+    static std::unordered_map<std::string, ScriptClassData> s_ScriptClassMap;
+    ScriptMap Scripting::s_ScriptInstanceMap;
+
+    static std::string m_DefaultScriptNamespace = "Aurora";
+
+    FieldType GetAuroraFieldType(MonoType* monoType)
+    {
+        int typeInternal = mono_type_get_type(monoType);
+
+        switch (typeInternal)
+        {
+        case MONO_TYPE_R4: return FieldType::Float;
+        case MONO_TYPE_I4: return FieldType::Integer;
+        case MONO_TYPE_U4: return FieldType::UnsignedInteger;
+        case MONO_TYPE_STRING: return FieldType::String;
+        case MONO_TYPE_CLASS:
+        {
+            /// Class Implementations
+            break;
+        }
+
+        case MONO_TYPE_VALUETYPE:
+        {
+            char* typeName = mono_type_get_name(monoType);
+            if (strcmp(typeName, "Aurora.Vector2") == 0) { return FieldType::Vector2; }
+            if (strcmp(typeName, "Aurora.Vector3") == 0) { return FieldType::Vector3; }
+            if (strcmp(typeName, "Aurora.Vector4") == 0) { return FieldType::Vector4; }
+        }
+        }
+
+        return FieldType::None;
+    }
 
     Scripting::Scripting(EngineContext* engineContext) : ISubsystem(engineContext)
     {
@@ -41,13 +72,6 @@ namespace Aurora
             mono_domain_try_unload(m_ScriptDomain, &exception);
             m_ScriptDomain = nullptr;
         }
-
-
-        // if (m_MonoDomain)
-        // {
-        //    mono_jit_cleanup(m_MonoDomain);
-        //    m_MonoDomain = nullptr;
-        // }    
     }
 
     bool Scripting::Initialize()
@@ -66,13 +90,12 @@ namespace Aurora
 
         m_EngineContext->GetSubsystem<Settings>()->RegisterExternalLibrary("Mono", "6.12.0.122", "https://www.mono-project.com");
 
-        // Initialize Runtime Assembly
-        LoadAuroraRuntimeAssembly(m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\AuroraEngine.dll");
-
-        // Manual loading for now.
         s_EngineContext = m_EngineContext;
-        LoadApplicationAssembly(m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\Initializer.dll");
-        InitializeScriptInstance(m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\Initializer.cs");
+
+        // Initialize Runtime Assembly
+        LoadAuroraRuntimeAssembly(m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\AuroraScript_Core.dll");
+        // Initialize Application Assembly
+        LoadApplicationAssembly(m_EngineContext->GetSubsystem<Aurora::Settings>()->GetResourceDirectory(Aurora::ResourceDirectory::Scripts) + "\\Sandbox.dll");
 
         return true;     
     }
@@ -131,7 +154,7 @@ namespace Aurora
         {
             s_ApplicationAssembly = nullptr;
             s_ApplicationAssemblyImage = nullptr;
-            return ReloadAssembly(assemblyPath);
+            // return ReloadAssembly(assemblyPath);
         }
 
         MonoAssembly* applicationAssembly = LoadMonoAssembly(assemblyPath);
@@ -170,48 +193,180 @@ namespace Aurora
             return false;
         }
 
-        InitializeScriptInstance(s_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\Initializer.cs");
+        if (s_ScriptInstanceMap.size())
+        {
+            const uint32_t sceneID = 0;
+            World* worldSubsystem = s_EngineContext->GetSubsystem<World>();
+            if (const auto& scriptInstanceMap = s_ScriptInstanceMap.find(sceneID); scriptInstanceMap != s_ScriptInstanceMap.end())
+            {
+                for (auto& [entityID, scriptInstance] : scriptInstanceMap->second)
+                {
+                    if (Entity* entity = worldSubsystem->GetEntityByID(entityID).get())
+                    {
+                        InitializeScriptInstance(entity->GetComponent<Script>());
+                    }
+                }
+            }
+        }
         
         return true;
     }
 
-    static bool isLoaded = false;
-
-    bool Scripting::InitializeScriptInstance(const std::string& filePath)
+    void Scripting::ShutdownScriptInstance(Script* scriptComponent)
     {
-        // if (!m_IsAssemblyAPICompiled)
-        // {
-        //    m_IsAssemblyAPICompiled = CompileAssemblyAPI(m_MonoDomain);
-        //    if (!m_IsAssemblyAPICompiled)
-        //    {
-        //        AURORA_ERROR(LogLayer::Scripting, "Failed to load Assembly API.");
-        //        return false;
-        //    }
-        // }
-        ScriptingUtilities::CompileScript(s_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\Initializer.cs", s_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\AuroraEngine.dll", s_EngineContext->GetSubsystem<Settings>());
+        // Clear entity instance data.
 
-        ScriptInstanceData scriptInstanceData;
-        /// Some scripts might not have namespaces. Lets take note of that.
-        scriptInstanceData.m_NamespaceName = m_DefaultScriptNamespace;
-        scriptInstanceData.m_ClassName = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath);
-        scriptInstanceData.m_FullReferralName = scriptInstanceData.m_NamespaceName + "." + scriptInstanceData.m_ClassName;
+        
+        ScriptFieldMapping& fieldMap = scriptComponent->GetFieldMap();
+        if (fieldMap.find(scriptComponent->GetModuleName()) != fieldMap.end())
+        {
+            fieldMap.erase(scriptComponent->GetModuleName());
+        }
+    }
 
-        scriptInstanceData.m_Class = GetMonoClass(s_ApplicationAssemblyImage, scriptInstanceData);
-        scriptInstanceData.InitializeClassMethods(s_ApplicationAssemblyImage);
+    bool Scripting::InitializeScriptInstance(Script* scriptComponent)
+    {
+        uint32_t entityID = scriptComponent->GetEntity()->GetObjectID();
+        std::string& moduleName = scriptComponent->GetModuleName();
+        if (moduleName.empty())
+        {
+            return false;
+        }
 
-        ScriptInstance scriptInstance;
-        scriptInstance.m_ScriptFilePath = filePath;
-        scriptInstance.m_ScriptInstanceData = &scriptInstanceData;
+        if (!ModuleExists(moduleName))
+        {
+            AURORA_ERROR(LogLayer::Scripting, "Non-existent script is attempting to be compiled. Aborting... %s", moduleName.c_str());
+            return false;
+        }
+      
+        ScriptClassData& scriptClassData = s_ScriptClassMap[moduleName];
+        scriptClassData.m_FullReferralName = moduleName;
 
-        /// Saving of old object fields.
+        // If a namespace exists...
+        if (moduleName.find('.') != std::string::npos)
+        {
+            scriptClassData.m_NamespaceName = moduleName.substr(0, moduleName.find_last_of('.'));
+            scriptClassData.m_ClassName = moduleName.substr(moduleName.find_last_of('.') + 1);
+        }
+        else
+        {
+            scriptClassData.m_ClassName = moduleName;
+        }
 
+        scriptClassData.m_Class = GetMonoClass(s_ApplicationAssemblyImage, scriptClassData);
+        scriptClassData.InitializeClassMethods(s_ApplicationAssemblyImage);
+
+        ScriptInstance& scriptInstance = s_ScriptInstanceMap[0][entityID];
+        ScriptInstanceData& scriptInstanceData = scriptInstance.m_ScriptClassData;
+        scriptInstanceData.m_ScriptClassData = &scriptClassData; // Saves the created instance data above into our script instance.
+
+        ScriptFieldMapping& scriptFieldMapping = scriptComponent->GetFieldMap();
+        std::unordered_map<std::string, PublicField>& fieldMap = scriptFieldMapping[moduleName];
+
+        /// Save the old fields in field map. The point of this is that if you reload the script instance, the values of fields and properties are preserved as long as the reloaded entity has the same fields and the same type.
+        /// Call Constructor!
         // Creation of new instance.
-        scriptInstance.m_MonoGCHandle = InstantiateMonoObjectInstance(scriptInstanceData);
+        scriptInstanceData.m_MonoGCHandle = InstantiateMonoObjectInstance(scriptClassData);
 
-        /// Retrieval of old object fields.
-        mono_runtime_invoke(scriptInstanceData.m_OnStartMethod, scriptInstance.GetInstance(), nullptr, nullptr);
+        // Clear old fields and retrieve new (public) fields.
+        fieldMap.clear();
+        {
+            MonoClassField* iterator;
+            void* pointer = 0;
+            while ((iterator = mono_class_get_fields(scriptClassData.m_Class, &pointer)) != nullptr)
+            {
+                const char* fieldName = mono_field_get_name(iterator);
+                uint32_t fieldFlags = mono_field_get_flags(iterator);
 
-        DestroyScriptInstance(scriptInstance.m_MonoGCHandle);
+                // Skip entirely if the field isn't public.
+                if ((fieldFlags & MONO_FIELD_ATTR_PUBLIC) == 0)
+                {
+                    continue;
+                }
+
+                MonoType* fieldType = mono_field_get_type(iterator);
+                FieldType auroraFieldType = GetAuroraFieldType(fieldType);
+                
+                char* fieldTypeName = mono_type_get_name(fieldType);
+
+                /// Check if field exists in oldFields. If so, replace.
+                /// If this is a class reference (entity etc), continue.
+
+                /// To Do: Attributes
+                MonoCustomAttrInfo* attribute = mono_custom_attrs_from_field(scriptClassData.m_Class, iterator);
+
+                PublicField field = { fieldName, fieldTypeName, auroraFieldType };
+                field.m_MonoClassField = iterator;
+                field.CopyStoredValueFromRuntime(scriptInstanceData);
+                fieldMap.emplace(fieldName, std::move(field));
+            }
+        }
+
+        // Retrieve new public property fields.
+        {
+            MonoProperty* iterator;
+            void* pointer = 0;
+            while ((iterator = mono_class_get_properties(scriptClassData.m_Class, &pointer)) != nullptr)
+            {
+                const char* propertyName = mono_property_get_name(iterator);
+
+                /// Check if this exists in oldFields. If so, simply retrieve its data from it.
+
+                MonoMethod* propertySetter = mono_property_get_set_method(iterator);
+                MonoMethod* propertyGetter = mono_property_get_get_method(iterator);
+
+                uint32_t setterFlags = 0;
+                uint32_t getterFlags = 0;
+
+                bool isReadOnly = false;
+                MonoType* monoType = nullptr;
+
+                if (propertySetter)
+                {
+                    void* i = nullptr;
+                    MonoMethodSignature* signature = mono_method_signature(propertySetter);
+                    setterFlags = mono_method_get_flags(propertySetter, nullptr);
+                    isReadOnly = (setterFlags & MONO_METHOD_ATTR_PRIVATE) != 0;
+                    monoType = mono_signature_get_params(signature, &i);
+                }
+
+                if (propertyGetter)
+                {
+                    MonoMethodSignature* signature = mono_method_signature(propertyGetter);
+                    getterFlags = mono_method_get_flags(propertyGetter, nullptr);
+
+                    if (monoType != nullptr)
+                    {
+                        monoType = mono_signature_get_return_type(signature);
+                    }
+
+                    if ((getterFlags & MONO_METHOD_ATTR_PRIVATE) != 0) // If the field is private...
+                    {
+                        continue;
+                    }
+                }
+
+                if ((setterFlags & MONO_METHOD_ATTR_STATIC) != 0) // If the field is static...
+                {
+                    continue;
+                }
+
+                FieldType auroraFieldType = GetAuroraFieldType(monoType);
+                /// If it is an entity type... skip.
+
+                char* typeName = mono_type_get_name(monoType);
+
+                PublicField field = { propertyName, typeName, auroraFieldType, isReadOnly };
+                field.m_MonoProperty = iterator;
+                field.CopyStoredValueFromRuntime(scriptInstanceData);
+                fieldMap.emplace(propertyName, std::move(field));
+            }
+        }
+
+        PrintMonoClassFields(scriptClassData.m_Class);
+        PrintMonoClassMethods(scriptClassData.m_Class);
+
+        DestroyScriptInstance(scriptInstanceData.m_MonoGCHandle);
         
         ///
 
@@ -308,7 +463,7 @@ namespace Aurora
         return monoMethod;
     }
 
-    MonoClass* Scripting::GetMonoClass(MonoImage* image, const ScriptInstanceData& scriptInstanceData)
+    MonoClass* Scripting::GetMonoClass(MonoImage* image, const ScriptClassData& scriptInstanceData)
     {
         MonoClass* monoClass = mono_class_from_name(image, scriptInstanceData.m_NamespaceName.c_str(), scriptInstanceData.m_ClassName.c_str());
         if (!monoClass)
@@ -320,7 +475,7 @@ namespace Aurora
         return monoClass;
     }
 
-    uint32_t Scripting::InstantiateMonoObjectInstance(ScriptInstanceData& scriptInstanceData)
+    uint32_t Scripting::InstantiateMonoObjectInstance(ScriptClassData& scriptInstanceData)
     {
         MonoObject* monoObjectInstance = mono_object_new(s_CurrentMonoDomain, scriptInstanceData.m_Class);
         if (!monoObjectInstance)
@@ -335,84 +490,71 @@ namespace Aurora
         return monoGCHandle;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /*
-    * 
-    *     bool Scripting::CompileAssemblyAPI(MonoDomain* monoDomain)
+    void Scripting::PrintMonoClassMethods(MonoClass* monoClass)
     {
-        // Retrieve callbacks assembly.
-        ScriptingUtilities::g_SettingsSubsystem = m_EngineContext->GetSubsystem<Settings>();
-        const std::string callbacksScript = m_EngineContext->GetSubsystem<Settings>()->GetResourceDirectory(ResourceDirectory::Scripts) + "\\AuroraEngine.cs";
-        auto pair = ScriptingUtilities::CompileAndLoadAssembly(monoDomain, callbacksScript, false);
+        MonoMethod* iterator;
+        void* pointer = 0;
 
-        if (!pair.first)
+        while ((iterator = mono_class_get_methods(monoClass, &pointer)) != nullptr)
         {
-            AURORA_ERROR(LogLayer::Scripting, "Failed to load Callbacks Assembly.");
+            AURORA_INFO(LogLayer::Scripting, "-------------------");
+            const char* methodName = mono_method_get_name(iterator);
+            MonoMethodDesc* methodDescription = mono_method_desc_from_method(iterator);
+
+            AURORA_INFO(LogLayer::Scripting, "Method Name: %s", methodName);
+            AURORA_INFO(LogLayer::Scripting, "Full Name: %s", mono_method_full_name(iterator, true));
+        }
+    }
+
+    void Scripting::PrintMonoClassFields(MonoClass* monoClass)
+    {
+        MonoClassField* iterator;
+        void* pointer = 0;
+
+        while ((iterator = mono_class_get_fields(monoClass, &pointer)) != nullptr)
+        {
+            AURORA_INFO(LogLayer::Scripting, "-------------------");
+            const char* fieldName = mono_field_get_name(iterator);
+            AURORA_INFO(LogLayer::Scripting, "Field Name: %s", fieldName);
+        }
+    }
+
+    bool Scripting::ModuleExists(const std::string& moduleName)
+    {
+        if (!s_ApplicationAssemblyImage) // If no assembly is currently loaded...
+        {
             return false;
         }
 
-        // Retrieve image from script assembly.
-        if (!pair.second)
+        std::string namespaceName, className;
+        if (moduleName.find('.') != std::string::npos)
         {
-            AURORA_ERROR(LogLayer::Scripting, "Failed to retrieve Image from Callbacks Assembly.");
+            namespaceName = moduleName.substr(0, moduleName.find_last_of('.'));
+            className = moduleName.substr(moduleName.find_last_of(".") + 1);
+        }
+        else
+        {
+            className = moduleName;
+        }
+
+        MonoClass* monoClass = mono_class_from_name(s_ApplicationAssemblyImage, namespaceName.c_str(), className.c_str());
+        if (!monoClass)
+        {
             return false;
         }
 
-        // Register static callbacks.
-        ScriptBindings::RegisterMonoCallbacks(m_EngineContext); // Register our C++ functions with CS callbacks.
-        AURORA_INFO(LogLayer::Scripting, "Successfully initialized Mono API and registered Callbacks.");
         return true;
     }
 
-    bool Scripting::InvokeScriptStartMethod(const ScriptInstance* scriptInstance)
+    std::string Scripting::StripNamespace(const std::string& namespaceName, const std::string& moduleName)
     {
-        if (!m_IsReloading)
+        std::string name = moduleName;
+        size_t position = name.find(namespaceName + ".");
+        if (position == 0) // Namespace will begin at position 0 as the syntax for modules are Aurora.Derp
         {
-            if (!scriptInstance->m_MonoMethodStart || !scriptInstance->m_MonoObject)
-            {
-                AURORA_ERROR(LogLayer::Serialization, "Failed to invoke Start() method for Script.");
-                return false;
-            }
-
-            mono_runtime_invoke(scriptInstance->m_MonoMethodStart, scriptInstance->m_MonoObject, nullptr, nullptr);
-            return true;
+            name.erase(position, namespaceName.length() + 1);
         }
 
-        return false;
+        return name;
     }
-
-    bool Scripting::InvokeScriptUpdateMethod(const ScriptInstance* scriptInstance, float deltaTime)
-    {
-        if (!m_IsReloading)
-        {
-            if (!scriptInstance->m_MonoMethodUpdate || !scriptInstance->m_MonoObject)
-            {
-                AURORA_ERROR(LogLayer::Serialization, "Failed to invoke Update() method for Script.");
-                return false;
-            }
-
-            // Set method argument. https://www.mono-project.com/docs/advanced/embedding/
-            void* arguments[1];
-            arguments[0] = &deltaTime;
-
-            // Execute. If the method is static, we use NULL as the second argument, otherwise, we use a pointer to the object instance, and pass our argument in the 3rd parameter.
-            mono_runtime_invoke(scriptInstance->m_MonoMethodUpdate, scriptInstance->m_MonoObject, arguments, nullptr);
-            return true;
-        }
-
-        return false;
-    }
-    */
 }

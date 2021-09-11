@@ -32,7 +32,7 @@ namespace Aurora::ScriptingUtilities
         const std::string scriptDirectory = settingsSubsystem->GetResourceDirectory(ResourceDirectory::Scripts) + "\\";
         const std::string scriptCompiler = scriptDirectory + "mono\\Roslyn\\csc.exe";
 
-        // Compile Script
+        // Compile ScriptInstance
         std::string command = scriptCompiler + " -target:library -nologo";
         if (!dllReference.empty())
         {
@@ -133,7 +133,7 @@ namespace Aurora::ScriptingUtilities
                 FileSystem::CopyFileFromTo(callbackDLLPath, callbackScriptLocationWithDLL); // Copy our callback file to the script's location.
             }
 
-            // Compile Script
+            // Compile ScriptInstance
             if (!CompileScript(scriptPath, callbackScriptLocationWithDLL))
             {
                 AURORA_ERROR(LogLayer::Scripting, "Failed to compile script.");
@@ -145,7 +145,7 @@ namespace Aurora::ScriptingUtilities
             // Compile
             if (!CompileScript(scriptPath))
             {
-                AURORA_ERROR(LogLayer::Scripting, "Script compilation failed.");
+                AURORA_ERROR(LogLayer::Scripting, "ScriptInstance compilation failed.");
                 std::pair(nullptr, nullptr);
             }
         }

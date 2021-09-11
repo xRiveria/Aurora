@@ -4,10 +4,13 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
+#include "../Scene/Components/Script.h"
+#include "ScriptInstance.h"
 
 namespace Aurora
 {
-    struct ScriptInstanceData;
+    struct ScriptClassData;
+    struct ScriptInstance;
 
     class Scripting : public ISubsystem
     {
@@ -22,11 +25,10 @@ namespace Aurora
         static bool LoadApplicationAssembly(const std::string& path);
         static bool ReloadAssembly(const std::string& filePath);
 
-        static bool InitializeScriptInstance(const std::string& filePath);
-        // bool InvokeScriptStartMethod(const ScriptInstance* scriptInstance);
-        // bool InvokeScriptUpdateMethod(const ScriptInstance* scriptInstance, float deltaTime);
-
-        // std::unordered_map<uint32_t, ScriptInstance> GetScriptLibrary() { return m_ScriptLibrary; }
+        static void ShutdownScriptInstance(Script* scriptComponent);
+        static bool InitializeScriptInstance(Script* scriptComponent);
+        static bool ModuleExists(const std::string& moduleName);
+        static std::string StripNamespace(const std::string& namespaceName, const std::string& moduleName);
 
     private:
         bool CompileAssemblyAPI(MonoDomain* monoDomain);
@@ -35,12 +37,17 @@ namespace Aurora
         // ===
         static void DestroyScriptInstance(uint32_t handle);
 
+        // Loading
         static MonoAssembly* LoadAssemblyFromFile(const std::string& assemblyPath);
         static MonoAssembly* LoadMonoAssembly(const std::string& assemblyPath);
         static MonoImage* GetMonoAssemblyImage(MonoAssembly* assembly);
         static MonoMethod* GetMonoMethod(MonoImage* image, const std::string& methodDescription);
-        static MonoClass* GetMonoClass(MonoImage* image, const ScriptInstanceData& scriptInstanceData);
-        static uint32_t InstantiateMonoObjectInstance(ScriptInstanceData& scriptInstanceData);
+        static MonoClass* GetMonoClass(MonoImage* image, const ScriptClassData& scriptInstanceData);
+        static uint32_t InstantiateMonoObjectInstance(ScriptClassData& scriptInstanceData);
+
+        // Debug
+        static void PrintMonoClassMethods(MonoClass* monoClass);
+        static void PrintMonoClassFields(MonoClass* monoClass);
 
 
         bool m_IsReloading = false;
@@ -48,5 +55,10 @@ namespace Aurora
         MonoDomain* m_ScriptDomain = nullptr;
         MonoDomain* m_MonoDomain = nullptr;
         bool m_IsAssemblyAPICompiled = false;
-    }; 
-}
+
+        static ScriptMap s_ScriptInstanceMap;
+
+    private:
+        friend PublicField;
+    };
+};

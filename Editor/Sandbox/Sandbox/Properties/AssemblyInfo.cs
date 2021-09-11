@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AuroraEngine")]
+[assembly: AssemblyTitle("Sandbox")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("AuroraEngine")]
+[assembly: AssemblyProduct("Sandbox")]
 [assembly: AssemblyCopyright("Copyright ©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("592029f8-48d9-41f8-a485-d9a76c90f873")]
+[assembly: Guid("3c8cc2bd-2f59-4042-9d8a-6de56b056c8b")]
 
 // Version information for an assembly consists of the following four values:
 //

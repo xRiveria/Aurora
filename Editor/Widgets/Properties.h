@@ -13,7 +13,8 @@ namespace Aurora
     class AudioSource;
     class Renderable;
     class ResourceCache;
-}
+    class Script;
+};
 
 class Properties : public Widget
 {
@@ -43,6 +44,7 @@ private:
     void ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) const;
     void ShowColliderProperties(Aurora::Collider* colliderComponent) const;
     void ShowAudioSourceProperties(Aurora::AudioSource* audioSourceComponent) const;
+    void ShowScriptProperties(Aurora::Script* scriptComponent) const;
 
 private:
     Aurora::ResourceCache* m_ResourceCache = nullptr;

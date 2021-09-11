@@ -7,6 +7,7 @@
 #include "Collider.h"
 #include "Renderable.h"
 #include "AudioSource.h"
+#include "Script.h"
 
 namespace Aurora
 {
@@ -47,4 +48,5 @@ namespace Aurora
     REGISTER_COMPONENT(Collider, ComponentType::Collider);
     REGISTER_COMPONENT(Renderable, ComponentType::Renderable);
     REGISTER_COMPONENT(AudioSource, ComponentType::AudioSource);
+    REGISTER_COMPONENT(Script, ComponentType::Script);
 }

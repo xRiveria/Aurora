@@ -6,6 +6,8 @@
 #include "../Scene/Components/Renderable.h"
 #include "../Scene/Components/Collider.h"
 #include "../Scene/Components/AudioSource.h"
+#include "../Scene/Components/Script.h"
+#include "../Scripting/Scripting.h"
 #include "../Audio/AudioClip.h"
 #include "../Scene/World.h"
 #include "../Threading/Threading.h"
@@ -64,6 +66,7 @@ void Properties::OnTickVisible()
         ShowColliderProperties(entityPointer->GetComponent<Aurora::Collider>());
         ShowRigidBodyProperties(entityPointer->GetComponent<Aurora::RigidBody>());
         ShowAudioSourceProperties(entityPointer->GetComponent<Aurora::AudioSource>());
+        ShowScriptProperties(entityPointer->GetComponent<Aurora::Script>());
 
         ShowAddComponentButton();
     }
@@ -177,7 +180,12 @@ void Properties::ShowAddComponentButton() const
              {
                  Aurora::Collider* collider = entity->AddComponent<Aurora::Collider>();
                  collider->SetShapeType(Aurora::ColliderShape::ColliderShape_StaticPlane);
-             }  
+             }
+
+             if (ImGui::MenuItem("Script"))
+             {
+                 entity->AddComponent<Aurora::Script>();
+             }
         }
 
         ImGui::EndPopup();
@@ -740,6 +748,126 @@ void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) 
         if (ImGui::Button("Add Impulse"))
         {
             rigidBodyComponent->ApplyForce(XMFLOAT3(g_ForceAmount[0], g_ForceAmount[1], g_ForceAmount[2]), Aurora::ForceMode::ForceMode_Impulse);
+        }
+
+        ImGui::PopID();
+    }
+
+    ComponentEnd();
+}
+
+void Properties::ShowScriptProperties(Aurora::Script* scriptComponent) const
+{
+    if (!scriptComponent)
+    {
+        return;
+    }
+
+    if (ComponentBegin("Script"))
+    {
+        ImGui::PushID(scriptComponent->GetObjectID());
+
+        bool isError = !Aurora::Scripting::ModuleExists(scriptComponent->GetModuleName());
+        std::string className = Aurora::Scripting::StripNamespace("Aurora", scriptComponent->GetModuleName());
+
+        bool error = isError;
+        if (error)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+        }
+        else
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 1.0f, 0.5f, 1.0f));
+        }
+
+        char buffer[256];
+        memset(buffer, 0, sizeof(buffer));
+        strcpy_s(buffer, scriptComponent->GetModuleName().c_str());
+
+        if (ImGui::InputText("Module Name", buffer, 256))
+        {
+            // Shutdown old script when we alter the name of the new script.
+            if (!isError)
+            {
+                Aurora::Scripting::ShutdownScriptInstance(scriptComponent);
+            }
+
+            // Check if the new script exists. If so, set it.
+            if (Aurora::Scripting::ModuleExists(buffer))
+            {
+                scriptComponent->SetModule(buffer);
+                isError = false;
+            }
+            else if (Aurora::Scripting::ModuleExists("Aurora" + std::string(".") + buffer))
+            {
+                scriptComponent->SetModule("Aurora" + std::string(".") + buffer);
+                isError = false;
+            }
+            else
+            {
+                scriptComponent->SetModule(buffer);
+                isError = true;
+            }
+
+            // Initialize new entity if no errors were detected.
+            if (!isError)
+            {
+                Aurora::Scripting::InitializeScriptInstance(scriptComponent);
+            }
+        }
+
+        ImGui::PopStyleColor();
+        
+        // Public Fields
+        if (!isError)
+        {
+            // Aurora::ScriptInstanceData& scriptInstanceData = Aurora::Scripting::GetScriptInstanceData();
+            Aurora::ScriptFieldMapping& scriptFieldMap = scriptComponent->GetFieldMap();
+
+            if (scriptFieldMap.find(scriptComponent->GetModuleName()) != scriptFieldMap.end())
+            {
+                auto& publicFields = scriptFieldMap.at(scriptComponent->GetModuleName());
+                for (auto& [fieldName, field] : publicFields)
+                {
+                    /// Segregate runtime and non runtime values.
+                    switch (field.m_FieldType)
+                    {
+                        case Aurora::FieldType::Integer:
+                        {
+                            int value = field.GetStoredValue<int>();
+                            if (ImGui::DragInt(field.m_FieldName.c_str(), &value, 0.1f))
+                            {
+                                field.SetStoredValue(value);
+                            }
+                        }
+                        break;
+
+                        case Aurora::FieldType::Float:
+                        {
+                            float value = field.GetStoredValue<float>();
+                            if (ImGui::DragFloat(field.m_FieldName.c_str(), &value, 0.1f))
+                            {
+                                field.SetStoredValue(value);
+                            }
+                        }
+                        break;
+
+                        case Aurora::FieldType::String:
+                        {
+                            const std::string& value = field.GetStoredValue<const std::string&>();
+                            char buffer[256];
+                            memset(buffer, 0, sizeof(buffer));
+                            strcpy_s(buffer, value.c_str());
+
+                            if (ImGui::InputText(field.m_FieldName.c_str(), buffer, sizeof(buffer)))
+                            {
+                                field.SetStoredValue<const std::string&>(buffer);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
         }
 
         ImGui::PopID();

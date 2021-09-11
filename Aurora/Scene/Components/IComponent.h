@@ -16,6 +16,7 @@ namespace Aurora
         RigidBody,
         Collider,
         AudioSource,
+        Script,
         Unknown
     };
 

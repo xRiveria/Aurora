@@ -1,8 +1,12 @@
 #include "ScriptEngine.h"
+#include "../Scripting/ScriptInstance.h"
 #include "../Scripting/Scripting.h"
 #include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
+#include <mono/metadata/mono-gc.h>
 #include "Settings.h"
+
+using Aurora::ScriptMap;
 
 ScriptEngine::ScriptEngine(Editor* editorContext, Aurora::EngineContext* engineContext) : Widget(editorContext, engineContext)
 {
@@ -12,79 +16,41 @@ ScriptEngine::ScriptEngine(Editor* editorContext, Aurora::EngineContext* engineC
 
 void ScriptEngine::OnTickVisible()
 {
+    float gcHeapSize = (float)mono_gc_get_heap_size();
+    float gcUsageSize = (float)mono_gc_get_used_size();
+    ImGui::Text("GC Heap Info (Used/Avaliable): %.2fKB / %.2fKB", gcUsageSize / 1024.0f, gcHeapSize / 1024.0f);
+
     if (ImGui::Button("Hot Reload"))
     {
-        m_ScriptingSubsystem->ReloadAssembly(m_EngineContext->GetSubsystem<Aurora::Settings>()->GetResourceDirectory(Aurora::ResourceDirectory::Scripts) + "\\Initializer.dll");
+        m_ScriptingSubsystem->ReloadAssembly(m_EngineContext->GetSubsystem<Aurora::Settings>()->GetResourceDirectory(Aurora::ResourceDirectory::Scripts) + "\\Sandbox.dll");
     }
 
-    /*
-    if (m_ScriptingSubsystem->m_IsReloading)
+    /// Scene ID Segregation
+    if (!Aurora::Scripting::s_ScriptInstanceMap.empty())
     {
-        return;
-    }
-    else
-    {
-        for (int i = 0; i < m_ScriptingSubsystem->m_ScriptLibrary.size(); i++)
+        const uint32_t sceneID = 0;
+        if (const auto& scriptInstanceMap = Aurora::Scripting::s_ScriptInstanceMap.find(sceneID); scriptInstanceMap != Aurora::Scripting::s_ScriptInstanceMap.end())
         {
-            Aurora::ScriptInstance* script = &m_ScriptingSubsystem->m_ScriptLibrary[i];
-
-            if (ImGui::CollapsingHeader(mono_class_get_name(script->m_MonoClass)))
+            for (auto& [scriptEntityID, script] : scriptInstanceMap->second)
             {
-                MonoClassField* classField = NULL;
-                void* iterator = NULL;
-
-                while ((classField = mono_class_get_fields(script->m_MonoClass, &iterator)))
+                for (auto& [moduleName, fieldMap] : script.m_ScriptFieldMapping)
                 {
-                    if (!(mono_field_get_flags(classField) & MONO_FIELD_ATTR_PUBLIC))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        const char* fieldName = mono_field_get_name(classField);
-                        MonoType* fieldType = mono_field_get_type(classField);
-                        int type = mono_type_get_type(fieldType);
+                    bool opened = ImGui::TreeNode(moduleName.c_str());
 
-                        switch (type)
+                    if (opened)
+                    {
+                        for (auto& [fieldName, field] : fieldMap)
                         {
-                        case MONO_TYPE_BOOLEAN:
-                        {
-                            bool boolValue = script->ReadFieldValue<bool>(fieldName);
-                            ImGui::Checkbox(fieldName, &boolValue);
-                        }
-                        break;
-
-                        case MONO_TYPE_R4:
-                        {
-                            float floatValue = script->ReadFieldValue<float>(fieldName);
-                            if (ImGui::DragFloat(fieldName, &floatValue))
+                            opened = ImGui::TreeNodeEx((void*)&field, ImGuiTreeNodeFlags_Leaf, fieldName.c_str());
+                            if (opened)
                             {
-                                script->SetFieldValue<float>(floatValue, fieldName);
+                                ImGui::TreePop();
                             }
                         }
-                        break;
-
-                        case MONO_TYPE_STRING:
-                        {
-                            //char stringBuffer[256];
-                            //memset(stringBuffer, 0, sizeof(stringBuffer));
-                            //strcpy_s(stringBuffer, script->ReadFieldString(fieldName).c_str());
-
-                            //if (ImGui::InputText(fieldName, stringBuffer, sizeof(stringBuffer)))
-                            //{
-                            //    script->SetFieldString(stringBuffer, fieldName);
-                            //}
-                        }
-                        break;
-
-                        default:
-                            AURORA_ERROR(Aurora::LogLayer::Scripting, "Value type not found for C# field name: %s", fieldName);
-                            break;
-                        }
+                        ImGui::TreePop();
                     }
                 }
             }
         }
     }
-    */
 }

@@ -1046,7 +1046,7 @@ enum { // encodingID for STBTT_PLATFORM_ID_MICROSOFT
    STBTT_MS_EID_UNICODE_FULL  =10
 };
 
-enum { // encodingID for STBTT_PLATFORM_ID_MAC; same as Script Manager codes
+enum { // encodingID for STBTT_PLATFORM_ID_MAC; same as ScriptInstance Manager codes
    STBTT_MAC_EID_ROMAN        =0,   STBTT_MAC_EID_ARABIC       =4,
    STBTT_MAC_EID_JAPANESE     =1,   STBTT_MAC_EID_HEBREW       =5,
    STBTT_MAC_EID_CHINESE_TRAD =2,   STBTT_MAC_EID_GREEK        =6,

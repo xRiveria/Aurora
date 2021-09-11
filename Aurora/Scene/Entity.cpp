@@ -6,6 +6,7 @@
 #include "Components/RigidBody.h"
 #include "Components/Collider.h"
 #include "Components/AudioSource.h"
+#include "Components/Script.h"
 #include <type_traits>
 #include "../Scene/World.h"
 #include <functional>
@@ -265,6 +266,7 @@ namespace Aurora
             case ComponentType::RigidBody: return AddComponent<RigidBody>(componentID);
             case ComponentType::Collider: return AddComponent<Collider>(componentID);
             case ComponentType::AudioSource: return AddComponent<AudioSource>(componentID);
+            case ComponentType::Script: return AddComponent<Script>(componentID);
             default: nullptr;
         }
 
@@ -293,7 +295,7 @@ namespace Aurora
         }
 
         bool othersOfSameTypeExist = false;
-        /// Script component stuff in the future.
+        /// ScriptInstance component stuff in the future.
         if (!othersOfSameTypeExist)
         {
             m_ComponentMask &= ~GetComponentMask(componentType);
