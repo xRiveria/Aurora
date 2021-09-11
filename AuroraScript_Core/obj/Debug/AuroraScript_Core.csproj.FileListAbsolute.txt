@@ -3,3 +3,4 @@ D:\1) Github\My Projects\Aurora\Resources\Scripts\AuroraScript_Core.pdb
 D:\1) Github\My Projects\Aurora\AuroraScript_Core\obj\Debug\AuroraScript_Core.csproj.CoreCompileInputs.cache
 D:\1) Github\My Projects\Aurora\AuroraScript_Core\obj\Debug\AuroraScript_Core.dll
 D:\1) Github\My Projects\Aurora\AuroraScript_Core\obj\Debug\AuroraScript_Core.pdb
+D:\1) Github\My Projects\Aurora\AuroraScript_Core\obj\Debug\AuroraScript_Core.csprojAssemblyReference.cache

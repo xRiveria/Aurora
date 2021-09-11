@@ -13,7 +13,7 @@ namespace Aurora::ScriptBindings
 
     static void RegisterMonoCallbacks()
     {
-        mono_add_internal_call("AuroraEngine.Debug::Log(single,AuroraEngine.DebugType)", &Aurora::ScriptBindings::LogFloat);
-        mono_add_internal_call("AuroraEngine.Debug::Log(string,AuroraEngine.DebugType)", &Aurora::ScriptBindings::LogString);
+        mono_add_internal_call("Aurora.Debug::Log(single,Aurora.DebugType)", &Aurora::ScriptBindings::LogFloat);
+        mono_add_internal_call("Aurora.Debug::Log(string,Aurora.DebugType)", &Aurora::ScriptBindings::LogString);
     }
 }

@@ -8,6 +8,12 @@
         public float m_CocoNut = 6.0f;
         public float m_CoCoCoNut = 5.0f;
         public float m_CoCoCoNutttt = 5.0f;
+        public string m_PlayerName = "Frodo Baggins";
+
+        public Initializer()
+        {
+            Debug.Log("I was initialized!");
+        }
 
         public void OnStart()
         {

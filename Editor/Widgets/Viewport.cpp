@@ -67,6 +67,32 @@ void Viewport::OnTickVisible()
             m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::Model>(filePath);
         });
     }
-          
+
     m_EditorContext->GetWidget<EditorTools>()->OnTickViewport();
+    
+    if (ImGui::IsWindowFocused() || ImGui::IsWindowHovered())
+    {
+        // Need a more wholesome approach. Not whole at all at the moment.
+        if (!m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->m_IsCameraMoveable)
+        {
+            m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->m_IsCameraMoveable = true;
+        }
+
+        if (!m_EditorContext->GetWidget<EditorTools>()->m_CanReceiveEvents)
+        {
+            m_EditorContext->GetWidget<EditorTools>()->m_CanReceiveEvents = true;
+        }
+    }
+    else
+    {
+        if (m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->m_IsCameraMoveable)
+        {
+            m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->m_IsCameraMoveable = false;
+        }
+
+        if (m_EditorContext->GetWidget<EditorTools>()->m_CanReceiveEvents)
+        {
+            m_EditorContext->GetWidget<EditorTools>()->m_CanReceiveEvents = false;
+        }
+    }
 }

@@ -23,8 +23,11 @@ void EditorTools::OnTickViewport()
 
 void EditorTools::OnEvent(Aurora::InputEvent& inputEvent)
 {
-	Aurora::InputEventDispatcher dispatcher(inputEvent);
-	dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorTools::OnKeyPressed));
+	if (m_CanReceiveEvents)
+	{
+		Aurora::InputEventDispatcher dispatcher(inputEvent);
+		dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorTools::OnKeyPressed));
+	}
 }
 
 bool EditorTools::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
@@ -36,24 +39,21 @@ bool EditorTools::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
 
 	switch (inputEvent.GetKeyCode())
 	{
-		if (ImGui::IsWindowFocused() || ImGui::IsWindowHovered())
-		{
-			case AURORA_KEY_E:
-				m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-				return true;
+		case AURORA_KEY_E:
+			m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+			return true;
 
-			case AURORA_KEY_R:
-				m_GizmoType = ImGuizmo::OPERATION::SCALE;
-				return true;
+		case AURORA_KEY_R:
+			m_GizmoType = ImGuizmo::OPERATION::SCALE;
+			return true;
 
-			case AURORA_KEY_T:
-				m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-				return true;
+		case AURORA_KEY_T:
+			m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+			return true;
 
-			case AURORA_KEY_Q:
-				m_GizmoType = -1;
-				return true;
-		}
+		case AURORA_KEY_Q:
+			m_GizmoType = -1;
+			return true;
 	}
 }
 

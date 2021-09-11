@@ -44,5 +44,11 @@
     <Compile Include="Initializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AuroraScript_Core\AuroraScript_Core.csproj">
+      <Project>{dc60a5ab-c874-4337-8ac0-446427123ed6}</Project>
+      <Name>AuroraScript_Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

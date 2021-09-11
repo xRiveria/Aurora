@@ -27,6 +27,7 @@ namespace Aurora
     // Data
     static std::vector<ScriptInstanceData> m_ScriptInstanceLibrary;
     static std::unordered_map<std::string, ScriptClassData> s_ScriptClassMap;
+    std::unordered_map<std::string, std::string> Scripting::s_PublicFieldStringValues;
     ScriptMap Scripting::s_ScriptInstanceMap;
 
     static std::string m_DefaultScriptNamespace = "Aurora";
@@ -264,9 +265,12 @@ namespace Aurora
         std::unordered_map<std::string, PublicField>& fieldMap = scriptFieldMapping[moduleName];
 
         /// Save the old fields in field map. The point of this is that if you reload the script instance, the values of fields and properties are preserved as long as the reloaded entity has the same fields and the same type.
-        /// Call Constructor!
+        
         // Creation of new instance.
         scriptInstanceData.m_MonoGCHandle = InstantiateMonoObjectInstance(scriptClassData);
+
+        // Call object constructor IF there are default parameters to be passed in. Else, our instantiator above alr calls it. 
+        // InvokeMethod(scriptInstanceData.GetInstance(), scriptInstanceData.m_ScriptClassData->m_Constructor, nullptr);
 
         // Clear old fields and retrieve new (public) fields.
         fieldMap.clear();
@@ -484,6 +488,7 @@ namespace Aurora
             return 0;
         }
 
+        // Invoke argumentless constructor.
         mono_runtime_object_init(monoObjectInstance);
         uint32_t monoGCHandle = mono_gchandle_new(monoObjectInstance, false);
 
@@ -556,5 +561,19 @@ namespace Aurora
         }
 
         return name;
+    }
+
+    MonoObject* Scripting::InvokeMethod(MonoObject* monoObject, MonoMethod* monoMethod, void** parameters)
+    {
+        MonoObject* exceptionPointer = nullptr;
+        MonoObject* result = mono_runtime_invoke(monoMethod, monoObject, parameters, &exceptionPointer);
+        if (exceptionPointer)
+        {
+            /// More in depth checking?
+            AURORA_ERROR(LogLayer::Scripting, "An error occured with method invocation.");
+            return nullptr;
+        }
+
+        return result;
     }
 }

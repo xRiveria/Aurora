@@ -9,9 +9,6 @@
 
 namespace Aurora
 {
-    struct ScriptClassData;
-    struct ScriptInstance;
-
     class Scripting : public ISubsystem
     {
     public:
@@ -31,13 +28,11 @@ namespace Aurora
         static std::string StripNamespace(const std::string& namespaceName, const std::string& moduleName);
 
     private:
-        bool CompileAssemblyAPI(MonoDomain* monoDomain);
-
-    public:
         // ===
         static void DestroyScriptInstance(uint32_t handle);
 
         // Loading
+        static MonoObject* InvokeMethod(MonoObject* monoObject, MonoMethod* monoMethod, void** parameters = nullptr);
         static MonoAssembly* LoadAssemblyFromFile(const std::string& assemblyPath);
         static MonoAssembly* LoadMonoAssembly(const std::string& assemblyPath);
         static MonoImage* GetMonoAssemblyImage(MonoAssembly* assembly);
@@ -49,16 +44,19 @@ namespace Aurora
         static void PrintMonoClassMethods(MonoClass* monoClass);
         static void PrintMonoClassFields(MonoClass* monoClass);
 
+    public:
+        static ScriptMap s_ScriptInstanceMap;
+        static std::unordered_map<std::string, std::string> s_PublicFieldStringValues;
 
+    private:
         bool m_IsReloading = false;
 
         MonoDomain* m_ScriptDomain = nullptr;
         MonoDomain* m_MonoDomain = nullptr;
         bool m_IsAssemblyAPICompiled = false;
 
-        static ScriptMap s_ScriptInstanceMap;
-
     private:
         friend PublicField;
+        friend ScriptClassData;
     };
 };

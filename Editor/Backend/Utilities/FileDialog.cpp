@@ -211,15 +211,15 @@ void FileDialog::ShowTopUI(bool* isVisible)
         }
     }
 
-    ImGui::SameLine();
+    const float checkboxWidth = 150.0f;
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - checkboxWidth);
 
-    const float checkboxWidth = 130.0f;
-    ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - checkboxWidth);
     ImGui::PushItemWidth(checkboxWidth);
-   if (ImGui::Checkbox("Show Cached", &m_ShowCachedFiles))
-    {
-        DialogUpdateFromDirectory(m_NavigationContext.m_CurrentPath);
-    }
+    if (ImGui::Checkbox("Show Cached", &m_ShowCachedFiles))
+     {
+         DialogUpdateFromDirectory(m_NavigationContext.m_CurrentPath);
+     }
+    ImGui::PopItemWidth();
 
     ImGui::Separator();
 }
@@ -229,7 +229,7 @@ void FileDialog::ShowMiddleUI()
     // Compute some stuff.
     const auto window = ImGui::GetCurrentWindowRead(); // Get current window.
     const float contentWidth = ImGui::GetContentRegionAvail().x;
-    const float contentHeight = ImGui::GetContentRegionAvail().y - m_OffsetBottom;
+    const float contentHeight = ImGui::GetContentRegionAvail().y - m_OffsetBottom - 15.0f;
     m_DisplayedItemCount = 0;
     ImGuiContext& context = *GImGui;
     ImGuiStyle& style = ImGui::GetStyle();
@@ -245,12 +245,14 @@ void FileDialog::ShowMiddleUI()
     // Remove border.
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0);
 
+    /*
     // Make background slightly darker.
     ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(
         static_cast<int>(m_ContentBackgroundColor.x),
         static_cast<int>(m_ContentBackgroundColor.y),
         static_cast<int>(m_ContentBackgroundColor.z),
         static_cast<int>(m_ContentBackgroundColor.w)));
+    */
     
     if (ImGui::BeginChild("##FileDialog_ContentRegion", ImVec2(contentWidth, contentHeight), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
     {
@@ -355,6 +357,10 @@ void FileDialog::ShowMiddleUI()
                         {
                             m_IsHoveringItem = true;
                             m_HoveredItemPath = item.GetPath();
+
+                            ImGui::BeginTooltip();
+                            ImGui::Text(m_HoveredItemPath.c_str());
+                            ImGui::EndTooltip();
                         }
 
                         OnItemClick(&item);
@@ -456,34 +462,31 @@ void FileDialog::ShowMiddleUI()
     }
     
     ImGui::EndChild();
-    ImGui::PopStyleColor();
+    // ImGui::PopStyleColor();
     ImGui::PopStyleVar();
 }
 
 void FileDialog::ShowBottomUI(bool* isVisible)
 {
-    const auto SizeSlider = [this]()
-    {
-        // Size Slider
-        const float sliderWidth = 150.0f;
-        ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - sliderWidth);
-        ImGui::PushItemWidth(sliderWidth);
+    float m_BottomOffset = 29.0f;
 
-        const float previousWidth = m_HierarchyItemSize.x;
-        ImGui::SetCursorPosY((ImGui::GetWindowSize().y - m_OffsetBottom - 2.3f));
-        ImGui::SliderFloat("##FileDialog_Slider", &m_HierarchyItemSize.x, m_HierarchyItemSizeMinimum, m_HierarchyItemSizeMaximum, "%.3g");
-        m_HierarchyItemSize.y += m_HierarchyItemSize.x - previousWidth; // Main aspect ratio.
+    ImGui::SetCursorPosY(ImGui::GetWindowSize().y - m_BottomOffset);
 
-        ImGui::PopItemWidth();
-    };
-
-    m_OffsetBottom = 23.0f;
-    ImGui::SetCursorPosY(ImGui::GetWindowSize().y - m_OffsetBottom);
-
+    ImGui::Separator();
     const char* text = (m_DisplayedItemCount == 1) ? "%d Item" : "%d Items";
     ImGui::Text(text, m_DisplayedItemCount);
 
-    SizeSlider();
+    // Size Slider
+    const float sliderWidth = 150.0f;
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - sliderWidth);
+
+    ImGui::PushItemWidth(sliderWidth);
+    const float previousWidth = m_HierarchyItemSize.x;
+    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - m_BottomOffset + 3.0f));
+    ImGui::SliderFloat("##FileDialog_Slider", &m_HierarchyItemSize.x, m_HierarchyItemSizeMinimum, m_HierarchyItemSizeMaximum, "%.3g");
+    m_HierarchyItemSize.y += m_HierarchyItemSize.x - previousWidth; // Main aspect ratio.
+
+    ImGui::PopItemWidth();
 }
 
 void FileDialog::OnItemDrag(FileDialogItem* item) const

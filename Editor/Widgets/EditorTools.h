@@ -13,6 +13,9 @@ public:
 
     void TickGizmos();
 
+public:
+    bool m_CanReceiveEvents = false;
+
 private:
     bool OnKeyPressed(Aurora::KeyPressedEvent& inputEvent);
 

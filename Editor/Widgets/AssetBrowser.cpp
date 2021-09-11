@@ -28,7 +28,7 @@ void AssetBrowser::OnTickVisible()
 {
     Aurora::AURORA_PROFILE_FUNCTION();
 
-    ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY;
+    ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable;
 
     if (ImGui::BeginTable("AssetBrowser", 2, tableFlags))
     {

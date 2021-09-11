@@ -15,6 +15,7 @@ namespace Aurora
 
         // Default Methods - These are guaranteed to exist with every script.
         MonoClass* m_Class = nullptr;               // Retrieves the class.
+        MonoMethod* m_Constructor = nullptr;
         MonoMethod* m_OnStartMethod = nullptr;
         MonoMethod* m_OnUpdateMethod = nullptr;
 

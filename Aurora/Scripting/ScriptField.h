@@ -78,15 +78,8 @@ namespace Aurora
 
         ~PublicField();
 
-        void CopyStoredValueToRuntime(ScriptInstanceData& scriptInstance)
-        {
-
-        }
-
-        void CopyStoredValueFromRuntime(ScriptInstanceData& scriptInstance)
-        {
-
-        }
+        void CopyStoredValueToRuntime(ScriptInstanceData& scriptInstance);
+        void CopyStoredValueFromRuntime(ScriptInstanceData& scriptInstance);
 
         template<typename T>
         T GetStoredValue() const
@@ -150,6 +143,7 @@ namespace Aurora
         void* GetRuntimeValueRaw(ScriptInstanceData& scriptInstance);
         
     private:
+        // Our field will either have a mono field or mono property.
         MonoClassField* m_MonoClassField = nullptr;
         MonoProperty* m_MonoProperty = nullptr;
         uint8_t* m_StoredValueBuffer = nullptr;

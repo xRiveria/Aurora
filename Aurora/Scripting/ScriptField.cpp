@@ -5,6 +5,7 @@
 #include <mono/metadata/threads.h>
 #include <mono/metadata/attrdefs.h>
 #include "ScriptInstance.h"
+#include "Scripting.h"
 
 namespace Aurora
 {
@@ -81,6 +82,44 @@ namespace Aurora
         if (m_FieldType != FieldType::String)
         {
             delete[] m_StoredValueBuffer;
+        }
+    }
+
+    void PublicField::CopyStoredValueToRuntime(ScriptInstanceData& scriptInstance)
+    {
+    }
+
+    void PublicField::CopyStoredValueFromRuntime(ScriptInstanceData& scriptInstance)
+    {
+        AURORA_ASSERT(scriptInstance.GetInstance());
+
+        if (m_FieldType == FieldType::String)
+        {
+            if (m_MonoProperty)
+            {
+                MonoString* monoString = (MonoString*)mono_property_get_value(m_MonoProperty, scriptInstance.GetInstance(), nullptr, nullptr);
+                Scripting::s_PublicFieldStringValues[m_FieldName] = mono_string_to_utf8(monoString);
+                m_StoredValueBuffer = (uint8_t*)&Scripting::s_PublicFieldStringValues[m_FieldName];
+            }
+            else
+            {
+                MonoString* monoString;
+                mono_field_get_value(scriptInstance.GetInstance(), m_MonoClassField, &monoString);
+                Scripting::s_PublicFieldStringValues[m_FieldName] = mono_string_to_utf8(monoString);
+                m_StoredValueBuffer = (uint8_t*)&Scripting::s_PublicFieldStringValues[m_FieldName];
+            }
+        }
+        else
+        {
+            if (m_MonoProperty)
+            {
+                MonoObject* result = mono_property_get_value(m_MonoProperty, scriptInstance.GetInstance(), nullptr, nullptr);
+                memcpy(m_StoredValueBuffer, mono_object_unbox(result), GetFieldTypeSize(m_FieldType));
+            }
+            else
+            {
+                mono_field_get_value(scriptInstance.GetInstance(), m_MonoClassField, m_StoredValueBuffer);
+            }
         }
     }
 

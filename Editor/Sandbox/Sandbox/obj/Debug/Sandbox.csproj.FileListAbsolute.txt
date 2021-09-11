@@ -4,3 +4,4 @@ D:\1) Github\My Projects\Aurora\Editor\Sandbox\Sandbox\obj\Debug\Sandbox.csprojA
 D:\1) Github\My Projects\Aurora\Editor\Sandbox\Sandbox\obj\Debug\Sandbox.csproj.CoreCompileInputs.cache
 D:\1) Github\My Projects\Aurora\Editor\Sandbox\Sandbox\obj\Debug\Sandbox.dll
 D:\1) Github\My Projects\Aurora\Editor\Sandbox\Sandbox\obj\Debug\Sandbox.pdb
+D:\1) Github\My Projects\Aurora\Editor\Sandbox\Sandbox\obj\Debug\Sandbox.csproj.CopyComplete

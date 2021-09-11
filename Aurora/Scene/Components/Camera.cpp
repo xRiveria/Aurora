@@ -38,51 +38,54 @@ namespace Aurora
         Input* inputSystem = m_EngineContext->GetSubsystem<Input>();
         XMVECTOR position = GetEntity()->GetComponent<Transform>()->GetPositionVector();
 
-        if (inputSystem->IsKeyPressed(AURORA_KEY_W))
+        if (m_IsCameraMoveable)
         {
-            position = position + GetCurrentForwardVector() * m_Speed * deltaTime;
+            if (inputSystem->IsKeyPressed(AURORA_KEY_W))
+            {
+                position = position + GetCurrentForwardVector() * m_Speed * deltaTime;
 
-            ComputeViewMatrix();
+                ComputeViewMatrix();
+            }
+
+            if (inputSystem->IsKeyPressed(AURORA_KEY_S))
+            {
+                position = position + GetCurrentBackwardVector() * m_Speed * deltaTime;
+
+                ComputeViewMatrix();
+            }
+
+            if (inputSystem->IsKeyPressed(AURORA_KEY_A))
+            {
+                position = position + GetCurrentLeftVector() * m_Speed * deltaTime;
+
+                ComputeViewMatrix();
+            }
+
+            if (inputSystem->IsKeyPressed(AURORA_KEY_D))
+            {
+                position = position + GetCurrentRightVector() * m_Speed * deltaTime;
+
+                ComputeViewMatrix();
+            }
+
+            if (inputSystem->IsKeyPressed(AURORA_KEY_UP))
+            {
+                position = position + m_UpVector * m_Speed * deltaTime;
+
+                ComputeViewMatrix();
+            }
+
+            if (inputSystem->IsKeyPressed(AURORA_KEY_DOWN))
+            {
+                position = position + m_DownVector * m_Speed * deltaTime;
+
+                ComputeViewMatrix();
+            }
+
+            XMStoreFloat3(&GetEntity()->GetComponent<Transform>()->m_TranslationLocal, position);
+            GetEntity()->GetTransform()->SetDirty(true);
+            FPSControl(deltaTime);
         }
-
-        if (inputSystem->IsKeyPressed(AURORA_KEY_S))
-        {
-            position = position + GetCurrentBackwardVector() * m_Speed * deltaTime;
-
-            ComputeViewMatrix();
-        }
-
-        if (inputSystem->IsKeyPressed(AURORA_KEY_A))
-        {
-            position = position + GetCurrentLeftVector() * m_Speed * deltaTime;
-
-            ComputeViewMatrix();
-        }
-
-        if (inputSystem->IsKeyPressed(AURORA_KEY_D))
-        {
-            position = position + GetCurrentRightVector() * m_Speed * deltaTime;
-
-            ComputeViewMatrix();
-        }
-
-        if (inputSystem->IsKeyPressed(AURORA_KEY_UP))
-        {
-            position = position + m_UpVector * m_Speed * deltaTime;
-
-            ComputeViewMatrix();
-        }
-
-        if (inputSystem->IsKeyPressed(AURORA_KEY_DOWN))
-        {
-            position = position + m_DownVector * m_Speed * deltaTime;
-
-            ComputeViewMatrix();
-        }
-
-        XMStoreFloat3(&GetEntity()->GetComponent<Transform>()->m_TranslationLocal, position);
-        GetEntity()->GetTransform()->SetDirty(true);
-        FPSControl(deltaTime);
     }
 
     void Camera::FPSControl(float deltaTime)

@@ -58,6 +58,7 @@ namespace Aurora
         const XMVECTOR m_RightVector = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 
         bool m_FPS_Control = false;
+        bool m_IsCameraMoveable = true;
 
         XMVECTOR m_CurrentForwardVector;
         XMVECTOR m_CurrentLeftVector;
