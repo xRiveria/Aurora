@@ -92,6 +92,7 @@ std::string g_CurrentlySelectedView = "Off";
 
 void Editor::Tick()
 {
+	Aurora::Renderer* renderer = m_EngineContext->GetSubsystem<Aurora::Renderer>();
 	Aurora::Instrumentor::GetInstance().BeginSession("Tick");
 
 	while (m_EngineContext->GetSubsystem<Aurora::WindowContext>()->IsWindowRunning())
@@ -125,10 +126,11 @@ void Editor::Tick()
 		Aurora::Profiler::GetInstance().Reset();
 		ImGui::End();
 
-		ImGui::Begin("Renderer");
+		ImGui::Begin("Renderer Settings");
 
+		ImGui::Text("Maximum MSAA Level Supported: %u", renderer->m_DeviceContext->GetMaxMultisampleLevel());
 		char sampleString[11];
-		sprintf_s(sampleString, "%u", m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->GetCurrentMultisampleLevel());
+		sprintf_s(sampleString, "%u", renderer->m_DeviceContext->GetCurrentMultisampleLevel());
 		if (ImGui::BeginCombo("Multisample Level", sampleString, 0))
 		{
 			if (ImGui::Selectable("Off"))
@@ -157,7 +159,6 @@ void Editor::Tick()
 
 			ImGui::EndCombo();
 		}
-		ImGui::Text("Maximum MSAA Level Supported: %u", m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->GetMaxMultisampleLevel());
 
 		// Needs a whole system of its own.
 		
@@ -199,43 +200,46 @@ void Editor::Tick()
 			ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(720, 480));
 		}
 
+		ImGui::DragInt("Debug Grid Size", &renderer->m_DebugGridSize, 0.1f);
+		ImGui::DragFloat("Gizmos Size", &renderer->m_GizmosSizeCurrent, 0.1f, renderer->m_GizmosSizeMinimum, renderer->m_GizmosSizeMaximum);
+
 		ImGui::End();
 
 		// Sky
-		ImGui::Begin("Sky");
+		ImGui::Begin("Sky Debug");
 
 		//Aurora::DX11_Utility::DX11_TexturePackage* textures = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular);
 		// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(600, 600));
 		if (ImGui::Button("Front"))
 		{
-			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
+			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
 		}
 		if (ImGui::Button("Back"))
 		{
-			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 270.0f, 0.0f); // back
+			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 270.0f, 0.0f); // back
 		}
 		if (ImGui::Button("Top"))
 		{
-			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(-90.0f, 0.0f, 0.0f); // top
+			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(-90.0f, 0.0f, 0.0f); // top
 		}
 		if (ImGui::Button("Bottom"))
 		{
-			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(90.0f, 0.0f, 0.0f); // bottom
+			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(90.0f, 0.0f, 0.0f); // bottom
 		}
 		if (ImGui::Button("Left"))
 		{
-			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 0.0f, 0.0f); // left
+			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 0.0f, 0.0f); // left
 		}
 		if (ImGui::Button("Right"))
 		{
-			m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
+			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
 		}
 
 		// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(600, 600));
 
 		// Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
 		// ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
-		ImGui::DragFloat("Light Bias", &m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_LightBias, 0.01, 0.005, 0.1);
+		ImGui::DragFloat("Light Bias", &renderer->m_LightBias, 0.01, 0.005, 0.1);
 		/*
 		else
 		{
@@ -285,7 +289,7 @@ void Editor::Tick()
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-		m_EngineContext->GetSubsystem<Aurora::Renderer>()->Present();
+		renderer->Present();
 
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{

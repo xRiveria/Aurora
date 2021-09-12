@@ -6,6 +6,7 @@
 #include "ShaderInternals.h"
 #include "RendererResources.h"
 #include "../Scene/Components/Light.h"
+#include "../Scene/Components/AudioSource.h"
 #include "../Resource/Importers/Importer_Image.h"
 #include "../Time/Timer.h"
 #include "../Graphics/DX11_Refactored/DX11_Texture.h"
@@ -415,41 +416,43 @@ namespace Aurora
             static float col = 0.7f;
             static uint32_t gridVertexCount = 0;
             static RHI_GPU_Buffer gridBuffer;
+            static int currentGridSize;
 
-            if (!gridBuffer.IsValid())
+            if (!gridBuffer.IsValid() || currentGridSize != m_DebugGridSize)
             {
+                currentGridSize = m_DebugGridSize;
                 const float h = 0.01f; // avoid z-fight with zero plane
-                const int a = 40;
-                XMFLOAT4 verts[((a + 1) * 2 + (a + 1) * 2) * 2];
+                // const int a = 50; 
+                std::vector<XMFLOAT4> verts(((m_DebugGridSize + 1) * 2 + (m_DebugGridSize + 1) * 2) * 2);
 
                 int count = 0;
-                for (int i = 0; i <= a; ++i)
+                for (int i = 0; i <= m_DebugGridSize; ++i)
                 {
-                    verts[count++] = XMFLOAT4(i - a * 0.5f, h, -a * 0.5f, 1);
-                    verts[count++] = (i == a / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
+                    verts[count++] = XMFLOAT4(i - m_DebugGridSize * 0.5f, h, -m_DebugGridSize * 0.5f, 1);
+                    verts[count++] = (i == m_DebugGridSize / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
 
-                    verts[count++] = XMFLOAT4(i - a * 0.5f, h, +a * 0.5f, 1);
-                    verts[count++] = (i == a / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
+                    verts[count++] = XMFLOAT4(i - m_DebugGridSize * 0.5f, h, +m_DebugGridSize * 0.5f, 1);
+                    verts[count++] = (i == m_DebugGridSize / 2 ? XMFLOAT4(0, 0, 1, 1) : XMFLOAT4(col, col, col, 1));
                 }
-                for (int j = 0; j <= a; ++j)
+                for (int j = 0; j <= m_DebugGridSize; ++j)
                 {
-                    verts[count++] = XMFLOAT4(-a * 0.5f, h, j - a * 0.5f, 1);
-                    verts[count++] = (j == a / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
+                    verts[count++] = XMFLOAT4(-m_DebugGridSize * 0.5f, h, j - m_DebugGridSize * 0.5f, 1);
+                    verts[count++] = (j == m_DebugGridSize / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
 
-                    verts[count++] = XMFLOAT4(+a * 0.5f, h, j - a * 0.5f, 1);
-                    verts[count++] = (j == a / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
+                    verts[count++] = XMFLOAT4(+m_DebugGridSize * 0.5f, h, j - m_DebugGridSize * 0.5f, 1);
+                    verts[count++] = (j == m_DebugGridSize / 2 ? XMFLOAT4(1, 0, 0, 1) : XMFLOAT4(col, col, col, 1));
                 }
 
-                gridVertexCount = ARRAYSIZE(verts) / 2;
+                gridVertexCount = verts.size() / 2;
 
                 RHI_GPU_Buffer_Description bufferDescription;
                 bufferDescription.m_Usage = Usage::Immutable;
-                bufferDescription.m_ByteWidth = sizeof(verts);
+                bufferDescription.m_ByteWidth = verts.size() * sizeof(XMFLOAT4);
                 bufferDescription.m_BindFlags = Bind_Flag::Bind_Vertex_Buffer;
                 bufferDescription.m_CPUAccessFlags = 0;
 
                 RHI_Subresource_Data initializationData;
-                initializationData.m_SystemMemory = verts;
+                initializationData.m_SystemMemory = &verts.at(0);
 
                 m_GraphicsDevice->CreateBuffer(&bufferDescription, &initializationData, &gridBuffer);
             }
@@ -568,8 +571,6 @@ namespace Aurora
         }
     }
 
-
-
     void Renderer::Pass_Icons()
     {
         Stopwatch stopwatch("Icons Pass", true);
@@ -579,7 +580,25 @@ namespace Aurora
 
         for (const auto& entity : sceneEntities)
         {
-            if (!entity->GetComponent<Light>())
+            DX11_Texture* gizmosToRender;
+
+            if (entity->GetComponent<Light>())
+            {
+                gizmosToRender = m_GizmosPointLightTexture.get();
+            }
+            else if (entity->GetComponent<AudioSource>())
+            {
+                gizmosToRender = m_GizmosAudioSourceTexture.get();
+            }
+            //else if (entity->GetComponent<Camera>()) // For game camera.
+            //{
+            //    gizmosToRender = m_GizmosCameraTexture.get();
+            //}
+            else if (entity->GetObjectName() == "Directional Light") // To combine with Light component.
+            {
+                gizmosToRender = m_GizmosDirectionalLightTexture.get();
+            }
+            else
             {
                 continue;
             }
@@ -593,39 +612,35 @@ namespace Aurora
             m_GraphicsDevice->m_DeviceContextImmediate->OMSetBlendState(m_DeviceContext->m_BlendState_Alpha.Get(), blend_Factor.data(), 0xffffffff);
             m_DeviceContext->BindPrimitiveTopology(RHI_Primitive_Topology::TriangleList);
 
-            // Light Properties.
-            Light* light = entity->GetComponent<Light>();
-            XMVECTOR lightWorldPosition = XMLoadFloat3(&light->GetEntity()->GetTransform()->m_TranslationLocal);
+            // Properties
+            XMVECTOR objectWorldPosition = XMLoadFloat3(&entity->GetTransform()->m_TranslationLocal);
             XMVECTOR cameraWorldPosition = XMLoadFloat3(&m_Camera->GetTransform()->m_TranslationLocal);
-            XMVECTOR cameraDirectionToLight = XMVector3Normalize(lightWorldPosition - cameraWorldPosition);
+            XMVECTOR cameraDirectionToLight = XMVector3Normalize(objectWorldPosition - cameraWorldPosition);
 
             /// Frustrum calling in the future.
             // Compute light screen space position and scale (based on distance from the camera).
-            XMFLOAT2 lightPositionScreenSpace = m_Camera->GetComponent<Camera>()->Project(lightWorldPosition);
+            XMFLOAT2 objectPositionScreenSpace = m_Camera->GetComponent<Camera>()->Project(objectWorldPosition);
             XMFLOAT3 length;
-            XMStoreFloat3(&length, XMVector3Length(cameraWorldPosition - lightWorldPosition));
+            XMStoreFloat3(&length, XMVector3Length(cameraWorldPosition - objectWorldPosition));
             const float distance = length.x;
-            float gizmosScale = m_GizmoSizeMax / distance;
-            gizmosScale = Math::Helper::Clamp(gizmosScale, m_GizmoSizeMin, m_GizmoSizeMax);
-            
-            // Select texture based on light type.
-            std::shared_ptr<DX11_Texture> lightTexture = m_DefaultGizmosLightTexture;
-
+            float gizmosScale = m_GizmosSizeCurrent / distance;
+            gizmosScale = Math::Helper::Clamp(gizmosScale, m_GizmosSizeMinimum, m_GizmosSizeMaximum);
+           
             // Construct rectangle.
-            const float textureWidth = lightTexture->GetWidth() * gizmosScale;
-            const float textureHeight = lightTexture->GetHeight() * gizmosScale;
+            const float textureWidth = gizmosToRender->GetWidth() * gizmosScale;
+            const float textureHeight = gizmosToRender->GetHeight() * gizmosScale;
             Math::Rectangle rectangle = Math::Rectangle
             (
-                lightPositionScreenSpace.x - textureWidth * 0.5f,
-                lightPositionScreenSpace.y - textureHeight * 0.5f,
-                lightPositionScreenSpace.x + textureWidth,
-                lightPositionScreenSpace.y + textureHeight
+                objectPositionScreenSpace.x - textureWidth * 0.5f,
+                objectPositionScreenSpace.y - textureHeight * 0.5f,
+                objectPositionScreenSpace.x + textureWidth,
+                objectPositionScreenSpace.y + textureHeight
             );
 
-            if (rectangle != m_GizmosLightRect)
+            if (rectangle != m_GizmosRect)
             {
-                m_GizmosLightRect = rectangle;
-                m_GizmosLightRect.CreateBuffers(this);
+                m_GizmosRect = rectangle;
+                m_GizmosRect.CreateBuffers(this);
             }
 
             // Update buffer.
@@ -636,11 +651,11 @@ namespace Aurora
 
             m_DeviceContext->BindInputLayout(m_PixelInputLayout.get());
 
-            m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(10, 1, m_DefaultGizmosLightTexture->GetShaderResourceView().GetAddressOf());
+            m_GraphicsDevice->m_DeviceContextImmediate->PSSetShaderResources(10, 1, gizmosToRender->GetShaderResourceView().GetAddressOf());
 
-            m_DeviceContext->BindIndexBuffer(m_GizmosLightRect.GetIndexBuffer());
-            m_DeviceContext->BindVertexBuffer(m_GizmosLightRect.GetVertexBuffer());
-            m_GraphicsDevice->m_DeviceContextImmediate->Draw(m_GizmosLightRect.GetVertexBuffer()->GetVertexCount(), 0);
+            m_DeviceContext->BindIndexBuffer(m_GizmosRect.GetIndexBuffer());
+            m_DeviceContext->BindVertexBuffer(m_GizmosRect.GetVertexBuffer());
+            m_GraphicsDevice->m_DeviceContextImmediate->Draw(m_GizmosRect.GetVertexBuffer()->GetVertexCount(), 0);
         }
     }
 

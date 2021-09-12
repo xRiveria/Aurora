@@ -75,7 +75,10 @@ namespace Aurora
     void Renderer::LoadDefaultTextures()
     {
         m_DefaultWhiteTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>("../Resources/Textures/Default/DefaultDisplay.png");
-        m_DefaultGizmosLightTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>("../Resources/Textures/Default/GizmosLight.png");
+        m_GizmosPointLightTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>("../Resources/Textures/Gizmos/Gizmos_PointLight.png");
+        m_GizmosDirectionalLightTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>("../Resources/Textures/Gizmos/Gizmos_DirectionalLight.png");
+        m_GizmosCameraTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>("../Resources/Textures/Gizmos/Gizmos_Camera.png");
+        m_GizmosAudioSourceTexture = m_EngineContext->GetSubsystem<ResourceCache>()->Load<DX11_Texture>("../Resources/Textures/Gizmos/Gizmos_AudioSource.png");
     }
 
     void Renderer::LoadShaders()

@@ -88,8 +88,6 @@ namespace Aurora
         void LoadPipelineStates();
         void SetRenderDimensions(float width, float height) { m_RenderWidth = width; m_RenderHeight = height; }
 
-
-
     private:
         ShaderCompiler::ShaderCompiler m_ShaderCompiler;
 
@@ -128,14 +126,26 @@ namespace Aurora
         
 
         // Default Textures
-        ResourceCache* m_ResourceCache;
         std::shared_ptr<DX11_Texture> m_DefaultWhiteTexture;
-        const float m_GizmoSizeMax = 1.4f;
-        const float m_GizmoSizeMin = 0.1f;
-        Math::Rectangle m_GizmosLightRect;
+        std::shared_ptr<DX11_Texture> m_GizmosDirectionalLightTexture;
+        std::shared_ptr<DX11_Texture> m_GizmosPointLightTexture;
+        std::shared_ptr<DX11_Texture> m_GizmosAudioSourceTexture;
+        std::shared_ptr<DX11_Texture> m_GizmosCameraTexture;
+
+        // Render Options
+        // === Gizmos ===
+        const float m_GizmosSizeMinimum = 0.1f;
+        const float m_GizmosSizeMaximum = 4.0;
+        float m_GizmosSizeCurrent = 2.0f;
+
+        // === Debug Grid ===
+        int m_DebugGridSize = 40;
+
+        ResourceCache* m_ResourceCache;
+
+        Math::Rectangle m_GizmosRect;
         RHI_Shader m_QuadVertexShader;
         RHI_Shader m_CopyBilinearPixelShader;
-        std::shared_ptr<DX11_Texture> m_DefaultGizmosLightTexture;
         std::shared_ptr<DX11_InputLayout> m_PixelInputLayout;
 
         // Entities

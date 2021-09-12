@@ -53,7 +53,7 @@ namespace Aurora
             return false;
         }
 
-        AURORA_INFO(LogLayer::Graphics, "Successfully created Vertex Buffer - %f and %f", static_cast<float>(m_Stride), static_cast<float>(m_ObjectSizeGPU));
+        // AURORA_INFO(LogLayer::Graphics, "Successfully created Index Buffer - %f and %f", static_cast<float>(m_Stride), static_cast<float>(m_ObjectSizeGPU));
         return true;
     }
 

@@ -1,0 +1,29 @@
+Type: ResourceCache
+Resource_Count: 9
+Resource_0:
+  Resource_Path: ../Resources/Textures/Default/DefaultDisplay.png
+  Resource_Type: 1
+Resource_1:
+  Resource_Path: ../Resources/Textures/Gizmos/Gizmos_PointLight.png
+  Resource_Type: 1
+Resource_2:
+  Resource_Path: ../Resources/Textures/Gizmos/Gizmos_DirectionalLight.png
+  Resource_Type: 1
+Resource_3:
+  Resource_Path: ../Resources/Textures/Gizmos/Gizmos_Camera.png
+  Resource_Type: 1
+Resource_4:
+  Resource_Path: ../Resources/Textures/Gizmos/Gizmos_AudioSource.png
+  Resource_Type: 1
+Resource_5:
+  Resource_Path: ../Resources/Textures/Default/Default.png
+  Resource_Type: 1
+Resource_6:
+  Resource_Path: Project/Standard.material
+  Resource_Type: 4
+Resource_7:
+  Resource_Path: ../Resources/Models/Default/lambert1.material
+  Resource_Type: 4
+Resource_8:
+  Resource_Path: ../Resources/Models/Default/Cube.model
+  Resource_Type: 3

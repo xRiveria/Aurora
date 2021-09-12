@@ -264,8 +264,14 @@ namespace Aurora
         ScriptFieldMapping& scriptFieldMapping = scriptComponent->GetFieldMap();
         std::unordered_map<std::string, PublicField>& fieldMap = scriptFieldMapping[moduleName];
 
-        /// Save the old fields in field map. The point of this is that if you reload the script instance, the values of fields and properties are preserved as long as the reloaded entity has the same fields and the same type.
-        
+        // Save the old fields in field map. The point of this is that if you reload the script instance, the values of fields and properties are preserved as long as the reloaded entity has the same fields and the same type.
+        std::unordered_map<std::string, PublicField> oldFields;
+        oldFields.reserve(fieldMap.size());
+        for (auto& [fieldName, field] : fieldMap)
+        {
+            oldFields.emplace(fieldName, std::move(field));
+        }
+
         // Creation of new instance.
         scriptInstanceData.m_MonoGCHandle = InstantiateMonoObjectInstance(scriptClassData);
 
@@ -293,12 +299,19 @@ namespace Aurora
                 
                 char* fieldTypeName = mono_type_get_name(fieldType);
 
-                /// Check if field exists in oldFields. If so, replace.
-                /// If this is a class reference (entity etc), continue.
+                auto oldField = oldFields.find(fieldName);
+                if ((oldField != oldFields.end()) && (oldField->second.m_FieldTypeName == fieldTypeName)) // Field found, proceed.
+                {
+                    fieldMap.emplace(fieldName, std::move(oldFields.at(fieldName))); // Place in new map.
+                    PublicField& field = fieldMap.at(fieldName);
+                    field.m_MonoClassField = iterator;
+                    continue;
+                }
 
                 /// To Do: Attributes
                 MonoCustomAttrInfo* attribute = mono_custom_attrs_from_field(scriptClassData.m_Class, iterator);
 
+                // New field. Hence, we add it to the field list.
                 PublicField field = { fieldName, fieldTypeName, auroraFieldType };
                 field.m_MonoClassField = iterator;
                 field.CopyStoredValueFromRuntime(scriptInstanceData);
@@ -314,7 +327,13 @@ namespace Aurora
             {
                 const char* propertyName = mono_property_get_name(iterator);
 
-                /// Check if this exists in oldFields. If so, simply retrieve its data from it.
+                if (oldFields.find(propertyName) != oldFields.end()) // Found property...
+                {
+                    fieldMap.emplace(propertyName, std::move(oldFields.at(propertyName)));
+                    PublicField& field = fieldMap.at(propertyName);
+                    field.m_MonoProperty = iterator;
+                    continue;
+                }
 
                 MonoMethod* propertySetter = mono_property_get_set_method(iterator);
                 MonoMethod* propertyGetter = mono_property_get_get_method(iterator);

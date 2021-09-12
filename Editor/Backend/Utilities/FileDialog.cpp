@@ -244,15 +244,6 @@ void FileDialog::ShowMiddleUI()
 
     // Remove border.
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0);
-
-    /*
-    // Make background slightly darker.
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(
-        static_cast<int>(m_ContentBackgroundColor.x),
-        static_cast<int>(m_ContentBackgroundColor.y),
-        static_cast<int>(m_ContentBackgroundColor.z),
-        static_cast<int>(m_ContentBackgroundColor.w)));
-    */
     
     if (ImGui::BeginChild("##FileDialog_ContentRegion", ImVec2(contentWidth, contentHeight), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
     {
