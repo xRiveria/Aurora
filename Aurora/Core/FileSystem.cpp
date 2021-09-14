@@ -307,8 +307,15 @@ namespace Aurora
 
     void FileSystem::OpenItem(const std::string& directoryPath)
     {
+        auto absolutePath = std::filesystem::canonical(directoryPath);
+        if (Exists(absolutePath.generic_string()))
+        {
+            ShellExecute(NULL, L"explore", absolutePath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+        }
+        // return true;
+
         // See: https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutea
-        ShellExecute(nullptr, nullptr, StringToWString(directoryPath).c_str(), nullptr, nullptr, SW_SHOW);
+        // ShellExecute(nullptr, nullptr, StringToWString(directoryPath).c_str(), nullptr, nullptr, SW_SHOW);
     }
 
     std::string FileSystem::GetWorkingDirectory()
@@ -445,6 +452,11 @@ namespace Aurora
         return false;
     }
 
+    bool FileSystem::IsEnginePrefabFile(const std::string& filePath)
+    {
+        return GetExtensionFromFilePath(filePath) == EXTENSION_PREFAB;
+    }
+
     bool FileSystem::IsEngineMaterialFile(const std::string& filePath)
     {
         return GetExtensionFromFilePath(filePath) == EXTENSION_MATERIAL;
@@ -536,7 +548,8 @@ namespace Aurora
                IsEngineMaterialFile(filePath) ||
                IsEngineCacheFile(filePath)    ||
                IsEngineTextureFile(filePath)  ||
-               IsEngineAudioFile(filePath) ||
+               IsEngineAudioFile(filePath)    ||
+               IsEnginePrefabFile(filePath)   ||
                IsEngineSceneFile(filePath);
     }
 }

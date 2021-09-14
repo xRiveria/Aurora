@@ -20,6 +20,7 @@ enum IconType
     IconType_AssetBrowser_Refresh,
     IconType_AssetBrowser_Cache,
     IconType_AssetBrowser_Scene,
+    IconType_AssetBrowser_Prefab,
     IconType_Toolbar_Play,
     IconType_Toolbar_Pause,
     IconType_Toolbar_Stop,

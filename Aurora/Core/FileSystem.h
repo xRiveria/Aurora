@@ -46,6 +46,7 @@ namespace Aurora
         static bool PushFileDataToBuffer(const std::string& fileName, std::vector<uint8_t>& data);
 
         // Supported Files by the Engine
+        static bool IsEnginePrefabFile(const std::string& filePath);
         static bool IsEngineMaterialFile(const std::string& filePath);
         static bool IsEngineSceneFile(const std::string& filePath);
         static bool IsEngineModelFile(const std::string& filePath);
@@ -66,6 +67,7 @@ namespace Aurora
     static const char* EXTENSION_SCENE = ".aurora";
     static const char* EXTENSION_MATERIAL = ".material";
     static const char* EXTENSION_CACHE = ".dat";
+    static const char* EXTENSION_PREFAB = ".prefab";
 
     static const std::vector<std::string> g_Supported_Model_Formats
     {

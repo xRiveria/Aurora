@@ -14,7 +14,7 @@ namespace Aurora
         if (m_IndexBuffer != nullptr)
         {
             m_IndexBuffer.Reset();
-            AURORA_INFO(LogLayer::Graphics, "Successfully released Index Buffer.");
+            // AURORA_INFO(LogLayer::Graphics, "Successfully released Index Buffer.");
         }
     }
 

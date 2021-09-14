@@ -17,7 +17,7 @@ namespace Aurora
         Collider,
         AudioSource,
         Script,
-        Unknown
+        Unknown,
     };
 
     struct ComponentAttribute

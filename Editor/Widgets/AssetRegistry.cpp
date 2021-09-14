@@ -14,6 +14,8 @@ void AssetRegistry::OnTickVisible()
 {
     Aurora::AURORA_PROFILE_FUNCTION();
 
+    uint32_t cacheSize = static_cast<uint32_t>(m_ResourceCache->m_CachedResources.size());
+    ImGui::Text("Cache Size: %i", cacheSize);
     ImGui::Checkbox("Filter By Type", &g_FilterByType);
 
     m_RegistryFilter.Draw("##RegisterFilter", ImGui::GetContentRegionAvailWidth());
@@ -21,8 +23,6 @@ void AssetRegistry::OnTickVisible()
     ImGui::Columns(2);
     ImGui::AlignTextToFramePadding();
 
-
-    uint32_t cacheSize = static_cast<uint32_t>(m_ResourceCache->m_CachedResources.size());
     for (uint32_t i = 0; i < cacheSize; i++)
     {
         Aurora::AuroraResource* resource = m_ResourceCache->m_CachedResources[i].get();

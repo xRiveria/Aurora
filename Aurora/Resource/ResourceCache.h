@@ -91,7 +91,7 @@ namespace Aurora
             //    return nullptr;
             //}
 
-            // Ensure that this resource is not already cached.
+            // Ensure that this resource is not already cached. If it is, return the cached reference.
             if (IsResourceCached(resource->GetResourceName(), resource->GetResourceType()))
             {
                 return GetResourceByName<T>(resource->GetResourceName());
@@ -99,8 +99,11 @@ namespace Aurora
 
             std::lock_guard<std::mutex> lockGuard(m_Mutex);
 
-            // In order to guarentee deserialization, we save it now.
-            resource->SaveToFile(resource->GetResourceFilePathNative());
+            // In order to guarentee deserialization, we save it now. Don't double save prefabs as its broken for now.
+            if (resource->GetResourceType() != ResourceType::ResourceType_Prefab)
+            {
+                resource->SaveToFile(resource->GetResourceFilePathNative());
+            }
 
             // Cache it.
             return std::static_pointer_cast<T>(m_CachedResources.emplace_back(resource));
@@ -116,11 +119,15 @@ namespace Aurora
                 return nullptr;
             }
 
-            // Check if the resource is already loaded. If so, we will retrieve it.
-            const std::string resourceName = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath);
-            if (IsResourceCached(resourceName, AuroraResource::TypeToEnum<T>()))
+            // Check if the resource is already loaded. If so, we will retrieve it. Prefabs/models will be allowed to allow for new instances of the objects to be created.
+            // However, no additiona loading of their data is being done regardless as a second check exists within CacheResource AFTER the creation of the objects as seen below.
+            if (AuroraResource::TypeToEnum<T>() != ResourceType::ResourceType_Prefab)
             {
-                return GetResourceByName<T>(resourceName);
+                const std::string resourceName = FileSystem::GetFileNameWithoutExtensionFromFilePath(filePath);
+                if (IsResourceCached(resourceName, AuroraResource::TypeToEnum<T>()))
+                {
+                    return GetResourceByName<T>(resourceName);
+                }
             }
 
             // Create a new resource and set its file path.

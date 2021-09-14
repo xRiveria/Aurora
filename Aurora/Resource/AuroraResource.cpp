@@ -4,6 +4,7 @@
 #include "../Renderer/Model.h"
 #include "../Renderer/Material.h"
 #include "../Audio/AudioClip.h"
+#include "../Resource/Prefab.h"
 
 namespace Aurora
 {
@@ -28,4 +29,5 @@ namespace Aurora
     INSTANTIATE_TO_RESOURCE_TYPE(Model, ResourceType::ResourceType_Model)
     INSTANTIATE_TO_RESOURCE_TYPE(Material, ResourceType::ResourceType_Material)
     INSTANTIATE_TO_RESOURCE_TYPE(AudioClip, ResourceType::ResourceType_Audio)
+    INSTANTIATE_TO_RESOURCE_TYPE(Prefab, ResourceType::ResourceType_Prefab)
 }

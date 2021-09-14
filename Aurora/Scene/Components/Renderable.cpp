@@ -29,6 +29,7 @@ namespace Aurora
     {
         // Mesh
         binarySerializer->Write(m_Model ? m_Model->GetResourceName() : "");
+        binarySerializer->Write(m_Model ? m_Model->GetResourceFilePathNative() : "");
         binarySerializer->Write(m_GeometryIndexOffset);
         binarySerializer->Write(m_GeometryIndexSize);
         binarySerializer->Write(m_GeometryVertexOffset);
@@ -39,6 +40,7 @@ namespace Aurora
         if (!m_IsUsingDefaultMaterial)
         {
             binarySerializer->Write(m_Material ? m_Material->GetResourceName() : "");
+            binarySerializer->Write(m_Material ? m_Material->GetResourceFilePathNative() : "");
         }
     }
 
@@ -46,8 +48,16 @@ namespace Aurora
     {
         // Mesh
         std::string modelName;
+        std::string modelFilePath;
         binaryDeserializer->Read(&modelName);
-        m_Model = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<Model>(modelName).get();
+        binaryDeserializer->Read(&modelFilePath);
+
+        // Model might not exist if the scene was just loaded. Hence, we need to serialize the path of the model itself as well. We load path on entry.
+        if (!(m_Model = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<Model>(modelName).get()))
+        {
+            m_Model = m_EngineContext->GetSubsystem<ResourceCache>()->Load<Model>(modelFilePath).get();
+        }
+
         m_GeometryIndexOffset = binaryDeserializer->ReadAs<uint32_t>();
         m_GeometryIndexSize = binaryDeserializer->ReadAs<uint32_t>();
         m_GeometryVertexOffset = binaryDeserializer->ReadAs<uint32_t>();
@@ -62,8 +72,15 @@ namespace Aurora
         else
         {
             std::string materialName;
+            std::string materialFilePath;
             binaryDeserializer->Read(&materialName);
-            m_Material = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<Material>(materialName).get();
+            binaryDeserializer->Read(&materialFilePath);
+
+            // Material might not exist if the scene was just loaded. Hence, we need to serialize the path of the model itself as well. We load material on entry.        
+            if (!(m_Material = m_EngineContext->GetSubsystem<ResourceCache>()->GetResourceByName<Material>(materialName).get()))
+            {
+                m_Material = m_EngineContext->GetSubsystem<ResourceCache>()->Load<Material>(materialFilePath).get();
+            }
         }
     }
 

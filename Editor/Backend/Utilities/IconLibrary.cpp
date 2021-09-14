@@ -45,6 +45,7 @@ void IconLibrary::Initialize(Aurora::EngineContext* engineContext, Editor* edito
     LoadIcon_(resourceDirectory + "AssetBrowser_Material.png", IconType::IconType_AssetBrowser_Material);
     LoadIcon_(resourceDirectory + "AssetBrowser_Cache.png", IconType::IconType_AssetBrowser_Cache);
     LoadIcon_(resourceDirectory + "AssetBrowser_Scene.png", IconType::IconType_AssetBrowser_Scene);
+    LoadIcon_(resourceDirectory + "AssetBrowser_Prefab.png", IconType::IconType_AssetBrowser_Prefab);
 
     // Assets
     LoadIcon_(resourceDirectory + "Assets_Cube.png", IconType::IconType_ObjectPanel_Cube);

@@ -181,6 +181,9 @@ public:
     void CreateNewFolder(const std::string& filePath);
     void CreateNewMaterial(const std::string& filePath);
 
+    // Misc
+    void SetDirty(bool isDirty) { m_IsDirty = isDirty; }
+
 private:
     void ShowTopUI(bool* isVisible);
     void ShowMiddleUI();

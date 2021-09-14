@@ -4,6 +4,7 @@
 #include "../Renderer/Material.h"
 #include "../Input/Input.h"
 #include "../Input/InputUtilities.h"
+#include "../Resource/Prefab.h"
 #include <filesystem>
 #include "../Core/FileSystem.h"
 #include <regex>
@@ -586,6 +587,15 @@ void FileDialog::ItemContextMenu(FileDialogItem* item)
         Aurora::FileSystem::OpenItem(item->GetPath());
     }
 
+    if (Aurora::FileSystem::IsEnginePrefabFile(item->GetPath()))
+    {
+        ImGui::Separator();
+        if (ImGui::MenuItem("Load Prefab"))
+        {
+            m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->Load<Aurora::Prefab>("..\\Editor\\" + item->GetPath());
+        }
+    }
+
     ImGui::EndPopup();
 }
 
@@ -639,6 +649,11 @@ bool FileDialog::DialogUpdateFromDirectory(const std::string& directoryPath)
         if (Aurora::FileSystem::IsEngineSceneFile(childItem))
         {
             m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Scene, static_cast<int>(m_HierarchyItemSize.x)));
+        }
+
+        if (Aurora::FileSystem::IsEnginePrefabFile(childItem))
+        {
+            m_HierarchyItems.emplace_back(childItem, IconLibrary::GetInstance().LoadIcon_(childItem, IconType::IconType_AssetBrowser_Prefab, static_cast<int>(m_HierarchyItemSize.x)));
         }
 
         if (m_ShowCachedFiles)

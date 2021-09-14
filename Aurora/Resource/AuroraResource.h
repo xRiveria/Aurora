@@ -18,7 +18,8 @@ namespace Aurora
         ResourceType_Image,
         ResourceType_Audio,
         ResourceType_Model,
-        ResourceType_Material
+        ResourceType_Material,
+        ResourceType_Prefab
     };
 
     enum class LoadState
@@ -38,9 +39,9 @@ namespace Aurora
 
         void SetResourceFilePath(const std::string& filePath)
         {
-            const bool isNativeFile = FileSystem::IsEngineMaterialFile(filePath) || FileSystem::IsEngineModelFile(filePath) || FileSystem::IsEngineTextureFile(filePath) || FileSystem::IsEngineAudioFile(filePath);
+            const bool isNativeFile = FileSystem::IsEngineMaterialFile(filePath) || FileSystem::IsEngineModelFile(filePath) || FileSystem::IsEngineTextureFile(filePath) || FileSystem::IsEngineAudioFile(filePath) || FileSystem::IsEnginePrefabFile(filePath);
 
-            // If this is a native engine file, don't do a file check as no actual foreign material exists (it was created on the fly).
+            // If this is a native engine file, don't do a file check as no actual foreign material exists (it was created with our engine).
             if (!isNativeFile)
             {
                 if (!FileSystem::IsFile(filePath))

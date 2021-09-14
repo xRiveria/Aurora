@@ -1,3 +1,4 @@
+7.0       - Implementation of Prefab System + To Implement Script Serialization
 6.0	  - Implementation of Renderable Component
 5.0	  - Implementation of Audio System - Serialization/Deserialization
 4.1	  - Further Workflow Patches

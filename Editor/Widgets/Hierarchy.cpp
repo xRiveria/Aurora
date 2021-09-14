@@ -1,10 +1,15 @@
 #include "Hierarchy.h"
+#include "../Backend/Editor.h"
+#include "../Backend/Utilities/FileDialog.h"
+#include "../Widgets/AssetBrowser.h"
 #include "../Scene/World.h"
 #include "../Input/Input.h"
 #include "../Input/InputUtilities.h"
 #include "../Scene/Components/Renderable.h"
 #include "../Backend/Source/imgui_internal.h"
 #include "../Backend/Utilities/Extensions.h"
+#include "../Resource/Prefab.h"
+#include "Settings.h"
 #include "Properties.h"
 
 namespace HierarchyGlobals
@@ -266,7 +271,7 @@ void Hierarchy::PopupContextMenu()
         return;
     }
 
-    const auto selectedEntity = EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.lock();
+    const std::shared_ptr<Aurora::Entity> selectedEntity = EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.lock();
     const bool isEntitySelected = selectedEntity != nullptr;
 
     if (isEntitySelected)
@@ -281,6 +286,21 @@ void Hierarchy::PopupContextMenu()
             selectedEntity->MarkForDestruction();
             HierarchyGlobals::g_WorldSubsystem->SetSceneDirty();
             EditorExtensions::ContextHelper::GetInstance().m_SelectedEntity.reset();
+        }
+
+        if (ImGui::MenuItem("Save as Prefab"))
+        {
+            std::shared_ptr<Aurora::Prefab> newPrefab = std::make_shared<Aurora::Prefab>(m_EngineContext);
+            newPrefab->AppendToPrefab(selectedEntity.get());
+
+            // Save to file to guarantee caching.
+            newPrefab->SaveToFile(m_EngineContext->GetSubsystem<Aurora::Settings>()->GetProjectDirectory() + Aurora::FileSystem::GetFileNameFromFilePath(selectedEntity->GetEntityName()));
+
+            // Cache.
+            // m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->CacheResource<Aurora::Prefab>(newPrefab);
+
+            // Update asset browser.
+            m_EditorContext->GetWidget<AssetBrowser>()->m_FileDialog->SetDirty(true);
         }
     }
 

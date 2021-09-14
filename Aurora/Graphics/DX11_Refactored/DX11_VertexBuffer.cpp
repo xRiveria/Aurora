@@ -13,7 +13,7 @@ namespace Aurora
         if (m_VertexBuffer != nullptr)
         {
             m_VertexBuffer.Reset();
-            AURORA_INFO(LogLayer::Graphics, "Successfully released Vertex Buffer.");
+            // AURORA_INFO(LogLayer::Graphics, "Successfully released Vertex Buffer.");
         }
     }
 

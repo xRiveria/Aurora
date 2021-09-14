@@ -20,10 +20,12 @@ public:
 
 	void OnTickVisible() override;
 
+public:
+	std::unique_ptr<FileDialog> m_FileDialog;
+
 private:
 	void OnPathClicked(const std::string& filePath) const;
 
 private:
-	std::unique_ptr<FileDialog> m_FileDialog;
 	Aurora::Settings* m_SettingsSubsystem;
 };

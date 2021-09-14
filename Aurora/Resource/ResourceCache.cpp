@@ -31,7 +31,7 @@ namespace Aurora
 
         for (std::shared_ptr<AuroraResource>& cachedResource : m_CachedResources)
         {
-            if (resourceName == cachedResource->GetResourceName())
+            if (resourceName == cachedResource->GetResourceName() && resourceType == cachedResource->GetResourceType())
             {
                 return true;
             }
