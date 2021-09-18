@@ -1,4 +1,5 @@
 #define _XM_NO_INTRINSICS_
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "Editor.h"
 #include "../Profiler/Instrumentor.h"
 #include "Source/imgui.h"
@@ -35,6 +36,10 @@
 #include "../Widgets/AssetBrowser.h"
 #include "../Widgets/EditorConsole.h"
 #include "../Widgets/ScriptEngine.h"
+#include "Source/imgui_node_editor.h"
+
+namespace NodeEditor = ax::NodeEditor;
+static NodeEditor::EditorContext* g_NodeEditorContext = nullptr;
 
 namespace EditorConfigurations
 {
@@ -125,6 +130,26 @@ void Editor::Tick()
 		}
 		Aurora::Profiler::GetInstance().Reset();
 		ImGui::End();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::Begin("Node Editor");
+		NodeEditor::Begin("Test Node Editor");
+
+		int uniqueID = 1;
+		NodeEditor::BeginNode(uniqueID++);
+		ImGui::Text("Log");
+		NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Input);
+		ImGui::Text("-> String");
+		NodeEditor::EndPin();
+		ImGui::SameLine();
+		NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Output);
+		ImGui::Text("Error");
+		NodeEditor::EndPin();
+		NodeEditor::EndNode();
+		NodeEditor::End();
+		ImGui::End();
+		ImGui::PopStyleVar(2);
 
 		ImGui::Begin("Renderer Settings");
 
@@ -392,6 +417,7 @@ void Editor::BeginDockingContext()
 	style.WindowMinSize.x = minimumWindowsize;
 }
 
+
 void Editor::ImGuiImplementation_Initialize(Aurora::EngineContext* engineContext)
 {
 	// Version Validation
@@ -411,6 +437,10 @@ void Editor::ImGuiImplementation_Initialize(Aurora::EngineContext* engineContext
 	const char* filePath = "../Resources/Fonts/opensans/OpenSans-Bold.ttf";
 	io.Fonts->AddFontFromFileTTF(filePath, EditorConfigurations::g_FontSize);
 	io.FontDefault = io.Fonts->AddFontFromFileTTF("../Resources/Fonts/opensans/OpenSans-Regular.ttf", 17.0f);
+
+	// Node Editor
+	g_NodeEditorContext = NodeEditor::CreateEditor();
+	NodeEditor::SetCurrentEditor(g_NodeEditorContext);
 
 	//Setup Platform/Renderer Bindings
 	GLFWwindow* window = static_cast<GLFWwindow*>(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetRenderWindow());

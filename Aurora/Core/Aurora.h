@@ -15,6 +15,7 @@
 #include "../Input/InputUtilities.h"
 #include "FileSystem.h"
 #include "../Time/Stopwatch.h"
+#include "../Events/EventSystem.h"
 
 // Math
 #include "../Math/MathUtilities.h"

@@ -4,6 +4,7 @@
 #include "../Log/Log.h"
 #include "ISubsystem.h"
 #include "Engine.h"
+#include "../Events/EventSystem.h"
 
 namespace Aurora
 {
@@ -61,6 +62,8 @@ namespace Aurora
 
         void Initialize()
         {
+            AURORA_FIRE_EVENT(EventType::SceneSaveStart);
+
             std::vector<uint8_t> failedSubsystems;
 
             // Initialize

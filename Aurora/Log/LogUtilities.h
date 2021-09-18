@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include "../Utilities/Console.h"
 
 namespace Aurora

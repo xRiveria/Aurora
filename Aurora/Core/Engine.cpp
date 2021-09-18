@@ -14,9 +14,13 @@
 #include "../Audio/Audio.h"
 #include "../Input/InputEvents/InputEvent.h"
 
-
 namespace Aurora
 {
+    void Print()
+    {
+        AURORA_ERROR(LogLayer::Engine, "Systems Initialized!");
+    }
+
     Engine::Engine()
     {
         AURORA_PROFILE_FUNCTION();
@@ -27,6 +31,8 @@ namespace Aurora
 
         // Create Engine Context
         m_EngineContext = std::make_shared<EngineContext>(this);
+
+        AURORA_SUBSCRIBE_TO_EVENT(EventType::SceneSaveStart, AURORA_EVENT_INSTANTIATE(Print));
 
         // Register Subsystem
         m_EngineContext->RegisterSubsystem<Timer>();
