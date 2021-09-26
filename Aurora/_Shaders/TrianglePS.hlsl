@@ -141,7 +141,7 @@ PS_Output main(vs_out input) : SV_TARGET // Pixel shader entry point which must 
 
     float3 irradiance = Texture_Irradiance.Sample(defaultSampler, normalVector).rgb;
     float3 diffuse = irradiance * albedoColor;
-    diffuse *= shadowFactor;
+    // diffuse *= shadowFactor;
 
     //==========================================================================================================================
     // Get indirect specular reflections of the surface by sampling pre-filtered environment map using the reflection vector. This is sampled based on the surface roughness.

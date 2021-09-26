@@ -222,8 +222,8 @@ namespace Aurora
         RHI_DepthStencilState depthStencilState;
         depthStencilState.m_IsDepthEnabled = true;
         depthStencilState.m_DepthWriteMask = Depth_Write_Mask::Depth_Write_Mask_All;
-        depthStencilState.m_DepthComparisonFunction = ComparisonFunction::Comparison_Less; /// Reverse Z?
-        depthStencilState.m_IsStencilEnabled = true;
+        depthStencilState.m_DepthComparisonFunction = ComparisonFunction::Comparison_Less_Equal; /// Reverse Z?
+        depthStencilState.m_IsStencilEnabled = false;
         depthStencilState.m_StencilReadMask = 0;
         depthStencilState.m_StencilWriteMask = 0xFF;
         depthStencilState.m_FrontFaceOperation.m_StencilComparisonFunction = ComparisonFunction::Comparison_Always;
@@ -244,7 +244,7 @@ namespace Aurora
         RendererGlobals::g_DepthStencilStates[DS_Types::DS_DepthRead] = depthStencilState;
 
         RHI_BlendState blendState;
-        blendState.m_RenderTarget[0].m_IsBlendingEnabled = true;
+        blendState.m_RenderTarget[0].m_IsBlendingEnabled = false;
         blendState.m_RenderTarget[0].m_SourceBlendFactor = Blend_Factor::Blend_Source_Alpha;
         blendState.m_RenderTarget[0].m_DestinationBlendFactor = Blend_Factor::Blend_Inverse_Source_Alpha;
         blendState.m_RenderTarget[0].m_BlendOperation = Blend_Operation::Blend_Operation_Maximum;
@@ -257,7 +257,7 @@ namespace Aurora
 
         RendererGlobals::g_BlendStates[BS_Types::BS_Opaque] = blendState;
 
-        blendState.m_RenderTarget[0].m_IsBlendingEnabled = true;
+        blendState.m_RenderTarget[0].m_IsBlendingEnabled = false;
         blendState.m_RenderTarget[0].m_SourceBlendFactor = Blend_Factor::Blend_Source_Alpha;
         blendState.m_RenderTarget[0].m_DestinationBlendFactor = Blend_Factor::Blend_Inverse_Source_Alpha;
         blendState.m_RenderTarget[0].m_BlendOperation = Blend_Operation::Blend_Operation_Add;

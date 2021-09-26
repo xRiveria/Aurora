@@ -1,4 +1,5 @@
 #include "Properties.h"
+#include "../Utilities/DifferentiatorTool.h"
 #include "../Scene/Entity.h"
 #include "../Scene/Components/Transform.h"
 #include "../Scene/Components/Light.h"
@@ -689,6 +690,13 @@ void Properties::ShowColliderProperties(Aurora::Collider* colliderComponent) con
     ComponentEnd();
 }
 
+void Hello(std::any derp)
+{
+
+}
+
+bool isInitialDrag = true;
+float initialValue;
 void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) const
 {
     if (!rigidBodyComponent)
@@ -700,10 +708,33 @@ void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) 
     {
         ImGui::PushID(rigidBodyComponent->GetObjectID());
 
+        if (ImGui::Button("Undo"))
+        {
+            Aurora::DifferentiatorTool::Undo();
+        }
+
+        if (ImGui::Button("Redo"))
+        {
+            Aurora::DifferentiatorTool::Redo();
+        }
+
         float rigidBodyMass = rigidBodyComponent->GetMass();
         if (ImGui::DragFloat("Mass", &rigidBodyMass, 0.1f))
         {
+            if (isInitialDrag)
+            {
+                initialValue = rigidBodyComponent->GetMass();
+                isInitialDrag = false;
+            }
+
             rigidBodyComponent->SetMass(rigidBodyMass);
+        }
+
+        if (ImGui::IsItemDeactivatedAfterEdit())
+        {
+            std::cout << "Saved!\n";
+            Aurora::DifferentiatorTool::PushAction(initialValue, rigidBodyMass, [&rigidBodyComponent](const std::any& valueIn) { rigidBodyComponent->SetMass(std::any_cast<float>(valueIn)); });
+            isInitialDrag = true;
         }
 
         float friction = rigidBodyComponent->GetFriction();

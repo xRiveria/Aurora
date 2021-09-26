@@ -17,6 +17,7 @@
 #include "../Scene/Components/Renderable.h"
 #include "Model.h"
 
+using namespace DirectX;
 namespace Aurora
 {
     Renderer::Renderer(EngineContext* engineContext) : ISubsystem(engineContext)
