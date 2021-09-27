@@ -1,4 +1,5 @@
 #include "Properties.h"
+#include "../Backend/Utilities/Wrappers.h"
 #include "../Utilities/DifferentiatorTool.h"
 #include "../Scene/Entity.h"
 #include "../Scene/Components/Transform.h"
@@ -690,13 +691,6 @@ void Properties::ShowColliderProperties(Aurora::Collider* colliderComponent) con
     ComponentEnd();
 }
 
-void Hello(std::any derp)
-{
-
-}
-
-bool isInitialDrag = true;
-float initialValue;
 void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) const
 {
     if (!rigidBodyComponent)
@@ -708,34 +702,8 @@ void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) 
     {
         ImGui::PushID(rigidBodyComponent->GetObjectID());
 
-        if (ImGui::Button("Undo"))
-        {
-            Aurora::DifferentiatorTool::Undo();
-        }
-
-        if (ImGui::Button("Redo"))
-        {
-            Aurora::DifferentiatorTool::Redo();
-        }
-
         float rigidBodyMass = rigidBodyComponent->GetMass();
-        if (ImGui::DragFloat("Mass", &rigidBodyMass, 0.1f))
-        {
-            if (isInitialDrag)
-            {
-                initialValue = rigidBodyComponent->GetMass();
-                isInitialDrag = false;
-            }
-
-            rigidBodyComponent->SetMass(rigidBodyMass);
-        }
-
-        if (ImGui::IsItemDeactivatedAfterEdit())
-        {
-            std::cout << "Saved!\n";
-            Aurora::DifferentiatorTool::PushAction(initialValue, rigidBodyMass, [&rigidBodyComponent](const std::any& valueIn) { rigidBodyComponent->SetMass(std::any_cast<float>(valueIn)); });
-            isInitialDrag = true;
-        }
+        EditorExtensions::Wrappers::FloatSlider("Mass", &rigidBodyMass, 0.1f, rigidBodyComponent->GetMass(), [=](const std::any& updateValue) { rigidBodyComponent->SetMass(std::any_cast<float>(updateValue)); });
 
         float friction = rigidBodyComponent->GetFriction();
         if (ImGui::DragFloat("Friction", &friction, 0.1f))

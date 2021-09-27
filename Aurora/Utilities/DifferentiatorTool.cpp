@@ -6,7 +6,7 @@ namespace Aurora
     std::vector<DT_Entry> DifferentiatorTool::m_History;
     int DifferentiatorTool::m_CurrentHistoryIndex = -1; // Serves as an index into our m_History vector, in which our users will undo and redo upon.
 
-    void DifferentiatorTool::PushAction(float oldValue, float newValue, std::function<void(std::any)> Setter)
+    void DifferentiatorTool::PushAction(const std::any& oldValue, const std::any& newValue, std::function<void(const std::any& valueIn)> Setter)
     {
         DT_Entry newEntry;
         newEntry.m_OldValue = oldValue;

@@ -37,6 +37,8 @@
 #include "../Widgets/EditorConsole.h"
 #include "../Widgets/ScriptEngine.h"
 #include "Source/imgui_node_editor.h"
+#include "../Utilities/DifferentiatorTool.h"
+#include "../Scene/Components/RigidBody.h"
 
 namespace NodeEditor = ax::NodeEditor;
 static NodeEditor::EditorContext* g_NodeEditorContext = nullptr;
@@ -53,11 +55,52 @@ EditorSubsystem::EditorSubsystem(Aurora::EngineContext* engineContext) : Aurora:
 
 void EditorSubsystem::OnEvent(Aurora::InputEvent& inputEvent)
 {
-	// Push events to any widgets that ought to be listening to events.
-	for (int i = 0; i < m_Editor->GetWidgets().size(); i++)
+	Aurora::InputEventDispatcher dispatcher(inputEvent);
+	dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorSubsystem::OnKeyPressed));
+
+	if (!inputEvent.IsEventHandled)
 	{
-		m_Editor->GetWidgets()[i]->OnEvent(inputEvent);
+		// Push events to any widgets that ought to be listening to events.
+		for (int i = 0; i < m_Editor->GetWidgets().size(); i++)
+		{
+			m_Editor->GetWidgets()[i]->OnEvent(inputEvent);
+		}
 	}
+}
+
+bool EditorSubsystem::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
+{
+	if (inputEvent.GetRepeatCount() > 0)
+	{
+		return false;
+	}
+
+	bool isControlPressed = m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_LEFT_CONTROL) || m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_RIGHT_CONTROL);
+
+	switch (inputEvent.GetKeyCode())
+	{
+		case AURORA_KEY_Z:
+		{
+			if (isControlPressed) 
+			{ 
+				Aurora::DifferentiatorTool::Undo();
+				inputEvent.IsEventHandled = true;
+			}
+			return true;
+		}
+
+		case AURORA_KEY_R:
+		{
+			if (isControlPressed)
+			{
+				Aurora::DifferentiatorTool::Redo();
+			    inputEvent.IsEventHandled = true;
+			}
+			return true;
+		}
+	}
+
+	return false;
 }
 
 Editor::Editor()
@@ -416,7 +459,6 @@ void Editor::BeginDockingContext()
 	}
 	style.WindowMinSize.x = minimumWindowsize;
 }
-
 
 void Editor::ImGuiImplementation_Initialize(Aurora::EngineContext* engineContext)
 {

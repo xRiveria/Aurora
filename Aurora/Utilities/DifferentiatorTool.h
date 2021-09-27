@@ -7,15 +7,15 @@ namespace Aurora
     // Ctrl Z (Undo) and Ctrl Y (Redo).
     struct DT_Entry
     {
-        float m_OldValue;
-        float m_NewValue;
-        std::function<void(std::any)> Setter;
+        std::any m_OldValue;
+        std::any m_NewValue;
+        std::function<void(const std::any& valueIn)> Setter;
     };
 
     class DifferentiatorTool
     {
     public:
-        static void PushAction(float oldValue, float newValue, std::function<void(std::any)> Setter);
+        static void PushAction(const std::any& oldValue, const std::any& newValue, std::function<void(const std::any& valueIn)> Setter);
         static void Undo();
         static void Redo();
         static void ClearHistory(); 

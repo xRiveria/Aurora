@@ -17,6 +17,7 @@ public:
 	void SetEditorInstance(Editor* editor) { m_Editor = editor; }
 
 	void OnEvent(Aurora::InputEvent& inputEvent) override;
+	bool OnKeyPressed(Aurora::KeyPressedEvent& inputEvent);
 
 private:
 	Editor* m_Editor;

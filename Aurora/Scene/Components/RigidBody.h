@@ -116,7 +116,7 @@ namespace Aurora
         btRigidBody* m_RigidBodyInternal = nullptr;
         btCollisionShape* m_CollisionShapeInternal = nullptr;
 
-    private:
+    public:
         float m_Mass = 1.0f;
         float m_Friction = 0.5f;       // Essentially damping, but only applies when two bodies are touching instead of all the time like linear and angular damping.
         float m_FrictionRolling = 0.0f;
