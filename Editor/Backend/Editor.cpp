@@ -1,5 +1,6 @@
 #define _XM_NO_INTRINSICS_
 #define IMGUI_DEFINE_MATH_OPERATORS
+#include "../Utilities/UUID.h"
 #include "Editor.h"
 #include "../Profiler/Instrumentor.h"
 #include "Source/imgui.h"
@@ -39,6 +40,7 @@
 #include "Source/imgui_node_editor.h"
 #include "../Utilities/DifferentiatorTool.h"
 #include "../Scene/Components/RigidBody.h"
+#include "../Utilities/Memory/ReferencePointer.h"
 
 namespace NodeEditor = ax::NodeEditor;
 static NodeEditor::EditorContext* g_NodeEditorContext = nullptr;
@@ -86,7 +88,7 @@ bool EditorSubsystem::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
 				Aurora::DifferentiatorTool::Undo();
 				inputEvent.IsEventHandled = true;
 			}
-			return true;
+			break;
 		}
 
 		case AURORA_KEY_R:
@@ -96,7 +98,7 @@ bool EditorSubsystem::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
 				Aurora::DifferentiatorTool::Redo();
 			    inputEvent.IsEventHandled = true;
 			}
-			return true;
+			break;
 		}
 	}
 
@@ -137,6 +139,8 @@ inline Aurora::DX11_Utility::DX11_TexturePackage* ToInternal(const Aurora::RHI_T
 }
 
 std::string g_CurrentlySelectedView = "Off";
+Aurora::ReferencePointer<float> g_TestReferencePointer;
+Aurora::UUID g_UUIDTest;
 
 void Editor::Tick()
 {
@@ -164,6 +168,47 @@ void Editor::Tick()
 				widget->Tick();
 			}
 		}
+
+		ImGui::Begin("Aurora Utilities");
+		if (ImGui::CollapsingHeader("UUID", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+		{
+			ImGui::Text("UUID: %s", g_UUIDTest.GetUUID().c_str());
+
+			if (ImGui::Button("Generate New UUID"))
+			{
+				g_UUIDTest.GenerateNewUUID();
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Reference Pointer", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+		{
+			if (ImGui::Button("Create Instance"))
+			{
+				g_TestReferencePointer = Aurora::MakeReference<float>(4.4f);
+				std::cout << g_TestReferencePointer;
+
+				Aurora::ReferencePointer<float> testReference2(g_TestReferencePointer);
+				std::cout << g_TestReferencePointer;
+
+				Aurora::ReferencePointer<float> testReference3(g_TestReferencePointer);
+				std::cout << g_TestReferencePointer;
+
+				Aurora::ReferencePointer<float> testReference4(g_TestReferencePointer);
+				std::cout << g_TestReferencePointer;
+			}
+
+			if (g_TestReferencePointer.IsInitialized())
+			{
+				ImGui::Text("Reference Count: %lu", g_TestReferencePointer.GetUseCount());
+
+				if (ImGui::Button("Reset"))
+				{
+					g_TestReferencePointer.Reset();
+				}
+			}
+		}
+
+		ImGui::End();
 
 		// Make sure this is last.
 		ImGui::Begin("Performance");

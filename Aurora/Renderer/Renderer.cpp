@@ -97,6 +97,7 @@ namespace Aurora
         m_Skybox->InitializeResources();
 
         InitializeShaders();
+
         return true;
     }
 

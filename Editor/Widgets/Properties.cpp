@@ -700,58 +700,48 @@ void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) 
 
     if (ComponentBegin("Rigidbody"))
     {
+        EditorExtensions::Wrappers::BeginSequence();
+
         ImGui::PushID(rigidBodyComponent->GetObjectID());
 
         float rigidBodyMass = rigidBodyComponent->GetMass();
-        EditorExtensions::Wrappers::FloatSlider("Mass", &rigidBodyMass, 0.1f, rigidBodyComponent->GetMass(), [=](const std::any& updateValue) { rigidBodyComponent->SetMass(std::any_cast<float>(updateValue)); });
+        EditorExtensions::Wrappers::FloatSlider("Mass", &rigidBodyMass, 0.1f, rigidBodyComponent->GetMass(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetMass(std::any_cast<float>(updateValue)); });
 
         float friction = rigidBodyComponent->GetFriction();
-        if (ImGui::DragFloat("Friction", &friction, 0.1f))
-        {
-            rigidBodyComponent->SetFriction(friction);
-        }
+        EditorExtensions::Wrappers::FloatSlider("Friction", &friction, 0.1f, rigidBodyComponent->GetFriction(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetFriction(std::any_cast<float>(updateValue)); });
 
         float rollingFriction = rigidBodyComponent->GetFrictionRolling();
-        if (ImGui::DragFloat("Rolling Friction", &rollingFriction, 0.1f))
-        {
-            rigidBodyComponent->SetFrictionRolling(rollingFriction);
-        }
+        EditorExtensions::Wrappers::FloatSlider("Rolling Friction", &rollingFriction, 0.1f, rigidBodyComponent->GetFrictionRolling(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetFrictionRolling(std::any_cast<float>(updateValue)); });
 
         float restitution = rigidBodyComponent->GetRestitution();
-        if (ImGui::DragFloat("Restitution", &restitution, 0.1f))
-        {
-            rigidBodyComponent->SetRestitution(restitution);
-        }
+        EditorExtensions::Wrappers::FloatSlider("Restitution", &restitution, 0.1f, rigidBodyComponent->GetRestitution(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetRestitution(std::any_cast<float>(updateValue)); });
 
         bool gravityState = rigidBodyComponent->GetGravityState();
-        if (ImGui::Checkbox("Use Gravity", &gravityState))
-        {
-            rigidBodyComponent->SetGravityState(gravityState);
-        }
+        EditorExtensions::Wrappers::Checkbox("Use Gravity", &gravityState, rigidBodyComponent->GetGravityState(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetGravityState(std::any_cast<bool>(updateValue)); });
 
         bool kinematicState = rigidBodyComponent->GetKinematicState();
-        if (ImGui::Checkbox("Kinematic", &kinematicState))
-        {
-            rigidBodyComponent->SetKinematicState(kinematicState);
-        }
+        EditorExtensions::Wrappers::Checkbox("Kinematic", &kinematicState, rigidBodyComponent->GetKinematicState(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetKinematicState(std::any_cast<bool>(updateValue)); });
 
         /// Freeze Position
         /// Freeze Rotation
-       
-        ImGui::SliderFloat3("Force Amount", g_ForceAmount, 0.0f, 100.0f);
-        if (ImGui::Button("Add Force"))
+        float* forceAmount = g_ForceAmount;
+        EditorExtensions::Wrappers::Float3Slider("Force Amount", forceAmount, 0.0f, 100.0f, g_ForceAmount, [=](const std::any& updateValue) { });
+        // ImGui::SliderFloat3("Force Amount", g_ForceAmount, 0.0f, 100.0f);
+
+        EditorExtensions::Wrappers::Button("Force Test", "Add Force", [rigidBodyComponent]() 
         {
             rigidBodyComponent->ApplyForce(XMFLOAT3(g_ForceAmount[0], g_ForceAmount[1], g_ForceAmount[2]), Aurora::ForceMode::ForceMode_Force);
-        }
-
-        if (ImGui::Button("Add Impulse"))
+        });
+        
+        EditorExtensions::Wrappers::Button("Impulse Test", "Add Impulse", [rigidBodyComponent]()
         {
             rigidBodyComponent->ApplyForce(XMFLOAT3(g_ForceAmount[0], g_ForceAmount[1], g_ForceAmount[2]), Aurora::ForceMode::ForceMode_Impulse);
-        }
+        });
 
         ImGui::PopID();
     }
 
+    EditorExtensions::Wrappers::EndSequence();
     ComponentEnd();
 }
 

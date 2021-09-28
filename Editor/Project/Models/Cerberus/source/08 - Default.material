@@ -5,4 +5,24 @@ Normal_Multiplier: 0
 Metallic_Multiplier: 0
 Occlusion_Multiplier: 0
 Textures:
-  Textures_Count: 0
+  Textures_Count: 5
+  Texture_0:
+    Texture_Type: 1
+    Texture_Name: ""
+    Texture_Path: ""
+  Texture_1:
+    Texture_Type: 2
+    Texture_Name: ""
+    Texture_Path: ""
+  Texture_2:
+    Texture_Type: 4
+    Texture_Name: ""
+    Texture_Path: ""
+  Texture_3:
+    Texture_Type: 16
+    Texture_Name: ""
+    Texture_Path: ""
+  Texture_4:
+    Texture_Type: 8
+    Texture_Name: ""
+    Texture_Path: ""

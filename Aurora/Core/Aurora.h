@@ -8,6 +8,7 @@
 #include <memory>
 
 // Engine
+#include "../Utilities/UUID.h"
 #include "Engine.h"
 #include "EngineContext.h"
 #include "Settings.h"
