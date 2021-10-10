@@ -32,6 +32,7 @@ namespace Aurora
     class EngineContext;
     struct RHI_Texture;
 }
+
 class Editor;
 
 struct Icon

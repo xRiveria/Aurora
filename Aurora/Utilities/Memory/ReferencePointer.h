@@ -8,14 +8,14 @@ namespace Aurora
     class ReferencePointer
     {
     public:
-        ReferencePointer() : m_InternalInstance(nullptr)
+        ReferencePointer()
         {
-
+            m_InternalInstance = nullptr;
         }
 
-        ReferencePointer(std::nullptr_t nullPointer) : m_InternalInstance(nullptr)
+        ReferencePointer(std::nullptr_t nullPointer)
         {
-
+            m_InternalInstance = nullptr;
         }
 
         ReferencePointer(T* instance)
@@ -36,17 +36,39 @@ namespace Aurora
             }
         }
 
-        ReferencePointer& operator=(const ReferencePointer& otherPointer)
+        ReferencePointer(ReferencePointer&& otherPointer)
+        {
+            m_InternalInstance = otherPointer.m_InternalInstance;
+            m_Counter = otherPointer.m_Counter;
+
+            otherPointer.m_InternalInstance = nullptr; // Clean the dying object.
+            otherPointer.m_Counter = nullptr;
+        }
+
+        ReferencePointer& operator=(const ReferencePointer& dyingPointer)
         {
             CleanUp(); // In case the existing memory here already points elsewhere.
 
-            m_InternalInstance = otherPointer.m_InternalInstance;
-            m_Counter = otherPointer.m_Counter;
+            m_InternalInstance = dyingPointer.m_InternalInstance;
+            m_Counter = dyingPointer.m_Counter;
 
             if (m_InternalInstance != nullptr)
             {
                 (*m_Counter)++; // Increment count of counter exists.
             }
+
+            return *this;
+        }
+
+        ReferencePointer& operator=(ReferencePointer&& dyingPointer)
+        {
+            CleanUp(); // In case the existing memory here already points elsewhere.
+
+            m_InternalInstance = dyingPointer.m_InternalInstance;
+            m_Counter = dyingPointer.m_Counter;
+
+            dyingPointer.m_InternalInstance = nullptr;
+            dyingPointer.m_Counter = nullptr;
 
             return *this;
         }

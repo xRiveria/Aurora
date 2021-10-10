@@ -111,9 +111,9 @@ const Icon& IconLibrary::LoadIcon_(const std::string& filePath, IconType iconTyp
 
         // Make a cheap texture. These textures will be cached seperately from our Resource Cache, and are instead within our Editor context.
         m_EngineContext->GetSubsystem<Aurora::Threading>()->Execute([this, filePath, texture](Aurora::JobInformation jobArguments)
-        {
-            texture->LoadFromFile(filePath);
-        });
+            {
+                texture->LoadFromFile(filePath);
+            });
 
         m_Icons.emplace_back(iconType, texture);
 
@@ -135,3 +135,4 @@ const Icon& IconLibrary::GetIconByType(IconType iconType)
 
     return g_NoIcon;
 }
+    

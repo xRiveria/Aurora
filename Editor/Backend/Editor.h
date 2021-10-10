@@ -8,6 +8,10 @@
 #include "../Widgets/EditorConsole.h"
 #include "../Backend/Utilities/Extensions.h"
 
+#include "Contexts/EditorContext.h"
+
+using namespace AuroraEditor;
+
 class EditorSubsystem : public Aurora::ISubsystem
 {
 public:
@@ -32,17 +36,17 @@ public:
 	void Tick();
 
 	Aurora::EngineContext* GetEngineContext() const { return m_EngineContext; }
-	std::vector<std::shared_ptr<Widget>>& GetWidgets() { return m_Widgets; }
+	std::vector<std::shared_ptr<Widget>>& GetWidgets() { return m_GlobalWidgets; }
 
 	template<typename T>
 	T* GetWidget() const
 	{
-		for (const auto& widget : m_Widgets)
+		for (const auto& widget : m_GlobalWidgets)
 		{
 			if (typeid(T) == typeid(*widget))
 			{
 				return static_cast<T*>(widget.get());
-			}	
+			}
 		}
 		return nullptr;
 	}
@@ -63,6 +67,9 @@ private:
 	EditorSubsystem* m_EditorSubsystem;
 
 	// Editor Contexts
-	bool m_EditorBegun = false;
-	std::vector<std::shared_ptr<Widget>> m_Widgets;
+	std::vector<std::shared_ptr<Widget>> m_GlobalWidgets;
+
+	// Editor Contexts
+	std::weak_ptr<EditorContext> m_CurrentContext;
+	std::unordered_map<EditorContext_Type, std::shared_ptr<EditorContext>> m_EditorContexts;
 };

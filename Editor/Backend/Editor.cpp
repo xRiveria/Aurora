@@ -41,6 +41,10 @@
 #include "../Utilities/DifferentiatorTool.h"
 #include "../Scene/Components/RigidBody.h"
 #include "../Utilities/Memory/ReferencePointer.h"
+#include "../Utilities/Memory/HashTable.h"
+
+#include "Contexts/EditorLevelContext.h"
+#include "Contexts/EditorUtilityContext.h"
 
 namespace NodeEditor = ax::NodeEditor;
 static NodeEditor::EditorContext* g_NodeEditorContext = nullptr;
@@ -50,41 +54,41 @@ namespace EditorConfigurations
 	const float g_FontSize = 17.0f;
 }
 
-EditorSubsystem::EditorSubsystem(Aurora::EngineContext* engineContext) : Aurora::ISubsystem(engineContext)
-{
-
-}
-
-void EditorSubsystem::OnEvent(Aurora::InputEvent& inputEvent)
-{
-	Aurora::InputEventDispatcher dispatcher(inputEvent);
-	dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorSubsystem::OnKeyPressed));
-
-	if (!inputEvent.IsEventHandled)
+	EditorSubsystem::EditorSubsystem(Aurora::EngineContext* engineContext) : Aurora::ISubsystem(engineContext)
 	{
-		// Push events to any widgets that ought to be listening to events.
-		for (int i = 0; i < m_Editor->GetWidgets().size(); i++)
+
+	}
+
+	void EditorSubsystem::OnEvent(Aurora::InputEvent& inputEvent)
+	{
+		Aurora::InputEventDispatcher dispatcher(inputEvent);
+		dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorSubsystem::OnKeyPressed));
+
+		if (!inputEvent.IsEventHandled)
 		{
-			m_Editor->GetWidgets()[i]->OnEvent(inputEvent);
+			// Push events to any widgets that ought to be listening to events.
+			for (int i = 0; i < m_Editor->GetWidgets().size(); i++)
+			{
+				m_Editor->GetWidgets()[i]->OnEvent(inputEvent);
+			}
 		}
 	}
-}
 
-bool EditorSubsystem::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
-{
-	if (inputEvent.GetRepeatCount() > 0)
+	bool EditorSubsystem::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
 	{
-		return false;
-	}
+		if (inputEvent.GetRepeatCount() > 0)
+		{
+			return false;
+		}
 
-	bool isControlPressed = m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_LEFT_CONTROL) || m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_RIGHT_CONTROL);
+		bool isControlPressed = m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_LEFT_CONTROL) || m_EngineContext->GetSubsystem<Aurora::Input>()->IsKeyPressed(AURORA_KEY_RIGHT_CONTROL);
 
-	switch (inputEvent.GetKeyCode())
-	{
+		switch (inputEvent.GetKeyCode())
+		{
 		case AURORA_KEY_Z:
 		{
-			if (isControlPressed) 
-			{ 
+			if (isControlPressed)
+			{
 				Aurora::DifferentiatorTool::Undo();
 				inputEvent.IsEventHandled = true;
 			}
@@ -96,498 +100,541 @@ bool EditorSubsystem::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
 			if (isControlPressed)
 			{
 				Aurora::DifferentiatorTool::Redo();
-			    inputEvent.IsEventHandled = true;
+				inputEvent.IsEventHandled = true;
 			}
 			break;
 		}
+		}
+
+		return false;
 	}
 
-	return false;
-}
-
-Editor::Editor()
-{
-	Aurora::Instrumentor::GetInstance().BeginSession("Startup");
-
-	Aurora::AURORA_PROFILE_FUNCTION();
-
-	// Create Engine
-	m_Engine = std::make_unique<Aurora::Engine>();
-
-	// Acquire useful engine subsystems.
-	m_EngineContext = m_Engine->GetEngineContext();;
-
-	// Register event polling.
-	m_EngineContext->RegisterSubsystem<EditorSubsystem>();
-	m_EditorSubsystem = m_EngineContext->GetSubsystem<EditorSubsystem>();
-	m_EditorSubsystem->SetEditorInstance(this);
-
-	InitializeEditor();
-	IconLibrary::GetInstance().Initialize(m_EngineContext, this);
-
-	Aurora::Instrumentor::GetInstance().EndSession();
-}
-
-Editor::~Editor()
-{
-	ImGuiImplementation_Shutdown();
-}
-
-inline Aurora::DX11_Utility::DX11_TexturePackage* ToInternal(const Aurora::RHI_Texture* texture)
-{
-	return static_cast<Aurora::DX11_Utility::DX11_TexturePackage*>(texture->m_InternalState.get());
-}
-
-std::string g_CurrentlySelectedView = "Off";
-Aurora::ReferencePointer<float> g_TestReferencePointer;
-Aurora::UUID g_UUIDTest;
-
-void Editor::Tick()
-{
-	Aurora::Renderer* renderer = m_EngineContext->GetSubsystem<Aurora::Renderer>();
-	Aurora::Instrumentor::GetInstance().BeginSession("Tick");
-
-	while (m_EngineContext->GetSubsystem<Aurora::WindowContext>()->IsWindowRunning())
+	Editor::Editor()
 	{
-		m_Engine->Tick();
+		Aurora::Instrumentor::GetInstance().BeginSession("Startup");
 
-		ImGui_ImplDX11_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGuizmo::BeginFrame();
+		Aurora::AURORA_PROFILE_FUNCTION();
 
-		// Render ImGui Stuff
-		BeginDockingContext();  // The start of a docking context.
+		// Create Engine
+		m_Engine = std::make_unique<Aurora::Engine>();
 
-		// Editor Tick
+		// Acquire useful engine subsystems.
+		m_EngineContext = m_Engine->GetEngineContext();;
+
+		// Register event polling.
+		m_EngineContext->RegisterSubsystem<EditorSubsystem>();
+		m_EditorSubsystem = m_EngineContext->GetSubsystem<EditorSubsystem>();
+		m_EditorSubsystem->SetEditorInstance(this);
+
+		InitializeEditor();
+		IconLibrary::GetInstance().Initialize(m_EngineContext, this);
+
+		// Create Contexts
+		m_EditorContexts[EditorContext_Type::EditorContext_Type_Level] = std::make_shared<AuroraEditor::EditorLevelContext>(this, m_EngineContext);
+		m_EditorContexts[EditorContext_Type::EditorContext_Type_Utility] = std::make_shared<AuroraEditor::EditorUtilityContext>(this, m_EngineContext);
+
+		for (auto& editorContext : m_EditorContexts)
 		{
-			Aurora::Stopwatch widgetStopwatch("Widget Pass", true);
-			Aurora::AURORA_PROFILE_FUNCTION();
-			for (std::shared_ptr<Widget>& widget : m_Widgets) // Tick each individual widget. Each widget contains its own ImGui::Begin and ImGui::End behavior (based on visibility/constantness).
-			{
-				widget->Tick();
-			}
+			editorContext.second->OnInitialize();
 		}
 
-		ImGui::Begin("Aurora Utilities");
-		if (ImGui::CollapsingHeader("UUID", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+		/// Default set to context 0. In the future, we will use a file to serialize settings of the user.
+		m_CurrentContext = m_EditorContexts[EditorContext_Type::EditorContext_Type_Level];
+
+		Aurora::Instrumentor::GetInstance().EndSession();
+	}
+
+	Editor::~Editor()
+	{
+		ImGuiImplementation_Shutdown();
+	}
+
+	inline Aurora::DX11_Utility::DX11_TexturePackage* ToInternal(const Aurora::RHI_Texture* texture)
+	{
+		return static_cast<Aurora::DX11_Utility::DX11_TexturePackage*>(texture->m_InternalState.get());
+	}
+
+	std::string g_CurrentlySelectedView = "Off";
+	Aurora::ReferencePointer<float> g_TestReferencePointer;
+	Aurora::UUID g_UUIDTest;
+
+	void Editor::Tick()
+	{
+		Aurora::Renderer* renderer = m_EngineContext->GetSubsystem<Aurora::Renderer>();
+		Aurora::Instrumentor::GetInstance().BeginSession("Tick");
+
+		while (m_EngineContext->GetSubsystem<Aurora::WindowContext>()->IsWindowRunning())
 		{
-			ImGui::Text("UUID: %s", g_UUIDTest.GetUUID().c_str());
+			m_Engine->Tick();
 
-			if (ImGui::Button("Generate New UUID"))
+			ImGui_ImplDX11_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			ImGuizmo::BeginFrame();
+
+			// Render ImGui Stuff
+			BeginDockingContext();  // The start of a docking context.
+
+			// Editor Tick
 			{
-				g_UUIDTest.GenerateNewUUID();
-			}
-		}
-
-		if (ImGui::CollapsingHeader("Reference Pointer", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
-		{
-			if (ImGui::Button("Create Instance"))
-			{
-				g_TestReferencePointer = Aurora::MakeReference<float>(4.4f);
-				std::cout << g_TestReferencePointer;
-
-				Aurora::ReferencePointer<float> testReference2(g_TestReferencePointer);
-				std::cout << g_TestReferencePointer;
-
-				Aurora::ReferencePointer<float> testReference3(g_TestReferencePointer);
-				std::cout << g_TestReferencePointer;
-
-				Aurora::ReferencePointer<float> testReference4(g_TestReferencePointer);
-				std::cout << g_TestReferencePointer;
-			}
-
-			if (g_TestReferencePointer.IsInitialized())
-			{
-				ImGui::Text("Reference Count: %lu", g_TestReferencePointer.GetUseCount());
-
-				if (ImGui::Button("Reset"))
+				Aurora::Stopwatch widgetStopwatch("Widget Pass", true);
+				Aurora::AURORA_PROFILE_FUNCTION();
+				for (std::shared_ptr<Widget>& widget : m_GlobalWidgets) // Tick each individual widget. Each widget contains its own ImGui::Begin and ImGui::End behavior (based on visibility/constantness).
 				{
-					g_TestReferencePointer.Reset();
+					widget->Tick();
 				}
 			}
-		}
 
-		ImGui::End();
-
-		// Make sure this is last.
-		ImGui::Begin("Performance");
-		for (int i = 0; i < Aurora::Profiler::GetInstance().GetEntries().size(); i++)
-		{
-			ImGui::Text("%s", Aurora::Profiler::GetInstance().GetEntries()[i].c_str());
-		}
-		Aurora::Profiler::GetInstance().Reset();
-		ImGui::End();
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		ImGui::Begin("Node Editor");
-		NodeEditor::Begin("Test Node Editor");
-
-		int uniqueID = 1;
-		NodeEditor::BeginNode(uniqueID++);
-		ImGui::Text("Log");
-		NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Input);
-		ImGui::Text("-> String");
-		NodeEditor::EndPin();
-		ImGui::SameLine();
-		NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Output);
-		ImGui::Text("Error");
-		NodeEditor::EndPin();
-		NodeEditor::EndNode();
-		NodeEditor::End();
-		ImGui::End();
-		ImGui::PopStyleVar(2);
-
-		ImGui::Begin("Renderer Settings");
-
-		ImGui::Text("Maximum MSAA Level Supported: %u", renderer->m_DeviceContext->GetMaxMultisampleLevel());
-		char sampleString[11];
-		sprintf_s(sampleString, "%u", renderer->m_DeviceContext->GetCurrentMultisampleLevel());
-		if (ImGui::BeginCombo("Multisample Level", sampleString, 0))
-		{
-			if (ImGui::Selectable("Off"))
+			ImGui::Begin("Context Switching");
+			if (ImGui::Button("Level Context"))
 			{
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(1);
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				m_CurrentContext = m_EditorContexts[EditorContext_Type::EditorContext_Type_Level];
 			}
 
-			if (ImGui::Selectable("2"))
+			if (ImGui::Button("Utility Context"))
 			{
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(2);
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				m_CurrentContext = m_EditorContexts[EditorContext_Type::EditorContext_Type_Utility];
+			}
+			ImGui::End();
+
+			m_CurrentContext.lock()->OnTick(0);
+
+			/*
+
+			ImGui::Begin("Aurora Utilities");
+			if (ImGui::CollapsingHeader("UUID", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+			{
+				ImGui::Text("UUID: %s", g_UUIDTest.GetUUID().c_str());
+
+				if (ImGui::Button("Generate New UUID"))
+				{
+					g_UUIDTest.GenerateNewUUID();
+				}
 			}
 
-			if (ImGui::Selectable("4"))
+			if (ImGui::CollapsingHeader("Reference Pointer", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 			{
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(4);
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				if (ImGui::Button("Create Instance"))
+				{
+					g_TestReferencePointer = Aurora::MakeReference<float>(4.4f);
+					std::cout << g_TestReferencePointer;
+
+					Aurora::ReferencePointer<float> testReference2(g_TestReferencePointer);
+					std::cout << g_TestReferencePointer;
+
+					Aurora::ReferencePointer<float> testReference3(g_TestReferencePointer);
+					std::cout << g_TestReferencePointer;
+
+					Aurora::ReferencePointer<float> testReference4(g_TestReferencePointer);
+					std::cout << g_TestReferencePointer;
+				}
+
+				if (g_TestReferencePointer.IsInitialized())
+				{
+					ImGui::Text("Reference Count: %lu", g_TestReferencePointer.GetUseCount());
+
+					if (ImGui::Button("Reset"))
+					{
+						g_TestReferencePointer.Reset();
+					}
+				}
 			}
 
-			if (ImGui::Selectable("8"))
+			if (ImGui::CollapsingHeader("Hash Table", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 			{
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(8);
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				if (ImGui::Button("Create Table Instance"))
+				{
+					Aurora::HashMap<std::string, int> m_HashMap(5);
+					m_HashMap.Insert("Ryan", 5);
+					m_HashMap.Insert("Desrp", 3);
+					m_HashMap.Insert("Dserdp", 6);
+					m_HashMap.Insert("Derssp", 8);
+					m_HashMap.PrintTable();
+				}
 			}
 
-			ImGui::EndCombo();
-		}
+			ImGui::End();
 
-		// Needs a whole system of its own.
-		
-		if (ImGui::BeginCombo("Debug Views", g_CurrentlySelectedView.c_str(), 0))
-		{
-			if (ImGui::Selectable("Off"))
+			// Make sure this is last.
+			ImGui::Begin("Performance");
+			for (int i = 0; i < Aurora::Profiler::GetInstance().GetEntries().size(); i++)
 			{
-				g_CurrentlySelectedView = "Off";
+				ImGui::Text("%s", Aurora::Profiler::GetInstance().GetEntries()[i].c_str());
+			}
+			Aurora::Profiler::GetInstance().Reset();
+			ImGui::End();
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+			ImGui::Begin("Node Editor");
+			NodeEditor::Begin("Test Node Editor");
+
+			int uniqueID = 1;
+			NodeEditor::BeginNode(uniqueID++);
+			ImGui::Text("Log");
+			NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Input);
+			ImGui::Text("-> String");
+			NodeEditor::EndPin();
+			ImGui::SameLine();
+			NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Output);
+			ImGui::Text("Error");
+			NodeEditor::EndPin();
+			NodeEditor::EndNode();
+			NodeEditor::End();
+			ImGui::End();
+			ImGui::PopStyleVar(2);
+
+			ImGui::Begin("Renderer Settings");
+
+			ImGui::Text("Maximum MSAA Level Supported: %u", renderer->m_DeviceContext->GetMaxMultisampleLevel());
+			char sampleString[11];
+			sprintf_s(sampleString, "%u", renderer->m_DeviceContext->GetCurrentMultisampleLevel());
+			if (ImGui::BeginCombo("Multisample Level", sampleString, 0))
+			{
+				if (ImGui::Selectable("Off"))
+				{
+					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(1);
+					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				}
+
+				if (ImGui::Selectable("2"))
+				{
+					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(2);
+					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				}
+
+				if (ImGui::Selectable("4"))
+				{
+					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(4);
+					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				}
+
+				if (ImGui::Selectable("8"))
+				{
+					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(8);
+					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+				}
+
+				ImGui::EndCombo();
 			}
 
-			if (ImGui::Selectable("Shadow Depth Buffer"))
+			// Needs a whole system of its own.
+
+			if (ImGui::BeginCombo("Debug Views", g_CurrentlySelectedView.c_str(), 0))
 			{
-				g_CurrentlySelectedView = "Shadow Depth Buffer";
+				if (ImGui::Selectable("Off"))
+				{
+					g_CurrentlySelectedView = "Off";
+				}
+
+				if (ImGui::Selectable("Shadow Depth Buffer"))
+				{
+					g_CurrentlySelectedView = "Shadow Depth Buffer";
+				}
+
+				if (ImGui::Selectable("Bloom Buffer"))
+				{
+					g_CurrentlySelectedView = "Bloom Buffer";
+				}
+
+				if (ImGui::Selectable("IBL HDR Texture"))
+				{
+					g_CurrentlySelectedView = "IBL HDR Texture";
+				}
+
+				ImGui::EndCombo();
 			}
 
-			if (ImGui::Selectable("Bloom Buffer"))
+			if (g_CurrentlySelectedView == "Shadow Depth Buffer")
 			{
-				g_CurrentlySelectedView = "Bloom Buffer";
+				ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
+			}
+			else if (g_CurrentlySelectedView == "Bloom Buffer")
+			{
+				ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_BloomRenderTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
+			}
+			else if (g_CurrentlySelectedView == "IBL HDR Texture")
+			{
+				ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(720, 480));
 			}
 
-			if (ImGui::Selectable("IBL HDR Texture"))
+			ImGui::DragInt("Debug Grid Size", &renderer->m_DebugGridSize, 0.1f);
+			ImGui::DragFloat("Gizmos Size", &renderer->m_GizmosSizeCurrent, 0.1f, renderer->m_GizmosSizeMinimum, renderer->m_GizmosSizeMaximum);
+
+			ImGui::End();
+
+			// Sky
+			ImGui::Begin("Sky Debug");
+
+			//Aurora::DX11_Utility::DX11_TexturePackage* textures = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular);
+			// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(600, 600));
+			if (ImGui::Button("Front"))
 			{
-				g_CurrentlySelectedView = "IBL HDR Texture";
+				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
+			}
+			if (ImGui::Button("Back"))
+			{
+				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 270.0f, 0.0f); // back
+			}
+			if (ImGui::Button("Top"))
+			{
+				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(-90.0f, 0.0f, 0.0f); // top
+			}
+			if (ImGui::Button("Bottom"))
+			{
+				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(90.0f, 0.0f, 0.0f); // bottom
+			}
+			if (ImGui::Button("Left"))
+			{
+				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 0.0f, 0.0f); // left
+			}
+			if (ImGui::Button("Right"))
+			{
+				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
 			}
 
-			ImGui::EndCombo();
-		}
+			// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(600, 600));
 
-		if (g_CurrentlySelectedView == "Shadow Depth Buffer")
-		{
-			ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
-		}
-		else if (g_CurrentlySelectedView == "Bloom Buffer")
-		{
-			ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_BloomRenderTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
-		}
-		else if (g_CurrentlySelectedView == "IBL HDR Texture")
-		{
-			ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(720, 480));
-		}
+			// Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
+			// ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
+			ImGui::DragFloat("Light Bias", &renderer->m_LightBias, 0.01, 0.005, 0.1);
+			*/
+			/*
+			else
+			{
+				Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->m_Texture);
+				ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(300, 300));
+			}
+			if (ImGui::Button("Load..."))
+			{
+				std::optional<std::string> filePath = EditorExtensions::OpenFile("Textures", m_EngineContext);
+				if (filePath.has_value())
+				{
+					std::string path = filePath.value();
+					std::string fileName = Aurora::FileSystem::GetFileNameFromFilePath(path);
+					std::shared_ptr<Aurora::AuroraResource> resource = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTextureHDR(path, 4);
+					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_SkyHDR->m_Texture = resource->m_Texture;
+				}
+			}
 
-		ImGui::DragInt("Debug Grid Size", &renderer->m_DebugGridSize, 0.1f);
-		ImGui::DragFloat("Gizmos Size", &renderer->m_GizmosSizeCurrent, 0.1f, renderer->m_GizmosSizeMinimum, renderer->m_GizmosSizeMaximum);
 
-		ImGui::End();
+			// ImGui::End();
 
-		// Sky
-		ImGui::Begin("Sky Debug");
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+			float height = ImGui::GetFrameHeight() + 1.0; //Add a little padding here so things look nicer.
 
-		//Aurora::DX11_Utility::DX11_TexturePackage* textures = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular);
-		// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(600, 600));
-		if (ImGui::Button("Front"))
-		{
-			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
-		}
-		if (ImGui::Button("Back"))
-		{
-			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 270.0f, 0.0f); // back
-		}
-		if (ImGui::Button("Top"))
-		{
-			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(-90.0f, 0.0f, 0.0f); // top
-		}
-		if (ImGui::Button("Bottom"))
-		{
-			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(90.0f, 0.0f, 0.0f); // bottom
-		}
-		if (ImGui::Button("Left"))
-		{
-			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 0.0f, 0.0f); // left
-		}
-		if (ImGui::Button("Right"))
-		{
-			renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
-		}
+			if (ImGui::BeginViewportSideBar("##MainStatusBar", nullptr, ImGuiDir_Down, height, windowFlags)) // Specifies that this will be pipped at the top of the window, below the main menu bar.
+			{
+				if (ImGui::BeginMenuBar())
+				{
+					if (!m_EditorConsole->m_Logs.empty())
+					{
+						ImGui::PushStyleColor(ImGuiCol_Text, m_EditorConsole->m_LogTypeColor[static_cast<int>(m_EditorConsole->m_Logs.back().m_LogType.first)]);
+						ImGui::TextUnformatted(m_EditorConsole->m_Logs.back().m_Text.c_str());
+						ImGui::PopStyleColor();
+					}
+					else
+					{
+						ImGui::TextUnformatted("");
+					}
+				}
 
-		// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(600, 600));
+				ImGui::EndMenuBar();
+			}
+			ImGui::End();
+			*/
 
-		// Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
-		// ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
-		ImGui::DragFloat("Light Bias", &renderer->m_LightBias, 0.01, 0.005, 0.1);
-		/*
+			ImGui::End(); // Ends docking context.
+
+			ImGui::Render();
+			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+			renderer->Present();
+
+			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+			{
+				GLFWwindow* backupCurrentContext = glfwGetCurrentContext();
+				ImGui::UpdatePlatformWindows();
+				ImGui::RenderPlatformWindowsDefault();
+				glfwMakeContextCurrent(backupCurrentContext);
+			}
+		}
+		Aurora::Instrumentor::GetInstance().EndSession();
+
+	}
+
+	void Editor::InitializeEditor()
+	{
+		Aurora::AURORA_PROFILE_FUNCTION();
+
+		ImGuiImplementation_Initialize(m_EngineContext);
+		ImGuiImplementation_ApplyStyling();
+
+		// Create all ImGui widgets.
+		// m_Widgets.emplace_back(std::make_shared<EditorConsole>(this, m_EngineContext));
+		// m_EditorConsole = dynamic_cast<EditorConsole*>(m_Widgets.back().get());
+		// m_Widgets.emplace_back(std::make_shared<ProjectSettings>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<ThreadTracker>(this, m_EngineContext));
+		m_GlobalWidgets.emplace_back(std::make_shared<MenuBar>(this, m_EngineContext));
+		m_GlobalWidgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<ObjectsPanel>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<MathPlayground>(this, m_EngineContext)); // For me to play with the Math library.
+		// m_Widgets.emplace_back(std::make_shared<Viewport>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<Hierarchy>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<EditorTools>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<AssetRegistry>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<AssetBrowser>(this, m_EngineContext));
+		// m_Widgets.emplace_back(std::make_shared<ScriptEngine>(this, m_EngineContext));
+
+		AURORA_WARNING(Aurora::LogLayer::Engine, "All Editor Widgets Initialized.");
+	}
+
+	void Editor::BeginDockingContext()
+	{
+		Aurora::AURORA_PROFILE_FUNCTION();
+
+		static bool dockSpaceOpen = true;
+		static bool opt_fullscreen = true;
+		static bool opt_padding = false;
+		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+		// because it would be confusing to have two docking targets within each others.
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+		if (opt_fullscreen)
+		{
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->WorkPos);
+			ImGui::SetNextWindowSize(viewport->WorkSize);
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		}
 		else
 		{
-			Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->m_Texture);
-			ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(300, 300));
+			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
 		}
-		if (ImGui::Button("Load..."))
+
+		// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
+		// and handle the pass-thru hole, so we ask Begin() to not render a background.
+		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+			window_flags |= ImGuiWindowFlags_NoBackground;
+
+		// Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+		// This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+		// all active windows docked into it will lose their parent and become undocked.
+		// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+		if (!opt_padding)
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::Begin("DockSpace Demo", &dockSpaceOpen, window_flags);
+		if (!opt_padding)
+			ImGui::PopStyleVar();
+
+		if (opt_fullscreen)
+			ImGui::PopStyleVar(2);
+
+		// DockSpace
+		ImGuiIO& io = ImGui::GetIO();
+		ImGuiStyle& style = ImGui::GetStyle();
+
+		float minimumWindowsize = style.WindowMinSize.x;
+		style.WindowMinSize.x = 250.0f;
+		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
-			std::optional<std::string> filePath = EditorExtensions::OpenFile("Textures", m_EngineContext);
-			if (filePath.has_value())
-			{
-				std::string path = filePath.value();
-				std::string fileName = Aurora::FileSystem::GetFileNameFromFilePath(path);
-				std::shared_ptr<Aurora::AuroraResource> resource = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTextureHDR(path, 4);
-				m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_SkyHDR->m_Texture = resource->m_Texture;
-			}
+			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 		}
-		*/
+		style.WindowMinSize.x = minimumWindowsize;
+	}
 
-		ImGui::End();
+	void Editor::ImGuiImplementation_Initialize(Aurora::EngineContext* engineContext)
+	{
+		// Version Validation
+		IMGUI_CHECKVERSION();
+		// Context Creation
+		ImGui::CreateContext();
 
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
-		float height = ImGui::GetFrameHeight() + 1.0; //Add a little padding here so things look nicer.
+		// Configuration
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		io.ConfigWindowsResizeFromEdges = true;
+		io.ConfigViewportsNoTaskBarIcon = true;
 
-		if (ImGui::BeginViewportSideBar("##MainStatusBar", nullptr, ImGuiDir_Down, height, windowFlags)) // Specifies that this will be pipped at the top of the window, below the main menu bar.
+		// Font 
+		const char* filePath = "../Resources/Fonts/opensans/OpenSans-Bold.ttf";
+		io.Fonts->AddFontFromFileTTF(filePath, EditorConfigurations::g_FontSize);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("../Resources/Fonts/opensans/OpenSans-Regular.ttf", 17.0f);
+
+		// Node Editor
+		g_NodeEditorContext = NodeEditor::CreateEditor();
+		NodeEditor::SetCurrentEditor(g_NodeEditorContext);
+
+		//Setup Platform/Renderer Bindings
+		GLFWwindow* window = static_cast<GLFWwindow*>(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetRenderWindow());
+		ImGui_ImplGlfw_InitForOther(window, true);
+		Aurora::Renderer* renderer = m_EngineContext->GetSubsystem<Aurora::Renderer>();
+		ImGui_ImplDX11_Init(renderer->m_GraphicsDevice->m_Device.Get(), renderer->m_GraphicsDevice->m_DeviceContextImmediate.Get());
+	}
+
+	void Editor::ImGuiImplementation_Shutdown()
+	{
+		if (ImGui::GetCurrentContext())
 		{
-			if (ImGui::BeginMenuBar())
-			{
-				if (!m_EditorConsole->m_Logs.empty())
-				{
-					ImGui::PushStyleColor(ImGuiCol_Text, m_EditorConsole->m_LogTypeColor[static_cast<int>(m_EditorConsole->m_Logs.back().m_LogType.first)]);
-					ImGui::TextUnformatted(m_EditorConsole->m_Logs.back().m_Text.c_str());
-					ImGui::PopStyleColor();
-				}
-				else
-				{
-					ImGui::TextUnformatted("");
-				}
-			}
-
-			ImGui::EndMenuBar();
+			// ImGui::RHI::Shutdown();
+			// ImGui_ImplSDL2_Shutdown();
+			ImGui::DestroyContext();
 		}
-		ImGui::End();
+	}
 
-		ImGui::End(); // Ends docking context.
+	void Editor::ImGuiImplementation_ApplyStyling()
+	{
+		// Apply Dark Style
+		ImGui::StyleColorsDark();
+		ImGuiIO& io = ImGui::GetIO();
 
-		ImGui::Render();
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-		renderer->Present();
-
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		// When viewports are enabled, we tweak WindowRounding/WindowBg so Window platforms can look identifical to regular ones.
+		ImGuiStyle& style = ImGui::GetStyle();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			GLFWwindow* backupCurrentContext = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backupCurrentContext);
+			style.WindowRounding = 0.0f;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
+
+		ImVec4* colors = ImGui::GetStyle().Colors;
+
+		colors[ImGuiCol_WindowBg] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
+
+		// Headers
+		colors[ImGuiCol_Header] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+		colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
+		colors[ImGuiCol_HeaderActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+
+		// Buttons
+		colors[ImGuiCol_Button] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+		colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
+		colors[ImGuiCol_ButtonActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+
+		// Frame BG
+		colors[ImGuiCol_FrameBg] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+		colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
+		colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+
+		// Tabs
+		colors[ImGuiCol_Tab] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+		colors[ImGuiCol_TabHovered] = ImVec4{ 0.38f, 0.3805f, 0.381f, 1.0f };
+		colors[ImGuiCol_TabActive] = ImVec4{ 0.28f, 0.2805f, 0.281f, 1.0f };
+		colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+
+		// Title
+		colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+		colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 	}
-	Aurora::Instrumentor::GetInstance().EndSession();
-
-}
-
-void Editor::InitializeEditor()
-{
-	Aurora::AURORA_PROFILE_FUNCTION();
-
-	ImGuiImplementation_Initialize(m_EngineContext);
-	ImGuiImplementation_ApplyStyling();
-
-	// Create all ImGui widgets.
-	m_Widgets.emplace_back(std::make_shared<EditorConsole>(this, m_EngineContext));
-	m_EditorConsole = dynamic_cast<EditorConsole*>(m_Widgets.back().get());
-	m_Widgets.emplace_back(std::make_shared<ProjectSettings>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<ThreadTracker>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<MenuBar>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<ObjectsPanel>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<MathPlayground>(this, m_EngineContext)); // For me to play with the Math library.
-	m_Widgets.emplace_back(std::make_shared<Viewport>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<Hierarchy>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<EditorTools>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<AssetRegistry>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<AssetBrowser>(this, m_EngineContext));
-	m_Widgets.emplace_back(std::make_shared<ScriptEngine>(this, m_EngineContext));
-
-	AURORA_WARNING(Aurora::LogLayer::Engine, "All Editor Widgets Initialized.");
-}
-
-void Editor::BeginDockingContext()
-{
-	Aurora::AURORA_PROFILE_FUNCTION();
-
-	static bool dockSpaceOpen = true;
-	static bool opt_fullscreen = true;
-	static bool opt_padding = false;
-	static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-	// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-	// because it would be confusing to have two docking targets within each others.
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
-	if (opt_fullscreen)
-	{
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->WorkPos);
-		ImGui::SetNextWindowSize(viewport->WorkSize);
-		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-	}
-	else
-	{
-		dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-	}
-
-	// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-	// and handle the pass-thru hole, so we ask Begin() to not render a background.
-	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-		window_flags |= ImGuiWindowFlags_NoBackground;
-
-	// Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-	// This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-	// all active windows docked into it will lose their parent and become undocked.
-	// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-	// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-	if (!opt_padding)
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	ImGui::Begin("DockSpace Demo", &dockSpaceOpen, window_flags);
-	if (!opt_padding)
-		ImGui::PopStyleVar();
-
-	if (opt_fullscreen)
-		ImGui::PopStyleVar(2);
-
-	// DockSpace
-	ImGuiIO& io = ImGui::GetIO();
-	ImGuiStyle& style = ImGui::GetStyle();
-
-	float minimumWindowsize = style.WindowMinSize.x;
-	style.WindowMinSize.x = 250.0f;
-	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-	{
-		ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-	}
-	style.WindowMinSize.x = minimumWindowsize;
-}
-
-void Editor::ImGuiImplementation_Initialize(Aurora::EngineContext* engineContext)
-{
-	// Version Validation
-	IMGUI_CHECKVERSION();
-	// Context Creation
-	ImGui::CreateContext();
-
-	// Configuration
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-	io.ConfigWindowsResizeFromEdges = true;
-	io.ConfigViewportsNoTaskBarIcon = true;
-
-	// Font 
-	const char* filePath = "../Resources/Fonts/opensans/OpenSans-Bold.ttf";
-	io.Fonts->AddFontFromFileTTF(filePath, EditorConfigurations::g_FontSize);
-	io.FontDefault = io.Fonts->AddFontFromFileTTF("../Resources/Fonts/opensans/OpenSans-Regular.ttf", 17.0f);
-
-	// Node Editor
-	g_NodeEditorContext = NodeEditor::CreateEditor();
-	NodeEditor::SetCurrentEditor(g_NodeEditorContext);
-
-	//Setup Platform/Renderer Bindings
-	GLFWwindow* window = static_cast<GLFWwindow*>(m_EngineContext->GetSubsystem<Aurora::WindowContext>()->GetRenderWindow());
-	ImGui_ImplGlfw_InitForOther(window, true);
-	Aurora::Renderer* renderer = m_EngineContext->GetSubsystem<Aurora::Renderer>();
-	ImGui_ImplDX11_Init(renderer->m_GraphicsDevice->m_Device.Get(), renderer->m_GraphicsDevice->m_DeviceContextImmediate.Get());
-}
-
-void Editor::ImGuiImplementation_Shutdown()
-{
-	if (ImGui::GetCurrentContext())
-	{
-		// ImGui::RHI::Shutdown();
-		// ImGui_ImplSDL2_Shutdown();
-		ImGui::DestroyContext();
-	}
-}
-
-void Editor::ImGuiImplementation_ApplyStyling()
-{
-	// Apply Dark Style
-	ImGui::StyleColorsDark();
-	ImGuiIO& io = ImGui::GetIO();
-
-	// When viewports are enabled, we tweak WindowRounding/WindowBg so Window platforms can look identifical to regular ones.
-	ImGuiStyle& style = ImGui::GetStyle();
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		style.WindowRounding = 0.0f;
-		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-	}
-
-	ImVec4* colors = ImGui::GetStyle().Colors;
-
-	colors[ImGuiCol_WindowBg] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
-
-	// Headers
-	colors[ImGuiCol_Header] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-	colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-	colors[ImGuiCol_HeaderActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-
-	// Buttons
-	colors[ImGuiCol_Button] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-	colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-	colors[ImGuiCol_ButtonActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-
-	// Frame BG
-	colors[ImGuiCol_FrameBg] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-	colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-	colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-
-	// Tabs
-	colors[ImGuiCol_Tab] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-	colors[ImGuiCol_TabHovered] = ImVec4{ 0.38f, 0.3805f, 0.381f, 1.0f };
-	colors[ImGuiCol_TabActive] = ImVec4{ 0.28f, 0.2805f, 0.281f, 1.0f };
-	colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-	colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-
-	// Title
-	colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-	colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-	colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-}

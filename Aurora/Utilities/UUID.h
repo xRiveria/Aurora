@@ -5,7 +5,7 @@
 #include <random>
 
 /* UUID
-
+* 
     - UUID consists of 16 octets - represented as 32 hexadecimal digits, displayed in 5 groups seperated by hyphens.
     - A UUID is represented as 8-4-4-4-12 for a total of 36 characters (32 hexadecimal characters and 4 hyphens).
     - https://en.wikipedia.org/wiki/Universally_unique_identifier#Format
@@ -21,10 +21,11 @@ namespace Aurora
             GenerateNewUUID();
         }
 
-        void GenerateNewUUID()
+        UUID GenerateNewUUID()
         {
             // 16 Octets (Or 16 Chars), Hexadecimal Represented As 8-4-4-4-12.
             m_UUID = GenerateHex(4) + "-" + GenerateHex(2) + "-" + GenerateHex(2) + "-" + GenerateHex(2) + "-" + GenerateHex(6);
+            return *this;
         }
 
         const std::string GetUUID() const { return m_UUID; }
@@ -37,11 +38,6 @@ namespace Aurora
             }
 
             return false;
-        }
-
-        bool operator!=(const UUID& otherUUID)
-        {
-            !(*this == otherUUID);
         }
 
     private:
@@ -72,4 +68,9 @@ namespace Aurora
     private:
         std::string m_UUID;
     };
+
+    inline bool operator==(const UUID& leftUUID, const UUID& rightUUID)
+    {
+        return leftUUID == rightUUID;
+    }
 }
