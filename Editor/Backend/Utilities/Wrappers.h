@@ -1,12 +1,15 @@
 #pragma once
 #include "../Source/imgui.h"
+#include "../Scene/Components/IComponent.h"
 #include "../Utilities/DifferentiatorTool.h"
+#include "Transactions/DifferentiatorTool.h"
 #include <any>
 
 namespace EditorExtensions::Wrappers
 {
     bool g_IsInitialDrag = true;
     std::any g_InitialValue = 0;
+    std::unique_ptr<DifferentiatorTool> g_DiffTool;
 
     void BeginSequence()
     {
@@ -25,7 +28,7 @@ namespace EditorExtensions::Wrappers
         ImGui::PushItemWidth(-1);
     }
 
-    void FloatSlider(const char* sliderLabel, float* reflectValue, float sliderSpeed, const std::any& initialValue, std::function<void(const std::any& updateValue)> UpdateFunction)
+    void FloatSlider(const char* sliderLabel, float* reflectValue, float sliderSpeed, const std::any& initialValue, std::function<void(const std::any& updateValue)> UpdateFunction, Aurora::IComponent* pComponent)
     {
         std::string labelID = std::string("##") + sliderLabel;
 
@@ -35,6 +38,9 @@ namespace EditorExtensions::Wrappers
 
         if (ImGui::DragFloat(labelID.c_str(), reflectValue, sliderSpeed))
         {
+            // g_DiffTool = std::make_unique<DifferentiatorTool>();
+            // g_DiffTool->TakeSnapshot(*pComponent);
+
             if (g_IsInitialDrag)
             {
                 g_InitialValue = initialValue;
@@ -47,8 +53,11 @@ namespace EditorExtensions::Wrappers
         if (ImGui::IsItemDeactivatedAfterEdit())
         {
             Aurora::DifferentiatorTool::PushAction(g_InitialValue, *reflectValue, UpdateFunction);
+            // g_DiffTool->CommitChanges("Change");
+
             g_IsInitialDrag = true;
             g_InitialValue.reset();
+            // g_DiffTool.reset();
         }
 
         ImGui::PopItemWidth();

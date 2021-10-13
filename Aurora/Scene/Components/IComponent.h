@@ -4,6 +4,7 @@
 #include "EngineContext.h"
 #include <any>
 #include <functional>
+#include <typeinfo>
 
 namespace Aurora
 {
@@ -24,6 +25,7 @@ namespace Aurora
     {
         std::function<std::any()> Getter;
         std::function<void(std::any)> Setter;
+        std::function<bool(std::any)> Comparison;
     };
 
     class Entity;
@@ -31,6 +33,16 @@ namespace Aurora
     class IComponent : public AuroraObject, public std::enable_shared_from_this<IComponent>
     {
     public:
+        /// Test
+        std::vector<std::variant<bool, uint32_t, float>> m_TransactionAttributes;
+        virtual const std::vector<std::variant<bool, uint32_t, float>> GetTransactionAttributes() { return std::vector<std::variant<bool, uint32_t, float>>(); }
+        virtual const std::vector<std::function<void(std::variant<bool, uint32_t, float>)>> GetTransactionFunctions() 
+        { 
+            std::vector<std::function<void(std::variant<bool, uint32_t, float> value)>> stuff;
+            
+            return stuff;
+        };
+
         IComponent(EngineContext* engineContext, Entity* entity, uint32_t componentID = 0);
         virtual ~IComponent() = default;
 
@@ -61,6 +73,8 @@ namespace Aurora
         void SetType(ComponentType componentType) { m_Type = componentType; }
 
         const std::vector<Aurora::ComponentAttribute>& GetComponentAttributes() const { return m_ComponentAttributes; }
+        const std::vector<Aurora::ComponentAttribute> GetComponentAttributesCopy() const { return m_ComponentAttributes; }
+
         void SetComponentAttributes(const std::vector<ComponentAttribute>& attributes)
         {
             for (uint32_t i = 0; i < static_cast<uint32_t>(m_ComponentAttributes.size()); i++)
@@ -76,24 +90,28 @@ namespace Aurora
         EngineContext* GetContext() const { return m_EngineContext; }
 
     protected:
-        #define AURORA_REGISTER_ATTRIBUTE_GET_SET(Getter, Setter, Type) RegisterAttribute(          \
-        [this]() { return Getter(); },                                                              \
-        [this](const std::any& valueIn) { Setter(std::any_cast<Type>(valueIn)); });                 \
+        #define AURORA_REGISTER_ATTRIBUTE_GET_SET(Getter, Setter, Type) RegisterAttribute(                                                 \
+        [this]() { return Getter(); },                                                                                                     \
+        [this](const std::any& valueIn) { Setter(std::any_cast<Type>(valueIn)); },                                                         \
+        [this](const std::any& comparisonValue) { return (std::any_cast<Type>(comparisonValue) == std::any_cast<Type>(Getter())); });         \
 
-        #define AURORA_REGISTER_ATTRIBUTE_VALUE_SET(Value, Setter, Type) RegisterAttribute(         \
-        [this]() { return Value; },                                                                 \
-        [this](const std::any& valueIn) { Setter(std::any_cast<Type>(valueIn)); });                 \
+        #define AURORA_REGISTER_ATTRIBUTE_VALUE_SET(Value, Setter, Type) RegisterAttribute(                                                \
+        [this]() { return Value; },                                                                                                        \
+        [this](const std::any& valueIn) { Setter(std::any_cast<Type>(valueIn)); },                                                         \
+        [this](const std::any& comparisonValue) { return (std::any_cast<Type>(comparisonValue) == std::any_cast<Type>(Value)); });         \
 
-        #define AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(Value, Type) RegisterAttribute(               \
-        [this]() { return Value; },                                                                 \
-        [this](const std::any& valueIn) { Value = std::any_cast<Type>(valueIn); });                 \
+        #define AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(Value, Type) RegisterAttribute(                                               \
+        [this]() { return Value; },                                                                                                 \
+        [this](const std::any& valueIn) { Value = std::any_cast<Type>(valueIn); },                                                  \
+        [this](const std::any& comparisonValue) { return (std::any_cast<Type>(comparisonValue) == std::any_cast<Type>(Value)); });  \
         
         // Registers an attribute.
-        void RegisterAttribute(std::function<std::any()>&& Getter, std::function<void(std::any)>&& Setter)
+        void RegisterAttribute(std::function<std::any()>&& Getter, std::function<void(std::any)>&& Setter, std::function<bool(std::any)>&& Comparison)
         {
             ComponentAttribute attribute;
             attribute.Getter = std::move(Getter);
             attribute.Setter = std::move(Setter);
+            attribute.Comparison = std::move(Comparison);
             m_ComponentAttributes.emplace_back(attribute);
         }
 

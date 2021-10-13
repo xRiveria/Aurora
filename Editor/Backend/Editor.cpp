@@ -471,22 +471,22 @@ namespace EditorConfigurations
 		ImGuiImplementation_ApplyStyling();
 
 		// Create all ImGui widgets.
-		// m_Widgets.emplace_back(std::make_shared<EditorConsole>(this, m_EngineContext));
-		// m_EditorConsole = dynamic_cast<EditorConsole*>(m_Widgets.back().get());
-		// m_Widgets.emplace_back(std::make_shared<ProjectSettings>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<ThreadTracker>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<EditorConsole>(this, m_EngineContext));
+		m_EditorConsole = dynamic_cast<EditorConsole*>(m_Widgets.back().get());
+		m_Widgets.emplace_back(std::make_shared<ProjectSettings>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<QuickDiagnostics>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<ThreadTracker>(this, m_EngineContext));
 		m_GlobalWidgets.emplace_back(std::make_shared<MenuBar>(this, m_EngineContext));
 		m_GlobalWidgets.emplace_back(std::make_shared<Toolbar>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<ObjectsPanel>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<MathPlayground>(this, m_EngineContext)); // For me to play with the Math library.
-		// m_Widgets.emplace_back(std::make_shared<Viewport>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<Hierarchy>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<EditorTools>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<AssetRegistry>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<AssetBrowser>(this, m_EngineContext));
-		// m_Widgets.emplace_back(std::make_shared<ScriptEngine>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<Properties>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<ObjectsPanel>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<MathPlayground>(this, m_EngineContext)); // For me to play with the Math library.
+		m_Widgets.emplace_back(std::make_shared<Viewport>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<Hierarchy>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<EditorTools>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<AssetRegistry>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<AssetBrowser>(this, m_EngineContext));
+		m_Widgets.emplace_back(std::make_shared<ScriptEngine>(this, m_EngineContext));
 
 		AURORA_WARNING(Aurora::LogLayer::Engine, "All Editor Widgets Initialized.");
 	}

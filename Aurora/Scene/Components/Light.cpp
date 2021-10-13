@@ -1,6 +1,7 @@
 #include "Aurora.h"
 #include "Light.h"
 #include "../Renderer/Renderer.h"
+#include "../Physics/PhysicsUtilities.h"
 
 namespace Aurora
 {
@@ -8,7 +9,7 @@ namespace Aurora
     {
         m_Type = ComponentType::Light;
 
-        AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Color, XMFLOAT3);
+        // AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Color, XMFLOAT3);
         AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_Intensity, float);
         AURORA_REGISTER_ATTRIBUTE_GET_SET(IsCastingShadow, SetIsCastingShadow, bool);
 

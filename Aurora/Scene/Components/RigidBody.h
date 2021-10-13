@@ -35,6 +35,8 @@ namespace Aurora
         void Remove() override;
         void Start() override;
         void Tick(float deltaTime) override;
+        virtual const std::vector<std::variant<bool, uint32_t, float>> GetTransactionAttributes() override;
+        virtual const std::vector<std::function<void(std::variant<bool, uint32_t, float>)>> GetTransactionFunctions() override;
 
         // Serialization
         void Serialize(BinarySerializer* binarySerializer) override;

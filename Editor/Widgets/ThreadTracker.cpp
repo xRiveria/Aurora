@@ -7,6 +7,7 @@ ThreadTracker::ThreadTracker(Editor* editorContext, Aurora::EngineContext* engin
     m_WidgetName = "Threader";
 }
 
+
 void ThreadTracker::OnTickVisible()
 {
     Aurora::AURORA_PROFILE_FUNCTION();

@@ -1,6 +1,9 @@
 #include "EditorLevelContext.h"
+#include "Backend/Editor.h"
 #include "Widgets/Hierarchy.h"
 #include "Widgets/Properties.h"
+#include "Widgets/Viewport.h"
+#include "Widgets/ObjectsPanel.h"
 
 namespace AuroraEditor
 {
@@ -12,8 +15,10 @@ namespace AuroraEditor
 
     bool EditorLevelContext::OnInitialize()
     {
-        m_Widgets.emplace_back(std::make_shared<Hierarchy>(m_Editor, m_Engine));
-        m_Widgets.emplace_back(std::make_shared<Properties>(m_Editor, m_Engine));
+        m_Widgets.emplace_back(m_Editor->GetWidget<Hierarchy>());
+        m_Widgets.emplace_back(m_Editor->GetWidget<Properties>());
+        m_Widgets.emplace_back(m_Editor->GetWidget<Viewport>());
+        m_Widgets.emplace_back(m_Editor->GetWidget<ObjectsPanel>());
 
         return true;
     }

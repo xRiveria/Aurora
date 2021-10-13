@@ -31,7 +31,7 @@ namespace AuroraEditor
         virtual void OnTick(float deltaTime);
 
     protected:
-        std::vector<std::shared_ptr<Widget>> m_Widgets;
+        std::vector<Widget*> m_Widgets;
         EditorContext_Type m_Type = EditorContext_Type::EditorContext_Type_Count;
 
         // Contexts

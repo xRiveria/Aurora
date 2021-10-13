@@ -57,6 +57,16 @@ namespace Aurora
         return false;
     }
 
+    inline bool operator==(XMFLOAT4X4& setA, XMFLOAT4X4& setB)
+    {
+        return true;
+    }
+
+    inline bool operator==(const XMFLOAT4X4& setA, const XMFLOAT4X4& setB)
+    {
+        return true;
+    }
+
     inline bool operator==(const XMFLOAT3& setA, const XMFLOAT3& setB)
     {
         if (setA.x == setB.x && setA.y == setB.y && setA.z == setB.z)

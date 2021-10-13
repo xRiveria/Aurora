@@ -69,6 +69,9 @@ namespace Aurora
         AURORA_REGISTER_ATTRIBUTE_VALUE_VALUE(m_CenterOfMass, XMFLOAT3);
         AURORA_REGISTER_ATTRIBUTE_GET_SET(GetKinematicState, SetKinematicState, bool);
         AURORA_REGISTER_ATTRIBUTE_GET_SET(GetGravityState, SetGravityState, bool);
+
+        m_TransactionAttributes.push_back(m_Mass);
+        m_TransactionAttributes.push_back(m_Friction);
     }
 
     RigidBody::~RigidBody()
@@ -111,6 +114,23 @@ namespace Aurora
             //    SetAngularVelocity(XMFLOAT3(0.0f, 0.0f, 0.0f), false);
             // }
         }     
+    }
+
+    const std::vector<std::variant<bool, uint32_t, float>> RigidBody::GetTransactionAttributes()
+    {
+        std::vector<std::variant<bool, uint32_t, float>> attributes;
+        attributes.push_back(m_Mass);
+        attributes.push_back(m_Friction);
+        return attributes;
+    }
+
+    const std::vector<std::function<void(std::variant<bool, uint32_t, float>)>> RigidBody::GetTransactionFunctions()
+    {
+        std::vector<std::function<void(std::variant<bool, uint32_t, float> value)>> functions;
+        functions.emplace_back([this](std::variant<bool, uint32_t, float> variant) { m_Mass = std::get<float>(variant); });
+        functions.emplace_back([this](std::variant<bool, uint32_t, float> variant) { m_Friction = std::get<float>(variant); });
+
+        return functions;
     }
 
     void RigidBody::Serialize(BinarySerializer* binarySerializer)

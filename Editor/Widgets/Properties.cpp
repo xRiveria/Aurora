@@ -704,17 +704,35 @@ void Properties::ShowRigidBodyProperties(Aurora::RigidBody* rigidBodyComponent) 
 
         ImGui::PushID(rigidBodyComponent->GetObjectID());
 
+        if (ImGui::Button("Pop Diff Tool"))
+        {
+            DifferentiatorTool diffTool;
+            diffTool.TakeSnapshot(*rigidBodyComponent);
+            rigidBodyComponent->SetMass(3.0f);
+            diffTool.CommitChanges("Mass Change");
+        }
+
+        if (ImGui::Button("Previous Transaction"))
+        {
+            TransactionsHub::GetInstance().Undo();
+        }
+
+        if (ImGui::Button("Next Transaction"))
+        {
+            TransactionsHub::GetInstance().Redo();
+        }
+
         float rigidBodyMass = rigidBodyComponent->GetMass();
-        EditorExtensions::Wrappers::FloatSlider("Mass", &rigidBodyMass, 0.1f, rigidBodyComponent->GetMass(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetMass(std::any_cast<float>(updateValue)); });
+        EditorExtensions::Wrappers::FloatSlider("Mass", &rigidBodyMass, 0.1f, rigidBodyComponent->GetMass(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetMass(std::any_cast<float>(updateValue)); }, rigidBodyComponent);
 
         float friction = rigidBodyComponent->GetFriction();
-        EditorExtensions::Wrappers::FloatSlider("Friction", &friction, 0.1f, rigidBodyComponent->GetFriction(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetFriction(std::any_cast<float>(updateValue)); });
+        EditorExtensions::Wrappers::FloatSlider("Friction", &friction, 0.1f, rigidBodyComponent->GetFriction(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetFriction(std::any_cast<float>(updateValue)); }, rigidBodyComponent);
 
         float rollingFriction = rigidBodyComponent->GetFrictionRolling();
-        EditorExtensions::Wrappers::FloatSlider("Rolling Friction", &rollingFriction, 0.1f, rigidBodyComponent->GetFrictionRolling(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetFrictionRolling(std::any_cast<float>(updateValue)); });
+        EditorExtensions::Wrappers::FloatSlider("Rolling Friction", &rollingFriction, 0.1f, rigidBodyComponent->GetFrictionRolling(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetFrictionRolling(std::any_cast<float>(updateValue)); }, rigidBodyComponent);
 
         float restitution = rigidBodyComponent->GetRestitution();
-        EditorExtensions::Wrappers::FloatSlider("Restitution", &restitution, 0.1f, rigidBodyComponent->GetRestitution(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetRestitution(std::any_cast<float>(updateValue)); });
+        EditorExtensions::Wrappers::FloatSlider("Restitution", &restitution, 0.1f, rigidBodyComponent->GetRestitution(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetRestitution(std::any_cast<float>(updateValue)); }, rigidBodyComponent);
 
         bool gravityState = rigidBodyComponent->GetGravityState();
         EditorExtensions::Wrappers::Checkbox("Use Gravity", &gravityState, rigidBodyComponent->GetGravityState(), [rigidBodyComponent](const std::any& updateValue) { rigidBodyComponent->SetGravityState(std::any_cast<bool>(updateValue)); });

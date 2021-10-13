@@ -1,4 +1,5 @@
 #include "EditorUtilityContext.h"
+#include "Backend/Editor.h"
 #include "Widgets/ThreadTracker.h"
 #include "Widgets/MathPlayground.h"
 #include "Widgets/ScriptEngine.h"
@@ -12,8 +13,9 @@ namespace AuroraEditor
 
     bool EditorUtilityContext::OnInitialize()
     {
-        m_Widgets.emplace_back(std::make_shared<ThreadTracker>(m_Editor, m_Engine));
-        m_Widgets.emplace_back(std::make_shared<MathPlayground>(m_Editor, m_Engine));
+        m_Widgets.emplace_back(m_Editor->GetWidget<ThreadTracker>());
+        m_Widgets.emplace_back(m_Editor->GetWidget<MathPlayground>());
+        m_Widgets.emplace_back(m_Editor->GetWidget<ScriptEngine>());
 
         return true;
     }

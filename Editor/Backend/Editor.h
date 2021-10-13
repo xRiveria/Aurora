@@ -41,7 +41,7 @@ public:
 	template<typename T>
 	T* GetWidget() const
 	{
-		for (const auto& widget : m_GlobalWidgets)
+		for (const auto& widget : m_Widgets)
 		{
 			if (typeid(T) == typeid(*widget))
 			{
@@ -68,8 +68,11 @@ private:
 
 	// Editor Contexts
 	std::vector<std::shared_ptr<Widget>> m_GlobalWidgets;
+	std::vector<std::shared_ptr<Widget>> m_Widgets;
 
 	// Editor Contexts
 	std::weak_ptr<EditorContext> m_CurrentContext;
 	std::unordered_map<EditorContext_Type, std::shared_ptr<EditorContext>> m_EditorContexts;
+
+	friend class EditorContext;
 };

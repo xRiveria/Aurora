@@ -11,7 +11,7 @@ namespace AuroraEditor
 
     void EditorContext::OnTick(float deltaTime)
     {
-        for (std::shared_ptr<Widget>& widget : m_Widgets)
+        for (Widget* widget : m_Widgets)
         {
             widget->Tick();
         }

@@ -1,5 +1,6 @@
 #pragma once
 #include "../Profiler/Instrumentor.h"
+#include "Transactions/TransactionsHub.h"
 #include <string>
 #include "EngineContext.h"
 #include "../Math/Vector2.h"
@@ -19,9 +20,11 @@ public:
 
     void Tick(); // Called across all Widgets.
 
-    virtual void OnTickAlways()  {}    // Always called for all widgets, regardless of whether its a window or permanent aesthetic.
-    virtual void OnTickVisible() {}    // Called only when the widget is visible. Certain widgets can be hidden or closed.
-    virtual void OnEvent(Aurora::InputEvent& inputEvent) {}          // Called when the widget itself listens to specific events, forwarded from the core engine.
+    virtual void OnTickAlways()  {}                           // Always called for all widgets, regardless of whether its a window or permanent aesthetic.
+    virtual void OnTickVisible() {}                           // Called only when the widget is visible. Certain widgets can be hidden or closed.
+    virtual void OnEvent(Aurora::InputEvent& inputEvent) {}   // Called when the widget itself listens to specific events, forwarded from the core engine.
+
+    virtual void OnTransaction(const TransactionPayload& payload) {}; // Called whenever the Transaction Hub fires a transaction for a type we're subscribed to.
 
     // Properties
     void SetWidgetVisibility(bool isVisible) { m_IsWidgetVisible = isVisible; }

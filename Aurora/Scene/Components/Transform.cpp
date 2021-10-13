@@ -2,6 +2,7 @@
 #include "Transform.h"
 #include "../Scene/World.h"
 #include <iostream>
+#include "../Physics/PhysicsUtilities.h"
 
 namespace Aurora
 {
