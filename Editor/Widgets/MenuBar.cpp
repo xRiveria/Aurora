@@ -160,21 +160,23 @@ bool MenuBar::OnKeyPressed(Aurora::KeyPressedEvent& keyPressedEvent)
 		case AURORA_KEY_N:
 		{
 			if (isControlPressed) { NewScene(); }
-			break;
+			return true;
 		}
 
 		case AURORA_KEY_L:
 		{
 			if (isControlPressed) { LoadScene(); }
-			break;
+			return true;
 		}
 
 		case AURORA_KEY_S:
 		{
 			if (isControlPressed && isShiftPressed) { SaveScene(); }
-			break;
+			return true;
 		}
 	}
+
+	return false;
 }
 
 void MenuBar::SaveScene()

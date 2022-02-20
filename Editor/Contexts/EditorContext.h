@@ -19,6 +19,7 @@ namespace AuroraEditor
         EditorContext_Type_Dialog,
         EditorContext_Type_VFX,
         EditorContext_Type_Utility,
+        EditorContext_Type_Complete,
         EditorContext_Type_Count
     };
 

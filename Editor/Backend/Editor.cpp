@@ -61,17 +61,19 @@ namespace EditorConfigurations
 
 	void EditorSubsystem::OnEvent(Aurora::InputEvent& inputEvent)
 	{
-		Aurora::InputEventDispatcher dispatcher(inputEvent);
-		dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorSubsystem::OnKeyPressed));
+		AURORA_INFO(Aurora::LogLayer::Editor, "Received!");
+		//Aurora::InputEventDispatcher dispatcher(inputEvent);
+		//dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorSubsystem::OnKeyPressed));
 
-		if (!inputEvent.IsEventHandled)
-		{
+		//if (!inputEvent.IsEventHandled)
+		//{
+		// 
 			// Push events to any widgets that ought to be listening to events.
 			for (int i = 0; i < m_Editor->GetWidgets().size(); i++)
 			{
 				m_Editor->GetWidgets()[i]->OnEvent(inputEvent);
 			}
-		}
+		//}
 	}
 
 	bool EditorSubsystem::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
@@ -157,6 +159,7 @@ namespace EditorConfigurations
 	std::string g_CurrentlySelectedView = "Off";
 	Aurora::ReferencePointer<float> g_TestReferencePointer;
 	Aurora::UUID g_UUIDTest;
+	bool m_ActiveContextSwitching = false;
 
 	void Editor::Tick()
 	{
@@ -185,265 +188,275 @@ namespace EditorConfigurations
 				}
 			}
 
-			ImGui::Begin("Context Switching");
-			if (ImGui::Button("Level Context"))
+			ImGui::Checkbox("Activate Context Switching", &m_ActiveContextSwitching);
+
+			if (m_ActiveContextSwitching)
 			{
-				m_CurrentContext = m_EditorContexts[EditorContext_Type::EditorContext_Type_Level];
-			}
-
-			if (ImGui::Button("Utility Context"))
-			{
-				m_CurrentContext = m_EditorContexts[EditorContext_Type::EditorContext_Type_Utility];
-			}
-			ImGui::End();
-
-			m_CurrentContext.lock()->OnTick(0);
-
-			/*
-
-			ImGui::Begin("Aurora Utilities");
-			if (ImGui::CollapsingHeader("UUID", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
-			{
-				ImGui::Text("UUID: %s", g_UUIDTest.GetUUID().c_str());
-
-				if (ImGui::Button("Generate New UUID"))
+				ImGui::Begin("Context Switching");
+				if (ImGui::Button("Level Context"))
 				{
-					g_UUIDTest.GenerateNewUUID();
-				}
-			}
-
-			if (ImGui::CollapsingHeader("Reference Pointer", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
-			{
-				if (ImGui::Button("Create Instance"))
-				{
-					g_TestReferencePointer = Aurora::MakeReference<float>(4.4f);
-					std::cout << g_TestReferencePointer;
-
-					Aurora::ReferencePointer<float> testReference2(g_TestReferencePointer);
-					std::cout << g_TestReferencePointer;
-
-					Aurora::ReferencePointer<float> testReference3(g_TestReferencePointer);
-					std::cout << g_TestReferencePointer;
-
-					Aurora::ReferencePointer<float> testReference4(g_TestReferencePointer);
-					std::cout << g_TestReferencePointer;
+					m_CurrentContext = m_EditorContexts[EditorContext_Type::EditorContext_Type_Level];
 				}
 
-				if (g_TestReferencePointer.IsInitialized())
+				if (ImGui::Button("Utility Context"))
 				{
-					ImGui::Text("Reference Count: %lu", g_TestReferencePointer.GetUseCount());
-
-					if (ImGui::Button("Reset"))
-					{
-						g_TestReferencePointer.Reset();
-					}
+					m_CurrentContext = m_EditorContexts[EditorContext_Type::EditorContext_Type_Utility];
 				}
+				ImGui::End();
+
+				m_CurrentContext.lock()->OnTick(0);
 			}
-
-			if (ImGui::CollapsingHeader("Hash Table", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
-			{
-				if (ImGui::Button("Create Table Instance"))
-				{
-					Aurora::HashMap<std::string, int> m_HashMap(5);
-					m_HashMap.Insert("Ryan", 5);
-					m_HashMap.Insert("Desrp", 3);
-					m_HashMap.Insert("Dserdp", 6);
-					m_HashMap.Insert("Derssp", 8);
-					m_HashMap.PrintTable();
-				}
-			}
-
-			ImGui::End();
-
-			// Make sure this is last.
-			ImGui::Begin("Performance");
-			for (int i = 0; i < Aurora::Profiler::GetInstance().GetEntries().size(); i++)
-			{
-				ImGui::Text("%s", Aurora::Profiler::GetInstance().GetEntries()[i].c_str());
-			}
-			Aurora::Profiler::GetInstance().Reset();
-			ImGui::End();
-
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-			ImGui::Begin("Node Editor");
-			NodeEditor::Begin("Test Node Editor");
-
-			int uniqueID = 1;
-			NodeEditor::BeginNode(uniqueID++);
-			ImGui::Text("Log");
-			NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Input);
-			ImGui::Text("-> String");
-			NodeEditor::EndPin();
-			ImGui::SameLine();
-			NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Output);
-			ImGui::Text("Error");
-			NodeEditor::EndPin();
-			NodeEditor::EndNode();
-			NodeEditor::End();
-			ImGui::End();
-			ImGui::PopStyleVar(2);
-
-			ImGui::Begin("Renderer Settings");
-
-			ImGui::Text("Maximum MSAA Level Supported: %u", renderer->m_DeviceContext->GetMaxMultisampleLevel());
-			char sampleString[11];
-			sprintf_s(sampleString, "%u", renderer->m_DeviceContext->GetCurrentMultisampleLevel());
-			if (ImGui::BeginCombo("Multisample Level", sampleString, 0))
-			{
-				if (ImGui::Selectable("Off"))
-				{
-					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(1);
-					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
-				}
-
-				if (ImGui::Selectable("2"))
-				{
-					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(2);
-					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
-				}
-
-				if (ImGui::Selectable("4"))
-				{
-					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(4);
-					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
-				}
-
-				if (ImGui::Selectable("8"))
-				{
-					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(8);
-					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
-				}
-
-				ImGui::EndCombo();
-			}
-
-			// Needs a whole system of its own.
-
-			if (ImGui::BeginCombo("Debug Views", g_CurrentlySelectedView.c_str(), 0))
-			{
-				if (ImGui::Selectable("Off"))
-				{
-					g_CurrentlySelectedView = "Off";
-				}
-
-				if (ImGui::Selectable("Shadow Depth Buffer"))
-				{
-					g_CurrentlySelectedView = "Shadow Depth Buffer";
-				}
-
-				if (ImGui::Selectable("Bloom Buffer"))
-				{
-					g_CurrentlySelectedView = "Bloom Buffer";
-				}
-
-				if (ImGui::Selectable("IBL HDR Texture"))
-				{
-					g_CurrentlySelectedView = "IBL HDR Texture";
-				}
-
-				ImGui::EndCombo();
-			}
-
-			if (g_CurrentlySelectedView == "Shadow Depth Buffer")
-			{
-				ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
-			}
-			else if (g_CurrentlySelectedView == "Bloom Buffer")
-			{
-				ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_BloomRenderTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
-			}
-			else if (g_CurrentlySelectedView == "IBL HDR Texture")
-			{
-				ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(720, 480));
-			}
-
-			ImGui::DragInt("Debug Grid Size", &renderer->m_DebugGridSize, 0.1f);
-			ImGui::DragFloat("Gizmos Size", &renderer->m_GizmosSizeCurrent, 0.1f, renderer->m_GizmosSizeMinimum, renderer->m_GizmosSizeMaximum);
-
-			ImGui::End();
-
-			// Sky
-			ImGui::Begin("Sky Debug");
-
-			//Aurora::DX11_Utility::DX11_TexturePackage* textures = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular);
-			// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(600, 600));
-			if (ImGui::Button("Front"))
-			{
-				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
-			}
-			if (ImGui::Button("Back"))
-			{
-				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 270.0f, 0.0f); // back
-			}
-			if (ImGui::Button("Top"))
-			{
-				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(-90.0f, 0.0f, 0.0f); // top
-			}
-			if (ImGui::Button("Bottom"))
-			{
-				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(90.0f, 0.0f, 0.0f); // bottom
-			}
-			if (ImGui::Button("Left"))
-			{
-				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 0.0f, 0.0f); // left
-			}
-			if (ImGui::Button("Right"))
-			{
-				renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
-			}
-
-			// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(600, 600));
-
-			// Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
-			// ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
-			ImGui::DragFloat("Light Bias", &renderer->m_LightBias, 0.01, 0.005, 0.1);
-			*/
-			/*
 			else
 			{
-				Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->m_Texture);
-				ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(300, 300));
-			}
-			if (ImGui::Button("Load..."))
-			{
-				std::optional<std::string> filePath = EditorExtensions::OpenFile("Textures", m_EngineContext);
-				if (filePath.has_value())
+				for (auto& widget : m_Widgets)
 				{
-					std::string path = filePath.value();
-					std::string fileName = Aurora::FileSystem::GetFileNameFromFilePath(path);
-					std::shared_ptr<Aurora::AuroraResource> resource = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTextureHDR(path, 4);
-					m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_SkyHDR->m_Texture = resource->m_Texture;
+					widget->Tick();
 				}
-			}
 
-
-			// ImGui::End();
-
-			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
-			float height = ImGui::GetFrameHeight() + 1.0; //Add a little padding here so things look nicer.
-
-			if (ImGui::BeginViewportSideBar("##MainStatusBar", nullptr, ImGuiDir_Down, height, windowFlags)) // Specifies that this will be pipped at the top of the window, below the main menu bar.
-			{
-				if (ImGui::BeginMenuBar())
+				ImGui::Begin("Aurora Utilities");
+				if (ImGui::CollapsingHeader("UUID", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 				{
-					if (!m_EditorConsole->m_Logs.empty())
+					ImGui::Text("UUID: %s", g_UUIDTest.GetUUID().c_str());
+
+					if (ImGui::Button("Generate New UUID"))
 					{
-						ImGui::PushStyleColor(ImGuiCol_Text, m_EditorConsole->m_LogTypeColor[static_cast<int>(m_EditorConsole->m_Logs.back().m_LogType.first)]);
-						ImGui::TextUnformatted(m_EditorConsole->m_Logs.back().m_Text.c_str());
-						ImGui::PopStyleColor();
-					}
-					else
-					{
-						ImGui::TextUnformatted("");
+						g_UUIDTest.GenerateNewUUID();
 					}
 				}
 
-				ImGui::EndMenuBar();
+				if (ImGui::CollapsingHeader("Reference Pointer", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+				{
+					if (ImGui::Button("Create Instance"))
+					{
+						g_TestReferencePointer = Aurora::MakeReference<float>(4.4f);
+						std::cout << g_TestReferencePointer;
+
+						Aurora::ReferencePointer<float> testReference2(g_TestReferencePointer);
+						std::cout << g_TestReferencePointer;
+
+						Aurora::ReferencePointer<float> testReference3(g_TestReferencePointer);
+						std::cout << g_TestReferencePointer;
+
+						Aurora::ReferencePointer<float> testReference4(g_TestReferencePointer);
+						std::cout << g_TestReferencePointer;
+					}
+
+					if (g_TestReferencePointer.IsInitialized())
+					{
+						ImGui::Text("Reference Count: %lu", g_TestReferencePointer.GetUseCount());
+
+						if (ImGui::Button("Reset"))
+						{
+							g_TestReferencePointer.Reset();
+						}
+					}
+				}
+
+				if (ImGui::CollapsingHeader("Hash Table", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+				{
+					if (ImGui::Button("Create Table Instance"))
+					{
+						Aurora::HashMap<std::string, int> m_HashMap(5);
+						m_HashMap.Insert("Ryan", 5);
+						m_HashMap.Insert("Desrp", 3);
+						m_HashMap.Insert("Dserdp", 6);
+						m_HashMap.Insert("Derssp", 8);
+						m_HashMap.PrintTable();
+					}
+				}
+
+				ImGui::End();
+
+				// Make sure this is last.
+				ImGui::Begin("Performance");
+				for (int i = 0; i < Aurora::Profiler::GetInstance().GetEntries().size(); i++)
+				{
+					ImGui::Text("%s", Aurora::Profiler::GetInstance().GetEntries()[i].c_str());
+				}
+				Aurora::Profiler::GetInstance().Reset();
+				ImGui::End();
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+				ImGui::Begin("Node Editor");
+				NodeEditor::Begin("Test Node Editor");
+
+				int uniqueID = 1;
+				NodeEditor::BeginNode(uniqueID++);
+				ImGui::Text("Log");
+				NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Input);
+				ImGui::Text("-> String");
+				NodeEditor::EndPin();
+				ImGui::SameLine();
+				NodeEditor::BeginPin(uniqueID++, NodeEditor::PinKind::Output);
+				ImGui::Text("Error");
+				NodeEditor::EndPin();
+				NodeEditor::EndNode();
+				NodeEditor::End();
+				ImGui::End();
+				ImGui::PopStyleVar(2);
+
+				ImGui::Begin("Renderer Settings");
+
+				ImGui::Text("Maximum MSAA Level Supported: %u", renderer->m_DeviceContext->GetMaxMultisampleLevel());
+				char sampleString[11];
+				sprintf_s(sampleString, "%u", renderer->m_DeviceContext->GetCurrentMultisampleLevel());
+				if (ImGui::BeginCombo("Multisample Level", sampleString, 0))
+				{
+					if (ImGui::Selectable("Off"))
+					{
+						m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(1);
+						m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+					}
+
+					if (ImGui::Selectable("2"))
+					{
+						m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(2);
+						m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+					}
+
+					if (ImGui::Selectable("4"))
+					{
+						m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(4);
+						m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+					}
+
+					if (ImGui::Selectable("8"))
+					{
+						m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->SetMultisampleLevel(8);
+						m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->ResizeBuffers();
+					}
+
+					ImGui::EndCombo();
+				}
+
+				// Needs a whole system of its own.
+
+				if (ImGui::BeginCombo("Debug Views", g_CurrentlySelectedView.c_str(), 0))
+				{
+					if (ImGui::Selectable("Off"))
+					{
+						g_CurrentlySelectedView = "Off";
+					}
+
+					if (ImGui::Selectable("Shadow Depth Buffer"))
+					{
+						g_CurrentlySelectedView = "Shadow Depth Buffer";
+					}
+
+					if (ImGui::Selectable("Bloom Buffer"))
+					{
+						g_CurrentlySelectedView = "Bloom Buffer";
+					}
+
+					if (ImGui::Selectable("IBL HDR Texture"))
+					{
+						g_CurrentlySelectedView = "IBL HDR Texture";
+					}
+
+					ImGui::EndCombo();
+				}
+
+				if (g_CurrentlySelectedView == "Shadow Depth Buffer")
+				{
+					ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
+				}
+				else if (g_CurrentlySelectedView == "Bloom Buffer")
+				{
+					ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_BloomRenderTexture->GetShaderResourceView().Get(), ImVec2(720, 480));
+				}
+				else if (g_CurrentlySelectedView == "IBL HDR Texture")
+				{
+					ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(720, 480));
+				}
+
+				ImGui::DragInt("Debug Grid Size", &renderer->m_DebugGridSize, 0.1f);
+				ImGui::DragFloat("Gizmos Size", &renderer->m_GizmosSizeCurrent, 0.1f, renderer->m_GizmosSizeMinimum, renderer->m_GizmosSizeMaximum);
+
+				ImGui::End();
+
+				// Sky
+				ImGui::Begin("Sky Debug");
+
+				//Aurora::DX11_Utility::DX11_TexturePackage* textures = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular);
+				// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_EnvironmentTextureEquirectangular.m_SRV.Get(), ImVec2(600, 600));
+				if (ImGui::Button("Front"))
+				{
+					renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 90.0f, 0.0f); // front
+				}
+				if (ImGui::Button("Back"))
+				{
+					renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 270.0f, 0.0f); // back
+				}
+				if (ImGui::Button("Top"))
+				{
+					renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(-90.0f, 0.0f, 0.0f); // top
+				}
+				if (ImGui::Button("Bottom"))
+				{
+					renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(90.0f, 0.0f, 0.0f); // bottom
+				}
+				if (ImGui::Button("Left"))
+				{
+					renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 0.0f, 0.0f); // left
+				}
+				if (ImGui::Button("Right"))
+				{
+					renderer->m_Camera->GetComponent<Aurora::Camera>()->SetRotation(0.0f, 180.0f, 0.0f); // right
+				}
+
+				// ImGui::Image((void*)m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DeviceContext->m_ShadowDepthTexture->GetShaderResourceView().Get(), ImVec2(600, 600));
+
+				// Aurora::DX11_Utility::DX11_TexturePackage* texturee = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DepthBuffer_Main);
+				// ImGui::Image((void*)texturee->m_ShaderResourceView.Get(), ImVec2(600, 600));
+				ImGui::DragFloat("Light Bias", &renderer->m_LightBias, 0.01, 0.005, 0.1);
+
+				/*
+				else
+				{
+					Aurora::DX11_Utility::DX11_TexturePackage* texture = Aurora::DX11_Utility::ToInternal(&m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_DefaultWhiteTexture->m_Texture);
+					ImGui::Image((void*)texture->m_ShaderResourceView.Get(), ImVec2(300, 300));
+				}
+				if (ImGui::Button("Load..."))
+				{
+					std::optional<std::string> filePath = EditorExtensions::OpenFile("Textures", m_EngineContext);
+					if (filePath.has_value())
+					{
+						std::string path = filePath.value();
+						std::string fileName = Aurora::FileSystem::GetFileNameFromFilePath(path);
+						std::shared_ptr<Aurora::AuroraResource> resource = m_EngineContext->GetSubsystem<Aurora::ResourceCache>()->LoadTextureHDR(path, 4);
+						m_EngineContext->GetSubsystem<Aurora::Renderer>()->m_Skybox->m_SkyHDR->m_Texture = resource->m_Texture;
+					}
+				}
+
+
+				// ImGui::End();
+
+				ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+				float height = ImGui::GetFrameHeight() + 1.0; //Add a little padding here so things look nicer.
+
+				if (ImGui::BeginViewportSideBar("##MainStatusBar", nullptr, ImGuiDir_Down, height, windowFlags)) // Specifies that this will be pipped at the top of the window, below the main menu bar.
+				{
+					if (ImGui::BeginMenuBar())
+					{
+						if (!m_EditorConsole->m_Logs.empty())
+						{
+							ImGui::PushStyleColor(ImGuiCol_Text, m_EditorConsole->m_LogTypeColor[static_cast<int>(m_EditorConsole->m_Logs.back().m_LogType.first)]);
+							ImGui::TextUnformatted(m_EditorConsole->m_Logs.back().m_Text.c_str());
+							ImGui::PopStyleColor();
+						}
+						else
+						{
+							ImGui::TextUnformatted("");
+						}
+					}
+
+					ImGui::EndMenuBar();
+				}
+			
+				*/
 			}
 			ImGui::End();
-			*/
-
 			ImGui::End(); // Ends docking context.
 
 			ImGui::Render();

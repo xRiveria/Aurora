@@ -39,6 +39,7 @@ bool EditorTools::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
 
 	switch (inputEvent.GetKeyCode())
 	{
+		AURORA_INFO(Aurora::LogLayer::Editor, "Received!");
 		case AURORA_KEY_E:
 			m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
 			return true;
@@ -55,6 +56,8 @@ bool EditorTools::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
 			m_GizmoType = -1;
 			return true;
 	}
+
+	return false;
 }
 
 void EditorTools::TickGizmos()

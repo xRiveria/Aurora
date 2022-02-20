@@ -116,6 +116,8 @@ bool Properties::OnKeyPressed(Aurora::KeyPressedEvent& keyPressedEvent)
             }
             break;
         }
+
+        return false;
     }
 }
 
