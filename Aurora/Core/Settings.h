@@ -36,8 +36,7 @@ namespace Aurora
         std::string GetProjectDirectoryAbsolute() const;
 
     private:
-        std::string m_ApplicationName = "Application";
-        Math::Vector2 m_Resolution_Output = Math::Vector2::Zero;
+        std::string m_ApplicationName = "Default Application";
 
         std::string m_ProjectDirectory;
         std::unordered_map<ResourceDirectory, std::string> m_ResourceDirectories;

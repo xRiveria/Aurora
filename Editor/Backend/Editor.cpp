@@ -62,18 +62,17 @@ namespace EditorConfigurations
 	void EditorSubsystem::OnEvent(Aurora::InputEvent& inputEvent)
 	{
 		AURORA_INFO(Aurora::LogLayer::Editor, "Received!");
-		//Aurora::InputEventDispatcher dispatcher(inputEvent);
-		//dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorSubsystem::OnKeyPressed));
+		Aurora::InputEventDispatcher dispatcher(inputEvent);
+		dispatcher.Dispatch<Aurora::KeyPressedEvent>(AURORA_BIND_INPUT_EVENT(EditorSubsystem::OnKeyPressed));
 
-		//if (!inputEvent.IsEventHandled)
-		//{
-		// 
+		if (!inputEvent.IsEventHandled)
+		{
 			// Push events to any widgets that ought to be listening to events.
 			for (int i = 0; i < m_Editor->GetWidgets().size(); i++)
 			{
 				m_Editor->GetWidgets()[i]->OnEvent(inputEvent);
 			}
-		//}
+		}
 	}
 
 	bool EditorSubsystem::OnKeyPressed(Aurora::KeyPressedEvent& inputEvent)
@@ -87,25 +86,25 @@ namespace EditorConfigurations
 
 		switch (inputEvent.GetKeyCode())
 		{
-		case AURORA_KEY_Z:
-		{
-			if (isControlPressed)
+			case AURORA_KEY_Z:
 			{
-				Aurora::DifferentiatorTool::Undo();
-				inputEvent.IsEventHandled = true;
+				if (isControlPressed)
+				{
+					Aurora::DifferentiatorTool::Undo();
+					inputEvent.IsEventHandled = true;
+				}
+				break;
 			}
-			break;
-		}
 
-		case AURORA_KEY_R:
-		{
-			if (isControlPressed)
+			case AURORA_KEY_R:
 			{
-				Aurora::DifferentiatorTool::Redo();
-				inputEvent.IsEventHandled = true;
+				if (isControlPressed)
+				{
+					Aurora::DifferentiatorTool::Redo();
+					inputEvent.IsEventHandled = true;
+				}
+				break;
 			}
-			break;
-		}
 		}
 
 		return false;
